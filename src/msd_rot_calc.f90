@@ -1,0 +1,224 @@
+!   Program to calculate the individual MSDs and rotational correlation functions
+!    and average them to get the total.
+!
+
+  Program msd_rot_calc
+
+    implicit none
+    integer :: i, j, k, it, itmp
+    integer :: ntimes, nfiles
+    integer :: natms, nmol, atms_per_mol
+    real :: dt, eavg, volume
+    real :: dp_O1, dp_O2, dOsq, d1sq, d2sq
+
+    real, dimension(3) :: L
+    real, dimension(500,3) :: rO_zero, r1_zero, r2_zero, rO, r1, r2
+    real, dimension(500,3) :: rO_old, r1_old, r2_old, shiftO, shift1, shift2
+    real, dimension(500,3) :: eO1, eO2, eO1_zero, eO2_zero
+    real, dimension(0:5000,3) :: msd, msd_tot, emsd_tot
+    real, dimension(0:5000) :: c1, c1_tot, c2, c2_tot
+    real, dimension(0:5000) :: ec1_tot, ec2_tot
+
+    real, dimension(5000) :: ener, dener
+
+    character(len=10), dimension(5000) :: ext
+
+    atms_per_mol = 3  ! Set # of atoms per mol !!!!!!!!!!!!
+
+    ! Read in the input parameters for the calculation
+    open(10,file='msd_rot_calc.in',status='old')
+
+    read(10,*)
+    read(10,*) nfiles
+    read(10,*) 
+    read(10,*) ntimes, dt
+    read(10,*) 
+    read(10,*) L(1), L(2), L(3)
+
+
+    ! First read in the extensions for the directories and trajectory files
+    open(9,file='file_names',status='old')
+
+    do i = 1, nfiles
+       read(9,*) ext(i)
+    enddo
+    close(9)
+
+    ! Read in the energies for each trajectory
+
+    write(6,*) ' nfiles = ',nfiles
+
+
+    ! Zero the total results
+    msd_tot = 0.0; c1_tot = 0.0; c2_tot = 0.0
+    emsd_tot = 0.0; ec1_tot = 0.0; ec2_tot = 0.0
+
+    ! Then read in each file separately
+    open(81,file='vol_init.out', status='old')    
+    do i = 1, nfiles
+       read(81,*) volume
+       L(1)=volume ** (1.0/3.0)
+       L(2)=L(1)
+       L(3)=L(1)
+       open(11,file=trim(ext(i))//'/traj_'//trim(ext(i))//'.xyz',status='old')  !open traj file
+       
+       ! Zero the results for each NVE trajectory
+       msd = 0.0; c1 = 0.0; c2 = 0.0
+
+       ! Read in the first configuration and set it as the zero.
+       read(11,*) natms
+       read(11,*)
+       nmol = natms/atms_per_mol
+       do j = 1, nmol
+          read(11,*) itmp, (rO_zero(j,k),k=1,3)
+          read(11,*) itmp, (r1_zero(j,k),k=1,3)
+          read(11,*) itmp, (r2_zero(j,k),k=1,3)
+          r1_zero(j,:) = r1_zero(j,:) - L(:)*anint(( r1_zero(j,:) - rO_zero(j,:) )/L(:))
+          r2_zero(j,:) = r2_zero(j,:) - L(:)*anint(( r2_zero(j,:) - rO_zero(j,:) )/L(:))
+
+          ! Define the bond unit vectors
+          call bond_vec(nmol, rO_zero, r1_zero, eO1_zero)
+          call bond_vec(nmol, rO_zero, r2_zero, eO2_zero)
+          c1(0) = c1(0) + 2.0
+          c2(0) = c2(0) + 2.0
+       enddo
+
+       ! Set the "old" coordinates for unwrapping to the initial ones
+       rO_old = rO_zero; r1_old = r1_zero; r2_old = r2_zero
+       shiftO = 0.0; shift1 = 0.0; shift2 = 0.0
+
+       do it = 2, ntimes
+
+          ! Read in configuration at timestep it
+          read(11,*)
+          read(11,*)
+          do j = 1, nmol
+             read(11,*) itmp, (rO(j,k),k=1,3)
+             read(11,*) itmp, (r1(j,k),k=1,3)
+             read(11,*) itmp, (r2(j,k),k=1,3)
+             r1(j,:) = r1(j,:) - L(:)*anint(( r1(j,:) - rO(j,:) )/L(:))
+             r2(j,:) = r2(j,:) - L(:)*anint(( r2(j,:) - rO(j,:) )/L(:))
+             
+             ! Define the bond unit vectors                                                                                                                   
+             call bond_vec(nmol, rO, r1, eO1)
+             call bond_vec(nmol, rO, r2, eO2)
+             
+             
+             ! Calculate the contribution to the MSDs
+             !   First m
+             shiftO(j,:) =  shiftO(j,:) - L(:)*anint(( rO(j,:) - rO_old(j,:) )/L(:))
+             shift1(j,:) =  shift1(j,:) - L(:)*anint(( r1(j,:) - r1_old(j,:) )/L(:))
+             shift2(j,:) =  shift2(j,:) - L(:)*anint(( r2(j,:) - r2_old(j,:) )/L(:))
+
+             !   Next the squared displacements
+             dOsq = ( rO(j,1) + shiftO(j,1) - rO_zero(j,1) )**2 + ( rO(j,2) + shiftO(j,2) - rO_zero(j,2) )**2 &
+                  + ( rO(j,3) + shiftO(j,3) - rO_zero(j,3) )**2
+             d1sq = ( r1(j,1) + shift1(j,1) - r1_zero(j,1) )**2 + ( r1(j,2) + shift1(j,2) - r1_zero(j,2) )**2 &
+                  + ( r1(j,3) + shift1(j,3) - r1_zero(j,3) )**2
+             d2sq = ( r2(j,1) + shift2(j,1) - r2_zero(j,1) )**2 + ( r2(j,2) + shift2(j,2) - r2_zero(j,2) )**2 &
+                  + ( r2(j,3) + shift2(j,3) - r2_zero(j,3) )**2
+
+             !   Then add them to the MSDs
+             msd(it-1,1) = msd(it-1,1) + dOsq
+             msd(it-1,2) = msd(it-1,2) + d1sq
+             msd(it-1,3) = msd(it-1,3) + d2sq
+
+             ! Calculate the contribution to the correlation functions
+             dp_O1 = eO1(j,1)*eO1_zero(j,1) + eO1(j,2)*eO1_zero(j,2) + eO1(j,3)*eO1_zero(j,3)
+             dp_O2 = eO2(j,1)*eO2_zero(j,1) + eO2(j,2)*eO2_zero(j,2) + eO2(j,3)*eO2_zero(j,3)
+             c1(it-1) = c1(it-1) + dp_O1 + dp_O2
+             c2(it-1) = c2(it-1) + 0.5*(3.0*dp_O1**2 + 3.0*dp_O2**2 - 2.0)
+
+          enddo
+
+          ! Set the "old" coordinates for unwrapping to the last ones
+          rO_old = rO; r1_old = r1; r2_old = r2
+
+       enddo ! end loop over timesteps
+       close(11)
+
+       c1_tot = c1_tot + c1
+       c2_tot = c2_tot + c2
+       msd_tot = msd_tot + msd
+
+       ec1_tot = ec1_tot + dener(i)*c1
+       ec2_tot = ec2_tot + dener(i)*c2
+       emsd_tot = emsd_tot + dener(i)*msd
+          
+       !write out the results for this trajectory
+       open(21,file=trim(ext(i))//'/c1_'//trim(ext(i))//'.dat')  !open C1(t) file for this trajectory
+       open(22,file=trim(ext(i))//'/c2_'//trim(ext(i))//'.dat')  !open C2(t) file for this trajectory
+       open(23,file=trim(ext(i))//'/msd_'//trim(ext(i))//'.dat') !open MSD(t) file for this trajectory
+
+       do it = 0, ntimes - 1
+          write(21,'(2F12.5)') real(it)*dt, c1(it)/real(2*nmol)
+          write(22,'(2F12.5)') real(it)*dt, c2(it)/real(2*nmol)
+          write(23,'(5F12.5)') real(it)*dt, (msd(it,k)/real(nmol), k=1,3)
+       enddo
+       close(21)
+       close(22)
+       close(23)
+
+    enddo  ! end loop over files
+
+
+    !write out the results for the total of all trajectories
+    open(21,file='c1_tot.dat')  !open C1(t) file 
+    open(22,file='c2_tot.dat')  !open C2(t) file 
+    open(23,file='msd_tot.dat') !open MSD(t) file 
+    open(31,file='ener_c1_tot.dat')  !open dE-C1(t) file 
+    open(32,file='ener_c2_tot.dat')  !open dE-C2(t) file 
+    open(33,file='ener_msd_tot.dat') !open dE-MSD(t) file 
+    open(41,file='de_c1_tot.dat')  !open dE-C1(t) file 
+    open(42,file='de_c2_tot.dat')  !open dE-C2(t) file 
+    open(43,file='de_msd_tot.dat') !open dE-MSD(t) file 
+
+    do it = 0, ntimes - 1
+       !write(21,'(2F12.5)') real(it)*dt, c1_tot(it)/real(2*nmol*nfiles)
+       !write(22,'(2F12.5)') real(it)*dt, c2_tot(it)/real(2*nmol*nfiles)
+       !write(23,'(5F12.5)') real(it)*dt, (msd_tot(it,k)/real(nmol*nfiles), k=1,3)
+
+      ! write(31,'(2F12.5)') real(it)*dt, ec1_tot(it)/c1_tot(it)
+      ! write(32,'(2F12.5)') real(it)*dt, ec2_tot(it)/c2_tot(it)
+      ! write(33,'(5F12.5)') real(it)*dt, (emsd_tot(it,k)/msd_tot(it,k), k=1,3)
+
+      ! write(41,'(2F12.5)') real(it)*dt, ec1_tot(it)/real(2*nmol*nfiles)
+      ! write(42,'(2F12.5)') real(it)*dt, ec2_tot(it)/real(2*nmol*nfiles)
+      ! write(43,'(5F12.5)') real(it)*dt, (emsd_tot(it,k)/real(nmol*nfiles), k=1,3)
+    enddo
+    close(21)
+    close(22)
+    close(23)
+
+    close(31)
+    close(32)
+    close(33)
+    close(41)
+    close(42)
+    close(43)
+
+
+  End Program msd_rot_calc
+
+
+  ! Subroutine to calculate the normalized bond vector from two atomic positions
+  !  e = rb - ra normed
+
+  Subroutine bond_vec(nmol, ra, rb, e)
+
+    implicit none
+    integer :: j, k, nmol
+    real, dimension(500,3) :: ra, rb, e
+    real, dimension(3) :: etmp
+    real :: norm
+    
+    do j = 1, nmol
+       etmp(:) = rb(j,:) - ra(j,:)
+       norm = dot_product(etmp, etmp)
+
+       e(j,:) = etmp(:)/sqrt(norm)
+
+    enddo
+
+
+  End Subroutine bond_vec
