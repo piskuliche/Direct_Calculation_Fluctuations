@@ -30,19 +30,29 @@ msd=[400]
 c2=[400]
 ival=[nfiles]
 dival=[nfiles]
+d2ival=[nfiles]
 
+# First Derivatives
 divalmsd=[400]
 divalc1=[400]
 divalc2=[400]
 
+# Second Derivatives
+d2ivalmsd=[400]
+d2ivalc1=[400]
+d2ivalc2=[400]
+
 eaival_bl=[[] for x in range(0,nblocks)] 
 msd_bl=[[] for x in range(0,nblocks)]
 dmsdival_bl=[[] for x in range(0,nblocks)]
-c2ival_bl=[[] for x in range(0,nblocks)]
+d2msdival_bl=[[] for x in range(0,nblocks)]
+dc2ival_bl=[[] for x in range(0,nblocks)]
+d2c2ival_bl=[[] for x in range(0,nblocks)]
 c2_bl=[[] for x in range(0,nblocks)]
 
 for i in range(0,nfiles):
     dival.append(0)
+    d2ival.append(0)
 
 # Read in File Names
 fnames=np.genfromtxt('file_names', dtype='string', unpack=True)
@@ -61,6 +71,8 @@ for item in range(0,len(inp_names)):
         ivalavg_bl=np.average(ival[start:end])
         for j in range(start,end):
             dival[j]=ival[j]-ivalavg_bl
+            d2ival[j]=pow(dival[j],2)
+        d2ivalav=np.average(d2ival[start:end])
         for j in range(0, len(msd)):
             msd[j]=0
             divalmsd[j]=0
@@ -72,16 +84,20 @@ for item in range(0,len(inp_names)):
             # MSD Weighted by Fluct
             msd=msd+tmsd
             divalmsd=divalmsd+tmsd*dival[int(j)]
+            d2ivalmsd=divalmsd+tmsd*(d2ival[int(j)]-d2ivalav)
             # C2 Weighted by Fluct
             c2=c2+tc2
             divalc2=divalc2+tc2*dival[int(j)]
+            d2ivalc2=divalc2+tc2*(d2ival[int(j)]-d2ivalav)
         # Normalize the lists
         # MSD
         msd[:] = [x / float(filesperblock) for x in msd]
         divalmsd[:] = [x / float(filesperblock) for x in divalmsd]
+        d2ivalmsd[:] = [x / float(filesperblock) for x in d2ivalmsd]
         # C2
         c2[:] = [x / float(filesperblock) for x in c2]
         divalc2[:] = [x / float(filesperblock) for x in divalc2]
+        d2ivalc2[:] = [x / float(filesperblock) for x in d2ivalc2]
         # Calculate Activation Energies
         eaival=divalmsd[1:]/msd[1:]
         # Save to Sep List
@@ -89,18 +105,21 @@ for item in range(0,len(inp_names)):
         # Saves msd_info to sep list
         msd_bl[block]=list(msd)
         dmsdival_bl[block]=list(divalmsd[1:])
+        d2msdival_bl[block]=list(d2ivalmsd[1:])
         # Saves c2 to sep list
         c2_bl[block]=list(c2)
-        c2ival_bl[block]=list(divalc2)
+        dc2ival_bl[block]=list(divalc2)
+        d2c2ival_bl[block]=list(d2ivalc2)
         # print block values
         np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_msd.dat', np.c_[eaival], fmt='%s')
-        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_c2.dat', np.c_[eaival], fmt='%s')
+        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_c2.dat', np.c_[divalc2], fmt='%s')
         # Zero the items in the range
         for i in range(start,end):
             dival[i]=0
         for i in range(0,len(msd)):
             msd[i]=0
             divalmsd[i]=0
+            d2ivalmsd[i]=0
         for k in range(0,len(eaival)):
             eaival[k]=0
     ivalavg=np.average(ival)
@@ -108,11 +127,15 @@ for item in range(0,len(inp_names)):
     # Zeroes the msd vectors and recalculates the d_values
     for j in range(0,nfiles):
         dival[j]=ival[j]-ivalavg
+        d2ival[j]=pow(dival[j],2)
+    d2ivalav=np.average(d2ival)
     for j in range(0,len(msd)):
         msd[j]=0
         divalmsd[j]=0
+        d2ivalmsd[j]=0
         c2[j]=0
         divalc2[j]=0
+        d2ivalc2[j]=0
     for j in range(0,nfiles):
         tmsd=np.genfromtxt(fmsd[j], usecols=1, unpack=True)
         tc2=np.genfromtxt(fc2[j], usecols=1, unpack=True)
@@ -120,17 +143,22 @@ for item in range(0,len(inp_names)):
         # MSD
         msd=msd+tmsd
         divalmsd=divalmsd+tmsd*dival[int(j)]
+        d2ivalmsd=divalmsd+tmsd*(d2ival[int(j)]-d2ivalav)
         # C2
         c2=c2+tc2
         divalc2=divalc2+tc2*dival[int(j)]
+        d2ivalc2=divalc2+tc2*(d2ival[int(j)]-d2ivalav)
     # Normalize Results
     msd[:] = [x / float(nfiles) for x in msd]
     divalmsd[:] = [x / float(nfiles) for x in divalmsd]
+    d2ivalmsd[:] = [x / float(nfiles) for x in d2ivalmsd]
     c2[:] = [x / float(nfiles) for x in c2]
     divalc2 = [x / float(nfiles) for x in divalc2]
+    d2ivalc2 = [x / float(nfiles) for x in d2ivalc2]
     eaival=divalmsd[1:]/msd[1:]
     # Save Data
     np.savetxt('d'+inp_names[item]+'.dat', dival, fmt=['%.4f'])
+    np.savetxt('d2'+inp_names[item]+'-<'+inp_names[item]+'>.dat',d2ival-d2ivalav, fmt=['%.4f'])
     # Calculate Uncertainty
     # MSD
     err_ivalmsdea=np.array(eaival_bl).std(0)
@@ -138,27 +166,28 @@ for item in range(0,len(inp_names)):
     # DMSD
     err_divalmsd=np.array(dmsdival_bl).std(0)
     err_divalmsd= [x * t_val for x in err_divalmsd]
+    err_d2ivalmsd=np.array(d2msdival_bl).std(0)
+    err_d2ivalmsd= [x * t_val for x  in err_d2ivalmsd]
+
     # DC2
-    err_c2ival=np.array(c2ival_bl).std(0)
-    err_c2ival= [x * t_val for x in err_c2ival]
+    err_dc2ival=np.array(dc2ival_bl).std(0)
+    err_dc2ival= [x * t_val for x in err_dc2ival]
+    err_d2c2ival=np.array(d2c2ival_bl).std(0)
+    err_d2c2ival= [x * t_val for x in err_d2c2ival]
 
     # Calculate Time
     time = []
     for i in range(0, len(err_ivalmsdea)+1):
         time.append(i*0.05)
-    print len(eaival)
-    print len(time)
-    print len(err_ivalmsdea)
-    print len(divalc2)
-    print len(err_c2ival)
-    print len(c2)
 
     np.savetxt('ea_msd_'+inp_names[item]+'.dat', np.c_[time[1:], eaival, err_ivalmsdea], fmt='%s')
-    np.savetxt('d'+inp_names[item]+'_msd_tot_.dat', np.c_[time[1:], divalmsd[1:], err_divalmsd], fmt='%s')
-    np.savetxt('dc2_'+inp_names[item]+'.dat', np.c_[time, divalc2, err_c2ival], fmt='%s')
+    np.savetxt('d'+inp_names[item]+'_msd_tot.dat', np.c_[time[1:], divalmsd[1:], err_divalmsd], fmt='%s')
+    np.savetxt('d2'+inp_names[item]+'_msd_tot.dat', np.c_[time[1:], d2ivalmsd[1:], err_d2ivalmsd], fmt='%s')
+    np.savetxt('dc2_'+inp_names[item]+'.dat', np.c_[time, divalc2, err_dc2ival], fmt='%s')
+    np.savetxt('d2c2_'+inp_names[item]+'.dat', np.c_[time, d2ivalc2, err_d2c2ival], fmt='%s')
     np.savetxt('c2_total_result.dat', np.c_[time,c2], fmt='%s')
-    np.savetxt('dc2_'+inp_names[item]+'_total_result.dat', np.c_[time, divalc2], fmt='%s')
     np.savetxt('time.dat',time,fmt='%s')
     for i in range(0, nblocks):
         np.savetxt('bl_'+str(int(i))+'_c2_val.dat', c2_bl[i], fmt='%s')
-        np.savetxt('bl_'+str(int(i))+'_dc2_val_'+inp_names[item]+'.dat', c2ival_bl[i], fmt='%s')
+        np.savetxt('bl_'+str(int(i))+'_dc2_val_'+inp_names[item]+'.dat', dc2ival_bl[i], fmt='%s')
+
