@@ -105,12 +105,14 @@ else
     cp src/python/file_setup.py ../
     cp src/sub/water_nve.sh ../
     cp src/sub/job_array.sh ../
+    cp src/sub/msd_array.sh ../
     cd ../
     python file_setup.py
     bash setup_files
     cd -
     echo "-Filesystem is built"
     touch .flag_filesystem
+    exit 1
 fi
 
 # STEP: RUN NVE TRAJECTORIES
@@ -124,6 +126,7 @@ else
     bash sub_script
     echo "  NVE Trajectories Submitted"
     touch .flag_nve
+    exit 1
 fi
 
 # STEP: CHECK THAT NVE TRAJECTORIES RAN
@@ -143,17 +146,36 @@ else
     echo "  If this step doesn't work the first time,"
     echo "  check your input files"
     touch .flag_checkup
+    exit 1
 fi
 
-# STEP: CALCULATE MSD, C1, C2
-
-FILE=.flag_ac
+#STEP: Calculate CORRELATION FUNCTIONS
+FILE=.flag_corr
 if [ -f $FILE ]; then
-    echo "-Correlation Calculation Flag Exists"
+    echo "-Correlation Calc Flag Exists"
 else
-    echo "-Correlation Calculation Flag Missing"
-    echo "  Running MSD calculation"
-     
+    echo "-Correlation Calc Flag Missing"
+    echo "  Running Correlation Function Calculation"
+    bash corr_sub_script
+    echo "  Corr Function Calculation Submitted"
+    echo "  Please Wait For These to Proceed"
+    echo "  Before Continuing to the Next Step"
+    touch .flag_corr
+    exit 1
 fi
+
 # STEP: CALCULATE WEIGHTED CORRELATION FUNCTIONS/Act. Eners./Act. Vols
-# STEP: TABULATE RESULTS
+FILE=.flag_valcalc
+if [ -$FILE ]; then
+    echo "-Fluctuation Calculation Flag Exist"
+else
+    echo "-Fluctuation Calculation Flag Missing"
+    echo "  Running Fluctuation Calc"
+    cp src/python/flucts_calc.py ../
+    cd ../
+    python flucts_calc.py -inp test.inp -files 5000 -blocks 10
+    cd -
+    echo "  Fluctuation Calculation Completed"
+    touch .flag_valcalc
+    exit 1
+fi

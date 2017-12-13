@@ -20,4 +20,4 @@ rm ../job_array.sh
 rm ../water_nve.sh
 rm ../checkup.py
 rm ../out
-
+rm ../msd_array.sh

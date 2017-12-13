@@ -9,7 +9,7 @@ SEP=1000
 START=1001000
 CUR=$(( MOAB_JOBARRAYINDEX*SEP - SEP + START ))
 cd $PBS_O_WORKDIR
-cd $CUR
+cd FILES/$CUR
 
 
 module load legacy
@@ -19,7 +19,6 @@ module load lammps/20151207
 
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
-
 mpirun lmp_g++ < in.nve -screen none
 
 echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o

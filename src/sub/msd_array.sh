@@ -9,7 +9,7 @@ SEP=1000
 START=1001000
 CUR=$(( MOAB_JOBARRAYINDEX*SEP - SEP + START ))
 cd $PBS_O_WORKDIR
-cd $CUR
+cd FILES/$CUR
 
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
