@@ -15,7 +15,7 @@ cd FILES/$CUR
 module load legacy
 module load intel_compiler_2016
 module load intel_mpi_intel64/5.1.2.150
-module load lammps/20151207
+module load lammps/11Aug17
 
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
