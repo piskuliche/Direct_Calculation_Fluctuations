@@ -42,7 +42,7 @@ fix             5 all npt temp 473.2 473.2 100.0 iso 98.6923 98.6923 1000.0
 
 timestep	1.0
 
-run             100000
+run             1000000
 
 thermo_modify   lost warn
 dump            traj all xyz 50 traj.xyz

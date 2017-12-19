@@ -1,4 +1,4 @@
-#MSUB -N direct_calc_nve
+#MSUB -N setupfiles
 #MSUB -q thompson
 #MSUB -j oe
 #MSUB -d ./
@@ -7,12 +7,12 @@
 module load legacy
 module load intel_compiler_2016
 module load intel_mpi_intel64/5.1.2.150
-module load lammps/11Aug17
+module load lammps/20151207
 
 echo Time is `date`
 echo Directory is `pwd`
 
-mpirun lmp_mpi < in.nve -screen none
+bash setup_files
 
 echo Ending Time is `date`
 exit 0

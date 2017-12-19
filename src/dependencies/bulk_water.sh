@@ -9,12 +9,12 @@
 module load legacy
 module load intel_compiler_2016
 module load intel_mpi_intel64/5.1.2.150
-moudle load lammps/11Aug17
+module load lammps/11Aug17
 
 echo Time is `date`
 echo Directory is `pwd`
 
-mpirun lmp_g++ < in.water -screen none
+mpirun lmp_mpi < in.water -screen none
 
 echo Ending Time is `date`
 exit 0

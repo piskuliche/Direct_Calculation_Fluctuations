@@ -96,21 +96,25 @@ else
         # If userInput is not empty show what the user typed in and run ls -l
         echo "You entered " "$sepconfig"
     fi
-
+    if [ -f ../file_names ]; then
+        rm ../file_names
+    fi
     for ((i=$startconfig; i<$endconfig; i+=$sepconfig )); do 
         echo $i >> ../file_names
-        touch ../RESTART/restart.$i
     done
     mkdir ../FILES
     cp src/python/file_setup.py ../
     cp src/sub/water_nve.sh ../
     cp src/sub/job_array.sh ../
     cp src/sub/msd_array.sh ../
+    cp src/input/msd_rot_calc.in ../
+    cp src/sub/sub.sh ../
     cd ../
     python file_setup.py
-    bash setup_files
+    msub sub.sh
     cd -
-    echo "-Filesystem is built"
+    echo "  Filesystem is being built"
+    echo "  Please Wait until The Job Completes Before Moving Forward"
     touch .flag_filesystem
     exit 1
 fi
@@ -123,7 +127,9 @@ if [ -f $FILE ]; then
 else
     echo "-NVE Flag Missing"
     echo "  Running NVE Trajectories"
+    cd ../
     bash sub_script
+    cd -
     echo "  NVE Trajectories Submitted"
     touch .flag_nve
     exit 1
@@ -141,6 +147,9 @@ else
     cd ../
     python checkup.py > out
     bash out
+    mkdir logs
+    mv array* logs
+    mv direct_calc_nve* logs
     cd -
     echo "  Wait until remaining NVE trajectories run"
     echo "  If this step doesn't work the first time,"
