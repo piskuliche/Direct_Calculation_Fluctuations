@@ -37,7 +37,6 @@ else
     else
         echo "  At this point, you should run the base trajectory"
         echo "  Example NVT and NPT input files are located in src/dependencies"
-        touch ../log.lammps # delete later - for testing only
         exit 1
     fi
 fi
@@ -55,7 +54,6 @@ else
         echo "  At this point, you should provide an nve simulation input file"
         echo "  An example NVE input file is located in src/dependencies"
         echo "  Place this file in the main run directory to continue"
-        touch ../in.nve # delete later - for testing only
         exit 1
     fi
 fi
