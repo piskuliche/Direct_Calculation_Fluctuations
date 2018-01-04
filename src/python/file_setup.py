@@ -3,6 +3,7 @@
 import sys
 import os
 import numpy as np
+import math
 
 f = open('file_names','r')
 ext = f.readlines()
@@ -22,10 +23,10 @@ for i in range (0,nfiles):
     h.write("sed -i -e 's@AAA@"+ext[i]+"@g' msd_rot_calc.in\n")
     h.write("sed -i -e 's@bulk_water_nve@nve_"+ext[i]+"@g' water_nve.sh\n")
     h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve\n")
-    h.write("sed -i -e 's@traj_file@traj_"+ext[i]+".xyz@g' in.nve\n")
+    h.write("sed -i -e 's@traj.file@traj_"+ext[i]+".xyz@g' in.nve\n")
     h.write('cd ../../\n')
 
-narrays=nfiles/500.
+narrays=int(math.ceil(float(nfiles)/500.))
 
 m = open ('sub_script', 'w')
 for i in range(0,int(narrays)):
