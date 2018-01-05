@@ -166,7 +166,6 @@ else
     cp src/exec/msd_rot_calc ../
     cd ../
     bash corr_sub_script
-    mv msd_calc.o* logs
     cd -
     echo "  Corr Function Calculation Submitted"
     echo "  Please Wait For These to Proceed"
@@ -184,6 +183,7 @@ else
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
     cd ../
+    mv msd_calc.o* logs
     python flucts_calc.py -inp test.inp -files 5000 -blocks 10
     cd -
     echo "  Fluctuation Calculation Completed"
