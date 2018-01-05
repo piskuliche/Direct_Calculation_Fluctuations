@@ -13,10 +13,9 @@ cd FILES/$CUR
 
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
-cp ../msd_rot_calc ./
-cp ../msd_rot_calc.in ./
-./msd_rot_calc > tmp.msd
-rm msd_rot_calc 
 
+cp ../../msd_rot_calc ./
+./msd_rot_calc > tmp.msd
+ 
 echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o
 exit 0
