@@ -57,8 +57,8 @@ for i in range(0,nfiles):
 # Read in File Names
 fnames=np.genfromtxt('file_names', dtype='string', unpack=True)
 fmsd=["FILES/"+s+"/msd_"+s+".dat" for s in fnames]
-fc1=["FILES"+s+"/c1_"+s+".dat" for s in fnames]
-fc2=["FILES"+s+"/c2_"+s+".dat" for s in fnames]
+fc1=["FILES/"+s+"/c1_"+s+".dat" for s in fnames]
+fc2=["FILES/"+s+"/c2_"+s+".dat" for s in fnames]
 
 # Do the block average calculation
 for item in range(0,len(inp_names)):

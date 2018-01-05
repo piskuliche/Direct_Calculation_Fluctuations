@@ -97,7 +97,7 @@ else
     if [ -f ../file_names ]; then
         rm ../file_names
     fi
-    for ((i=$startconfig; i<$endconfig; i+=$sepconfig )); do 
+    for ((i=$startconfig; i<=$endconfig; i+=$sepconfig )); do 
         echo $i >> ../file_names
     done
     mkdir ../FILES
@@ -182,8 +182,11 @@ else
     echo "-Fluctuation Calculation Flag Missing"
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
+    cp src/python/grab_flucts.py ../
+    cp src/input/test.inp ../
     cd ../
     mv msd_calc.o* logs
+    python grab_flucts.py > grab_flucts.log
     python flucts_calc.py -inp test.inp -files 5000 -blocks 10
     cd -
     echo "  Fluctuation Calculation Completed"
