@@ -163,6 +163,7 @@ if [ -f $FILE ]; then
 else
     echo "-Correlation Calc Flag Missing"
     echo "  Running Correlation Function Calculation"
+    cp src/exec/msd_rot_calc ../
     bash corr_sub_script
     echo "  Corr Function Calculation Submitted"
     echo "  Please Wait For These to Proceed"

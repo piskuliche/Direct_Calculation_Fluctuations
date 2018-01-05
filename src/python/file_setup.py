@@ -42,8 +42,8 @@ for i in range(0,int(narrays)):
     nstart=i*500
     nend=i*500+500
     n.write("cp msd_array.sh msd_array_"+str(i)+"\n")
-    n.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' job_array_"+str(i)+"\n")
-    n.write("sed -i -e 's@BBB@"+str(int(nend))+"@g' job_array_"+str(i)+"\n")
+    n.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' msd_array_"+str(i)+"\n")
+    n.write("sed -i -e 's@BBB@"+str(int(nend))+"@g' msd_array_"+str(i)+"\n")
     n.write("msub msd_array_"+str(i)+"\n")
     
     
