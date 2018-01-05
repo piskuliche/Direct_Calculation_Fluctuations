@@ -166,6 +166,7 @@ else
     cp src/exec/msd_rot_calc ../
     cd ../
     bash corr_sub_script
+    mv msd_calc.o* logs
     cd -
     echo "  Corr Function Calculation Submitted"
     echo "  Please Wait For These to Proceed"
