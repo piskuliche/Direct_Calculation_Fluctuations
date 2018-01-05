@@ -177,7 +177,7 @@ fi
 
 # STEP: CALCULATE WEIGHTED CORRELATION FUNCTIONS/Act. Eners./Act. Vols
 FILE=.flag_valcalc
-if [ -$FILE ]; then
+if [ -f $FILE ]; then
     echo "-Fluctuation Calculation Flag Exist"
 else
     echo "-Fluctuation Calculation Flag Missing"
