@@ -164,7 +164,9 @@ else
     echo "-Correlation Calc Flag Missing"
     echo "  Running Correlation Function Calculation"
     cp src/exec/msd_rot_calc ../
+    cd ../
     bash corr_sub_script
+    cd -
     echo "  Corr Function Calculation Submitted"
     echo "  Please Wait For These to Proceed"
     echo "  Before Continuing to the Next Step"
