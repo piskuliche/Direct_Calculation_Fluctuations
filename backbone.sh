@@ -105,7 +105,6 @@ else
     cp src/sub/water_nve.sh ../
     cp src/sub/job_array.sh ../
     cp src/sub/msd_array.sh ../
-    cp src/input/msd_rot_calc.in ../
     cp src/sub/sub.sh ../
     cd ../
     python file_setup.py
@@ -156,6 +155,23 @@ else
     exit 1
 fi
 
+#STEP: Grab Flucts
+FILE=.flag_grabflucts
+if [ -f $FILE ]; then
+    echo "-Grab Flucts Flag Exists"
+else
+    echo "-Grab Flucts Flag Missing"
+    echo "  Running Flucts Grab Code"
+    cp src/python/grab_flucts.py ../
+    cd ../
+    python grab_flucts.py > grab_flucts.log
+    cd -
+    echo "  Grab Flucts Has Finished!"
+    touch .flag_grabflucts
+    exit 1
+fi
+
+
 #STEP: Calculate CORRELATION FUNCTIONS
 FILE=.flag_corr
 if [ -f $FILE ]; then
@@ -164,7 +180,9 @@ else
     echo "-Correlation Calc Flag Missing"
     echo "  Running Correlation Function Calculation"
     cp src/exec/msd_rot_calc ../
+    cp src/python/msd_input_creator.py ../
     cd ../
+    python msd_input_creator.py > msd_input_creator.log
     bash corr_sub_script
     cd -
     echo "  Corr Function Calculation Submitted"
@@ -182,11 +200,9 @@ else
     echo "-Fluctuation Calculation Flag Missing"
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
-    cp src/python/grab_flucts.py ../
     cp src/input/test.inp ../
     cd ../
     mv msd_calc.o* logs
-    python grab_flucts.py > grab_flucts.log
     python flucts_calc.py -inp test.inp -files 5000 -blocks 10
     cd -
     echo "  Fluctuation Calculation Completed"
