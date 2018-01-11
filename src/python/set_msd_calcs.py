@@ -1,5 +1,8 @@
-import argparse
+from scipy import stats
 import numpy as np
+import os
+import argparse
+from argparse import RawTextHelpFormatter
 
 parser = argparse.ArgumentParser(description='''Sets up the msd calculations''', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-inp', help="Input File")
