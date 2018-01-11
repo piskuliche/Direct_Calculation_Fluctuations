@@ -102,9 +102,9 @@ else
     done
     mkdir ../FILES
     cp src/python/file_setup.py ../
+    cp src/python/set_msd_calc.py ../
     cp src/sub/water_nve.sh ../
     cp src/sub/job_array.sh ../
-    cp src/sub/msd_array.sh ../
     cp src/sub/sub.sh ../
     cd ../
     python file_setup.py
@@ -171,26 +171,6 @@ else
     exit 1
 fi
 
-
-#STEP: Calculate CORRELATION FUNCTIONS
-FILE=.flag_corr
-if [ -f $FILE ]; then
-    echo "-Correlation Calc Flag Exists"
-else
-    echo "-Correlation Calc Flag Missing"
-    echo "  Running Correlation Function Calculation"
-    cp src/exec/msd_rot_calc ../
-    cp src/python/msd_input_creator.py ../
-    cd ../
-    python msd_input_creator.py > msd_input_creator.log
-    bash corr_sub_script
-    cd -
-    echo "  Corr Function Calculation Submitted"
-    echo "  Please Wait For These to Proceed"
-    echo "  Before Continuing to the Next Step"
-    touch .flag_corr
-    exit 1
-fi
 
 # STEP: CALCULATE WEIGHTED CORRELATION FUNCTIONS/Act. Eners./Act. Vols
 FILE=.flag_valcalc

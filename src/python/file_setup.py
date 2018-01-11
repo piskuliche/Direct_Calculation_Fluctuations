@@ -17,6 +17,7 @@ for i in range (0,nfiles):
     h.write('mkdir FILES/'+ext[i]+'\n')
     h.write('cp in.nve FILES/'+ext[i]+'\n')
     h.write('cp water_nve.sh FILES/'+ext[i]+'\n')
+    h.write('cp set_msd_calc.py FILES/'+ext[i]+'\n')
     h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
     h.write('cd FILES/'+ext[i]+'\n')
     h.write("sed -i -e 's@bulk_water_nve@nve_"+ext[i]+"@g' water_nve.sh\n")
