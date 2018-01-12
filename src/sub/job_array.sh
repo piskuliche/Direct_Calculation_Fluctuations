@@ -20,6 +20,9 @@ module load lammps/11Aug17
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
 mpirun lmp_mpi < in.nve -screen none
+python set_msd_calcs.py -inp $CUR
+./msd_rot_calc < msd_rot_calc.in
+
 
 echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o
 

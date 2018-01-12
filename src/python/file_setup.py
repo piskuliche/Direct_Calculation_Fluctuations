@@ -17,6 +17,8 @@ for i in range (0,nfiles):
     h.write('mkdir FILES/'+ext[i]+'\n')
     h.write('cp in.nve FILES/'+ext[i]+'\n')
     h.write('cp water_nve.sh FILES/'+ext[i]+'\n')
+    h.write('cp set_msd_calcs.py FILES/'+ext[i]+'\n')
+    h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
     h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
     h.write('cd FILES/'+ext[i]+'\n')
     h.write("sed -i -e 's@bulk_water_nve@nve_"+ext[i]+"@g' water_nve.sh\n")
@@ -28,7 +30,7 @@ narrays=int(math.ceil(float(nfiles)/500.))
 
 m = open ('sub_script', 'w')
 for i in range(0,int(narrays)):
-    nstart=i*500
+    nstart=i*500+1
     nend=i*500+500
     m.write("cp job_array.sh job_array_"+str(i)+"\n")
     m.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' job_array_"+str(i)+"\n")
@@ -37,7 +39,7 @@ for i in range(0,int(narrays)):
 
 n = open ('corr_sub_script', 'w')
 for i in range(0,int(narrays)):
-    nstart=i*500
+    nstart=i*500+1
     nend=i*500+500
     n.write("cp msd_array.sh msd_array_"+str(i)+"\n")
     n.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' msd_array_"+str(i)+"\n")
