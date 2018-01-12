@@ -29,8 +29,8 @@ for i in range (0,nfiles):
 narrays=int(math.ceil(float(nfiles)/500.))
 
 m = open ('sub_script', 'w')
-for i in range(1,int(narrays)):
-    nstart=i*500
+for i in range(0,int(narrays)):
+    nstart=i*500+1
     nend=i*500+500
     m.write("cp job_array.sh job_array_"+str(i)+"\n")
     m.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' job_array_"+str(i)+"\n")
@@ -39,7 +39,7 @@ for i in range(1,int(narrays)):
 
 n = open ('corr_sub_script', 'w')
 for i in range(0,int(narrays)):
-    nstart=i*500
+    nstart=i*500+1
     nend=i*500+500
     n.write("cp msd_array.sh msd_array_"+str(i)+"\n")
     n.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' msd_array_"+str(i)+"\n")
