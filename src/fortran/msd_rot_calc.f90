@@ -124,8 +124,8 @@ Program msd_rot_calc
     
     ! Write out the MSD, C1, C2
     open(21,file='c1_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C1(t) file for this trajectory
-    open(22,file='c2_'//trim(nfile)//'.dat')  !open C2(t) file for this trajectory
-    open(23,file='msd_'//trim(nfile)//'.dat') !open MSD(t) file for this trajectory
+    open(22,file='c2_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C2(t) file for this trajectory
+    open(23,file='msd_'//trim(nfile)//'_'//trim(mol_name)//'.dat') !open MSD(t) file for this trajectory
 
     do it = 0, ntimes - 1
         write(21,'(2F12.5)') real(it)*dt, c1(it)/real(2*nmol)
