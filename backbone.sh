@@ -103,7 +103,7 @@ else
     mkdir ../FILES
     cp src/python/file_setup.py ../
     cp src/python/set_msd_calcs.py ../
-    cp src/sub/water_nve.sh ../
+    cp src/sub/nve.sh ../
     cp src/sub/job_array.sh ../
     cp src/sub/sub.sh ../
     cp src/exec/msd_rot_calc ../
