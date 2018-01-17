@@ -20,7 +20,7 @@ Program msd_rot_calc
 
     real, dimension(5000) :: ener, dener
 
-    character(len=10) nfile
+    character(len=10) nfile, mol_name
 
     atms_per_mol = 3  ! Set # of atoms per mol !!!!!!!!!!!!
 
@@ -33,14 +33,17 @@ Program msd_rot_calc
     read(10,*) ntimes, dt
     read(10,*) 
     read(10,*) volume
-    
+    read(10,*) 
+    read(10,*) mol_name
+    ! mol_type = 1 for water, acn
+    ! mol_type = 2 for co2
     close(10)
 
     L(1)=volume ** (1.0/3.0)
     L(2)=L(1)
     L(3)=L(1)
 
-    open(11,file='traj_'//trim(nfile)//'.xyz',status='old')  !open traj file
+    open(11,file='traj_'//trim(nfile)//'_'//trim(mol_name)//'.xyz',status='old')  !open traj file
    
     ! Zero the results for NVE trajectory
     msd = 0.0; c1 = 0.0; c2 = 0.0
@@ -77,10 +80,11 @@ Program msd_rot_calc
             read(11,*) itmp, (rO(j,k),k=1,3)
             read(11,*) itmp, (r1(j,k),k=1,3)
             read(11,*) itmp, (r2(j,k),k=1,3)
-            r1(j,:) = r1(j,:) - L(:)*anint(( r1(j,:) - rO(j,:) )/L(:))
-            r2(j,:) = r2(j,:) - L(:)*anint(( r2(j,:) - rO(j,:) )/L(:))
+                r1(j,:) = r1(j,:) - L(:)*anint(( r1(j,:) - rO(j,:) )/L(:))
+                r2(j,:) = r2(j,:) - L(:)*anint(( r2(j,:) - rO(j,:) )/L(:))
          
             ! Define the bond unit vectors                                                                                                                   
+            
             call bond_vec(nmol, rO, r1, eO1)
             call bond_vec(nmol, rO, r2, eO2)
          
@@ -119,7 +123,7 @@ Program msd_rot_calc
     close(11)
     
     ! Write out the MSD, C1, C2
-    open(21,file='c1_'//trim(nfile)//'.dat')  !open C1(t) file for this trajectory
+    open(21,file='c1_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C1(t) file for this trajectory
     open(22,file='c2_'//trim(nfile)//'.dat')  !open C2(t) file for this trajectory
     open(23,file='msd_'//trim(nfile)//'.dat') !open MSD(t) file for this trajectory
 
