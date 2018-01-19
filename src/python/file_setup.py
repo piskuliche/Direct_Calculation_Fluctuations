@@ -8,6 +8,7 @@ import math
 f = open('file_names','r')
 ext = f.readlines()
 g = open('mol_names', 'r')
+molnames = []
 molnames = g.readlines()
 
 ext = [x.strip() for x in ext]
@@ -29,7 +30,7 @@ for i in range (0,nfiles):
     h.write("sed -i -e 's@direct_calc_nve@nve_"+ext[i]+"@g' nve.sh\n")
     h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve\n")
     for j in range(0, nmols):
-        h.write("sed -i -e 's@traj.file1@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve\n")
+        h.write("sed -i -e 's@traj.file"+j+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve\n")
     h.write('cd ../../\n')
 
 narrays=int(math.ceil(float(nfiles)/500.))
