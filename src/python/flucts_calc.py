@@ -12,11 +12,13 @@ parser = argparse.ArgumentParser(description='''Calculates the fluctuations of t
 parser.add_argument('-inp', help="Input File")
 parser.add_argument('-files', help="Number of Files")
 parser.add_argument('-blocks', help="Number of blocks")
+parser.add_argument('-mol', help ="Molecule Name")
 args = parser.parse_args()
 
 inputfile = str(args.inp)
 nfiles = int(args.files)
 nblocks = int(args.blocks)
+mol_name = str(args.mol)
 
 # Read in input file
 inp_names=np.genfromtxt(inputfile, dtype=None,unpack=True)
@@ -56,9 +58,9 @@ for i in range(0,nfiles):
 
 # Read in File Names
 fnames=np.genfromtxt('file_names', dtype='string', unpack=True)
-fmsd=["FILES/"+s+"/msd_"+s+".dat" for s in fnames]
-fc1=["FILES/"+s+"/c1_"+s+".dat" for s in fnames]
-fc2=["FILES/"+s+"/c2_"+s+".dat" for s in fnames]
+fmsd=["FILES/"+s+"/msd_"+s+'_'+mol_name+'.dat' for s in fnames]
+fc1=["FILES/"+s+"/c1_"+s+'_'+mol_name+".dat" for s in fnames]
+fc2=["FILES/"+s+"/c2_"+s+'_'+mol_name+".dat" for s in fnames]
 
 # Do the block average calculation
 for item in range(0,len(inp_names)):
@@ -111,8 +113,8 @@ for item in range(0,len(inp_names)):
         dc2ival_bl[block]=list(divalc2)
         d2c2ival_bl[block]=list(d2ivalc2)
         # print block values
-        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_msd.dat', np.c_[eaival], fmt='%s')
-        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_c2.dat', np.c_[divalc2], fmt='%s')
+        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_'+mol_name+'_msd.dat', np.c_[eaival], fmt='%s')
+        np.savetxt('bl_'+str(block)+'_'+inp_names[item]+'_'+mol_name+'_c2.dat', np.c_[divalc2], fmt='%s')
         # Zero the items in the range
         for i in range(start,end):
             dival[i]=0
@@ -157,8 +159,8 @@ for item in range(0,len(inp_names)):
     d2ivalc2 = [x / float(nfiles) for x in d2ivalc2]
     eaival=divalmsd[1:]/msd[1:]
     # Save Data
-    np.savetxt('d'+inp_names[item]+'.dat', dival, fmt=['%.4f'])
-    np.savetxt('d2'+inp_names[item]+'-<'+inp_names[item]+'>.dat',d2ival-d2ivalav, fmt=['%.4f'])
+    np.savetxt('d'+inp_names[item]+'_'+mol_name+'.dat', dival, fmt=['%.4f'])
+    np.savetxt('d2'+inp_names[item]+'_'+mol_name+'-<'+inp_names[item]+'>.dat',d2ival-d2ivalav, fmt=['%.4f'])
     # Calculate Uncertainty
     # MSD
     err_ivalmsdea=np.array(eaival_bl).std(0)
@@ -180,14 +182,14 @@ for item in range(0,len(inp_names)):
     for i in range(0, len(err_ivalmsdea)+1):
         time.append(i*0.05)
 
-    np.savetxt('ea_msd_'+inp_names[item]+'.dat', np.c_[time[1:], eaival, err_ivalmsdea], fmt='%s')
-    np.savetxt('d'+inp_names[item]+'_msd_tot.dat', np.c_[time[1:], divalmsd[1:], err_divalmsd], fmt='%s')
-    np.savetxt('d2'+inp_names[item]+'_msd_tot.dat', np.c_[time[1:], d2ivalmsd[1:], err_d2ivalmsd], fmt='%s')
-    np.savetxt('dc2_'+inp_names[item]+'.dat', np.c_[time, divalc2, err_dc2ival], fmt='%s')
-    np.savetxt('d2c2_'+inp_names[item]+'.dat', np.c_[time, d2ivalc2, err_d2c2ival], fmt='%s')
-    np.savetxt('c2_total_result.dat', np.c_[time,c2], fmt='%s')
+    np.savetxt('ea_msd_'+inp_names[item]+'_'+mol_name+'.dat', np.c_[time[1:], eaival, err_ivalmsdea], fmt='%s')
+    np.savetxt('d'+inp_names[item]+'_'+mol_name+'_msd_tot.dat', np.c_[time[1:], divalmsd[1:], err_divalmsd], fmt='%s')
+    np.savetxt('d2'+inp_names[item]+'_'+mol_name+'_msd_tot.dat', np.c_[time[1:], d2ivalmsd[1:], err_d2ivalmsd], fmt='%s')
+    np.savetxt('dc2_'+inp_names[item]+'_'+mol_name+'.dat', np.c_[time, divalc2, err_dc2ival], fmt='%s')
+    np.savetxt('d2c2_'+inp_names[item]+'_'+mol_name+'.dat', np.c_[time, d2ivalc2, err_d2c2ival], fmt='%s')
+    np.savetxt('c2_total'+'_'+mol_name+'_result.dat', np.c_[time,c2], fmt='%s')
     np.savetxt('time.dat',time,fmt='%s')
     for i in range(0, nblocks):
-        np.savetxt('bl_'+str(int(i))+'_c2_val.dat', c2_bl[i], fmt='%s')
-        np.savetxt('bl_'+str(int(i))+'_dc2_val_'+inp_names[item]+'.dat', dc2ival_bl[i], fmt='%s')
+        np.savetxt('bl_'+str(int(i))+'_'+mol_name+'_c2_val.dat', c2_bl[i], fmt='%s')
+        np.savetxt('bl_'+str(int(i))+'_'+mol_name+'_dc2_val_'+inp_names[item]+'.dat', dc2ival_bl[i], fmt='%s')
 
