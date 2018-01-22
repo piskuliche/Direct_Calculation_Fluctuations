@@ -54,6 +54,8 @@ else
         echo "  At this point, you should provide an nve simulation input file"
         echo "  An example NVE input file is located in src/dependencies"
         echo "  Place this file in the main run directory to continue"
+        echo "  Also - please create a file called mol_names and place it in the main directory"
+        echo "  This will let you do multiple molecules"
         exit 1
     fi
 fi
@@ -182,9 +184,11 @@ else
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
     cp src/input/test.inp ../
+    cp src/python/finalize_flucts.py ../
     cd ../
     mv msd_calc.o* logs
-    python flucts_calc.py -inp test.inp -files 5000 -blocks 10
+    python finalize_flucts.py > .finalized_flucts
+    bash .finalized_flucts
     cd -
     echo "  Fluctuation Calculation Completed"
     touch .flag_valcalc

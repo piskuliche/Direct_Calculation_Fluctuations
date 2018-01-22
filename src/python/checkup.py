@@ -3,12 +3,12 @@ import os.path
 
 with open("file_names") as f:
     for file in f:
-        filepath=str("FILES/")+str(file).strip()+str("/traj_")+str(file).strip()+str(".xyz")
+        filepath=str("FILES/")+str(file).strip()+str("/log.lammps")
         if os.path.isfile(filepath):
             output=1
         else:
             cd=str("cd FILES/")+str(file).strip()
-            output=str("msub ")+str("water_nve.sh")
+            output=str("msub ")+str("nve.sh")
             back="cd ../../"
             print cd
             print output

@@ -20,7 +20,9 @@ module load lammps/11Aug17
 echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
 echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
 mpirun lmp_mpi < in.nve -screen none
-python set_msd_calcs.py -inp $CUR
+python set_msd_calcs.py -inp $CUR -mol acn
+./msd_rot_calc < msd_rot_calc.in
+python set_msd_calcs.py -inp $CUR -mol co2
 ./msd_rot_calc < msd_rot_calc.in
 
 

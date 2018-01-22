@@ -6,9 +6,11 @@ from argparse import RawTextHelpFormatter
 
 parser = argparse.ArgumentParser(description='''Sets up the msd calculations''', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-inp', help="Input File")
+parser.add_argument('-mol', help="Molecule Name")
 args = parser.parse_args()
 
 fluctval = int(args.inp)
+mol_name = str(args.mol)
 
 filename='log.lammps'
 lookup= 'Step'
@@ -32,4 +34,6 @@ f.write("# Number_of_Times Sep_of_Times:\n")
 f.write("400 0.050\n")
 f.write("# Volume\n")
 f.write("%s\n" % (vol[0]))
+f.write("# Molecule Name\n")
+f.write("%s\n" % (mol_name))
 f.close()

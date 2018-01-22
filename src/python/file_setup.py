@@ -7,23 +7,30 @@ import math
 
 f = open('file_names','r')
 ext = f.readlines()
+g = open('mol_names', 'r')
+molnames = []
+molnames = g.readlines()
 
 ext = [x.strip() for x in ext]
+molnames = [x.strip() for x in molnames]
 
 nfiles = len(ext)
+nmols = len(molnames)
+
 h = open('setup_files','w')
 
 for i in range (0,nfiles):
     h.write('mkdir FILES/'+ext[i]+'\n')
     h.write('cp in.nve FILES/'+ext[i]+'\n')
-    h.write('cp water_nve.sh FILES/'+ext[i]+'\n')
+    h.write('cp nve.sh FILES/'+ext[i]+'\n')
     h.write('cp set_msd_calcs.py FILES/'+ext[i]+'\n')
     h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
     h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
     h.write('cd FILES/'+ext[i]+'\n')
-    h.write("sed -i -e 's@bulk_water_nve@nve_"+ext[i]+"@g' water_nve.sh\n")
+    h.write("sed -i -e 's@direct_calc_nve@nve_"+ext[i]+"@g' nve.sh\n")
     h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve\n")
-    h.write("sed -i -e 's@traj.file@traj_"+ext[i]+".xyz@g' in.nve\n")
+    for j in range(0, nmols):
+        h.write("sed -i -e 's@traj.file"+str(j)+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve\n")
     h.write('cd ../../\n')
 
 narrays=int(math.ceil(float(nfiles)/500.))

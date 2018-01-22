@@ -13,7 +13,9 @@ echo Time is `date`
 echo Directory is `pwd`
 
 mpirun lmp_mpi < in.nve -screen none
-python set_msd_calcs.py -inp ${PWD##*/}
+python set_msd_calcs.py -inp ${PWD##*/} -mol acn
+./msd_rot_calc < msd_rot_calc.in
+python set_msd_calcs.py -inp ${PWD##*/} -mol co2
 ./msd_rot_calc < msd_rot_calc.in
 
 echo Ending Time is `date`
