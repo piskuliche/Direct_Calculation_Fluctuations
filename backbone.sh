@@ -184,7 +184,7 @@ else
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
     cp src/input/test.inp ../
-    cp src/python/finalize_flucts.py ./
+    cp src/python/finalize_flucts.py ../
     cd ../
     mv msd_calc.o* logs
     python finalize_flucts.py > .finalized_flucts
