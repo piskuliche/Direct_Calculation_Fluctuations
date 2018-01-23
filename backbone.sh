@@ -110,11 +110,14 @@ else
     cp src/sub/sub.sh ../
     cp src/exec/msd_rot_calc ../
     cd ../
+    sed -i -e "s@CCC@$sepconfig@" job_array.sh
+    sed -i -e "s@CCC@$startconfig@" job_array.sh
     python file_setup.py
     msub sub.sh
     cd -
     echo "  Filesystem is being built"
     echo "  Please Wait until The Job Completes Before Moving Forward"
+    echo "  Please also modify the script job_array.sh and nve.sh for your system"
     touch .flag_filesystem
     exit 1
 fi
