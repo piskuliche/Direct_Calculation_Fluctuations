@@ -111,7 +111,7 @@ else
     cp src/exec/msd_rot_calc ../
     cd ../
     sed -i -e "s@CCC@$sepconfig@" job_array.sh
-    sed -i -e "s@CCC@$startconfig@" job_array.sh
+    sed -i -e "s@DDD@$startconfig@" job_array.sh
     python file_setup.py
     msub sub.sh
     cd -
