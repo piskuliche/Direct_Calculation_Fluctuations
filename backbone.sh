@@ -4,7 +4,11 @@
 #Currently it can calculate:
 #   -Activation Energies
 #   -Activation Volumes
-#of Diffusion and Reorientation. 
+#of Diffusion and Reorientation
+
+cp src/shell/read_input.sh ./
+source read_input.sh
+rm read_input.sh
 
 module load compiler/pgi/15
 
@@ -22,6 +26,25 @@ else
     mv msd_rot_calc ../exec/
     cd ../../
     echo "  Compilation complete"
+    for ((x=1; x<=$num_molecs; x++))
+        {
+            if [ $x -eq 1 ]
+            then
+                echo $molec1 > mol_names
+            fi
+            if [ $x -eq 2 ]
+            then
+                echo $molec2 >> mol_names
+            fi
+            if [ $x -eq 3 ]
+            then
+                echo $molec3 >> mol_names
+            fi
+            if [ $x -eq 4 ]
+            then
+                echo $molec4 >> mol_names
+            fi   
+        }
     touch .flag_compile
 fi
 
@@ -54,8 +77,6 @@ else
         echo "  At this point, you should provide an nve simulation input file"
         echo "  An example NVE input file is located in src/dependencies"
         echo "  Place this file in the main run directory to continue"
-        echo "  Also - please create a file called mol_names and place it in the main directory"
-        echo "  This will let you do multiple molecules"
         exit 1
     fi
 fi
@@ -66,40 +87,10 @@ if [ -f $FILE ]; then
     echo "-Filesystem Flag Exists"
 else
     echo "-Building filesystem"
-    echo "  Please enter starting configuration, then hit [ENTER]"
-    read startconfig
-    echo "  Please enter ending configuration, then hit [ENTER]"
-    read endconfig
-    echo "  Please enter separation of configurations, then hit [ENTER]"
-    read sepconfig
-    
-    if [[ -z "$startconfig" ]]; then
-        printf "No input entered"
-        exit 1
-    else
-        # If userInput is not empty show what the user typed in and run ls -l
-        echo "You entered" "$startconfig"
-    fi
-
-    if [[ -z "$endconfig" ]]; then
-        echo "No input entered"
-        exit 1
-    else
-        # If userInput is not empty show what the user typed in and run ls -l
-        echo "You entered" "$endconfig"
-    fi
-
-    if [[ -z "$sepconfig" ]]; then
-        echo "No input entered"
-        exit 1
-    else
-        # If userInput is not empty show what the user typed in and run ls -l
-        echo "You entered " "$sepconfig"
-    fi
     if [ -f ../file_names ]; then
         rm ../file_names
     fi
-    for ((i=$startconfig; i<=$endconfig; i+=$sepconfig )); do 
+    for ((i=$start_config; i<=$end_config; i+=$sep_config )); do 
         echo $i >> ../file_names
     done
     mkdir ../FILES
@@ -110,8 +101,8 @@ else
     cp src/sub/sub.sh ../
     cp src/exec/msd_rot_calc ../
     cd ../
-    sed -i -e "s@CCC@$sepconfig@" job_array.sh
-    sed -i -e "s@DDD@$startconfig@" job_array.sh
+    sed -i -e "s@CCC@$sep_config@" job_array.sh
+    sed -i -e "s@DDD@$start_config@" job_array.sh
     python file_setup.py
     msub sub.sh
     cd -
@@ -121,6 +112,9 @@ else
     touch .flag_filesystem
     exit 1
 fi
+
+# STEP: Set File Number
+num_files=wc -l < ../file_names
 
 # STEP: RUN NVE TRAJECTORIES
 
@@ -145,15 +139,25 @@ if [ -f $FILE ]; then
     echo "-NVE Trajectory Checkup Flag Exists"
 else
     echo "-NVE Trajectory Checkup Flag Missing"
-    echo "  Running checkup.py"
-    cp src/python/checkup.py ../
+    echo "  Running checkup"
+    cd ../FILES/
+    # Checks and runs missing trajectories
+    if [ -f rerun ]; then
+        rm rerun
+    fi 
+    for (( i=$start_config; i<=$end_config; i+=$sep_config ))
+        {
+            [ -s $i/log.lammps ] || echo "cd $i; msub nve.sh; cd ../" >> rerun
+        } 
+    bash rerun
+
+    # Does some cleanup commands
     cd ../
-    python checkup.py > out
-    bash out
     mkdir logs
     mv array* logs
     mv direct_calc_nve* logs
-    cd -
+    cd Direct_Calculation_Fluctuations
+
     echo "  Wait until remaining NVE trajectories run"
     echo "  If this step doesn't work the first time,"
     echo "  check your input files"
@@ -187,11 +191,27 @@ else
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
     cp src/input/test.inp ../
-    cp src/python/finalize_flucts.py ../
     cd ../
     mv msd_calc.o* logs
-    python finalize_flucts.py > .finalized_flucts
-    bash .finalized_flucts
+    for ((x=1; x<=$num_molecs; x++))
+        {
+            if [ $x -eq 1 ]
+            then
+                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec1
+            fi
+            if [ $x -eq 2 ]
+            then
+                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec2
+            fi
+            if [ $x -eq 3 ]
+            then
+                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec3
+            fi
+            if [ $x -eq 4 ]
+            then
+                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec4
+            fi
+        }
     cd -
     echo "  Fluctuation Calculation Completed"
     touch .flag_valcalc
