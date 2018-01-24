@@ -1,0 +1,26 @@
+#------------------------------------
+#- This is the input file for:      -
+#-   Direct Fluctions Calculations  -
+#- Only change uncommented lines    -
+#------------------------------------
+# Program (Lammps or CP2K):
+Lammps
+# Run Style (NVT or NPT):
+NVT
+# Number of Molecules
+2
+# Identifier of Molecules(LEAVE 4 LINES SPACE)
+co2
+acn
+
+
+# Starting Configuration (in steps)
+1001000
+# Ending Configuration (in steps)
+6000000
+# Separation of Configurations (in steps)
+1000
+# Timestep (in ps)
+0.050
+# Blocks
+10
