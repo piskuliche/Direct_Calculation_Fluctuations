@@ -1,17 +1,22 @@
+#set_msd_calcs.py
+#This code automatically creates an msd input file for each trajectory folder
+
+
 from scipy import stats
 import numpy as np
 import os
 import argparse
 from argparse import RawTextHelpFormatter
 
+# Read Input from Command Line
 parser = argparse.ArgumentParser(description='''Sets up the msd calculations''', formatter_class=RawTextHelpFormatter)
-parser.add_argument('-inp', help="Input File")
+parser.add_argument('-inp', help="Input File Number")
 parser.add_argument('-mol', help="Molecule Name")
 args = parser.parse_args()
-
 fluctval = int(args.inp)
 mol_name = str(args.mol)
 
+# Looks up the Step and Loop time keywords from log.lammps
 filename='log.lammps'
 lookup= 'Step'
 lookup2= 'Loop time'
@@ -26,6 +31,7 @@ with open(filename) as myFile:
 endskip=totlines-endskip-4
 vol = np.genfromtxt(filename, skip_header=startskip,skip_footer=endskip,usecols=(11), unpack=True)
 
+# Writes the new msd calc input file with the right molecule name and volume
 filepath='msd_rot_calc.in'
 f=open(filepath, 'w')
 f.write("# Numeric File\n")

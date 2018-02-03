@@ -1,3 +1,5 @@
+#checkup.py This program just checks the log file of every sub simulation and makes sure that it exists - if it doesnt then it outputs the commands necessary to rerun the file.
+
 import numpy as np
 import os.path
 
@@ -15,5 +17,4 @@ with open("file_names") as f:
             print back
         #DONE
     #DONE
-
 #DONE

@@ -1,1 +1,96 @@
 # Direct_Calculation_Fluctuations
+
+This code acts as an automation script (and analysis script) for MD simulations run using the Direct Calculation Method
+
+The github repo should be cloned into the directory where you want to run the simulation in.
+
+From this point forward the following nomenclature will be used:
+
+sim/ - top level directory, where simulation runs
+sim/dcm - Git Repo Level
+sim/dcm/src/ - source directory in the dcm folder
+
+
+
+#sim/dcm/backbone.sh
+
+This is the main code you interact with-
+run by: bash backbone.sh
+
+Required Input: input_file (in sim/ directory)
+Output: Quite a bit, these are just the ones that it specifically creates when you run it.
+
+sim/dcm/.flag_instruct
+sim/in.nve
+sim/in.water
+sim/dcm/.flag_compile
+sim/dcm/exec/msd_rot_calc
+sim/dcm/mol_names
+sim/dcm/.flag_traj
+sim/dcm/.flag_innve
+sim/dcm/.flag_filesystem
+sim/file_names
+sim/file_setup.py
+sim/set_msd_calcs.py
+sim/nve.sh
+sim/job_array.sh
+sim/sub.sh
+sim/msd_rot_calc
+sim/dcm/.flag_nve
+sim/dcm/.flag_checkup
+sim/logs/array*
+sim/logs/direct_calc_nve*
+sim/dcm/.flag_grabflucts
+sim/grab_flucts.log
+sim/dcm/.flag_valcalc
+sim/flucts_calc.py
+sim/test.inp
+sim/logs/msd_calc.o*
+
+#sim/dcm/src/input/read_input.sh
+
+Called: Everytime the backbone script is called
+
+This script reads input file parameters into the backbone script. An example input_file is copied to the sim/ directory in the first step of the backbone.sh script
+
+#sim/dcm/src/python/file_setup.py
+
+required input: file_names (created automatically by backbone.sh)
+        mol_names (created automatically by backbone.sh)
+produced output: setup_files (which produces a host of other files)
+         sub_script
+
+setup_files output:
+sim/FILES
+for i subdirectories
+sim/FILES/$i
+sim/FILES/$i/nve.sh
+sim/FILES/$i/set_msd_calcs.py
+sim/FILES/$i/msd_rot_calc
+sim/FILES/$i/restart.$i
+
+sub_script output:
+sim/job_array_[0-$j]
+
+
+#sim/dcm/src/python/set_msd_calcs.py
+
+legacy - includes a set number of times and timestep value
+
+This code automatically creates the msd input file.
+Run automatically with syntax: python set_msd_calc.py -inp # -mol molname
+
+required input: log.lammps (produced by nve simulations)
+produced output: msd_rot_calc.in (in each FILES subfolder)
+
+#sim/dcm/src/python/checkup.py
+
+This program just checks the log file of every sub simulation a
+nd makes sure that it exists - if it doesnt then it outputs the commands ne
+cessary to rerun the file.
+
+required input: none
+produced output: commands to rerun missing dirs (to screen)
+
+
+

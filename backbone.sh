@@ -14,6 +14,19 @@ module load compiler/pgi/15
 
 echo "Running direct calculations."
 
+# STEP: Initial Instructions
+FILE=.flag_instruct
+if [ -f $FILE ]; then
+    echo "-Instructions Flag Exists"
+else
+    echo "-Instructions Flag Exists"
+    cp src/dependencies/in.nve ../
+    cp src/dependencies/in.water ../
+    cp src/input/input_file ../
+    touch .flag_instruct
+    exit 1
+fi
+
 # STEP: Compile MSD_ROT_CALC
 FILE=.flag_compile    
 if [ -f $FILE ]; then
