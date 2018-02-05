@@ -12,7 +12,7 @@ sim/dcm/src/ - source directory in the dcm folder
 
 
 
-#sim/dcm/backbone.sh
+## sim/dcm/backbone.sh
 
 This is the main code you interact with-
 run by: bash backbone.sh
@@ -47,13 +47,13 @@ sim/flucts\_calc.py
 sim/test.inp
 sim/logs/msd\_calc.o\*
 
-#sim/dcm/src/input/read\_input.sh
+## sim/dcm/src/input/read\_input.sh
 
 Called: Everytime the backbone script is called
 
 This script reads input file parameters into the backbone script. An example input\_file is copied to the sim/ directory in the first step of the backbone.sh script
 
-#sim/dcm/src/python/file\_setup.py
+## sim/dcm/src/python/file\_setup.py
 
 required input: file\_names (created automatically by backbone.sh)
         mol\_names (created automatically by backbone.sh)
@@ -73,7 +73,7 @@ sub\_script output:
 sim/job\_array\_[0-$j]
 
 
-#sim/dcm/src/python/set\_msd\_calcs.py
+## sim/dcm/src/python/set\_msd\_calcs.py
 
 legacy - includes a set number of times and timestep value
 
@@ -83,7 +83,7 @@ Run automatically with syntax: python set\_msd\_calc.py -inp # -mol molname
 required input: log.lammps (produced by nve simulations)
 produced output: msd\_rot\_calc.in (in each FILES subfolder)
 
-#sim/dcm/src/python/checkup.py
+## sim/dcm/src/python/checkup.py
 
 This program just checks the log file of every sub simulation a
 nd makes sure that it exists - if it doesnt then it outputs the commands ne
@@ -93,7 +93,7 @@ required input: none
 produced output: commands to rerun missing dirs (to screen)
 
 
-#sim/dcm/src/python/flucts\_calc.py
+## sim/dcm/src/python/flucts\_calc.py
 
 lecacy = includes a set number of times (in msd arrays)
 future changes - add column number to calculation input file read
@@ -117,7 +117,7 @@ produced output: tons, listed now for each value
         bl\_val\_molname\_msd.dat
         bl\_val\_molname\_c2.dat
 
-#sim/dcm/src/python/grab\_flucts.py
+## sim/dcm/src/python/grab\_flucts.py
 
 legacy = Need to add an input file (the same as flucts calc) that just provides the item and the location in the log file.
 
@@ -126,23 +126,23 @@ This is the program that actually looks through each of the log files and grabs 
 required input: log.lammps (of each nve trajectory)
 produced output: val\_init.out (needed by flucts\_calc.py, for each energy/vol/etc)
 
-#sim/dcm/src/sub/job\_array.sh
+## sim/dcm/src/sub/job\_array.sh
 
 This is the job array that actually runs the nve runs for all directories and then calculates the msds for each one.
 
-#sim/dcm/src/sub/nve.sh
+## sim/dcm/src/sub/nve.sh
 
 This is the submission script that is used by checkup.py to resubmit jobs that haven't run for one reason or another.
 
-#sim/dcm/src/sub/sub.sh
+## sim/dcm/src/sub/sub.sh
 
 This is the script that subits the setup\_files file which builds the filesystem. This was created by file\_setup.py
 
-#sim/dcm/src/dependencies
+## sim/dcm/src/dependencies
 
 This includes an example lammps input file for the npt and nve runs involved in this, an example data file, and a torque submission script
 
-#sim/dcm/src/fortran/msd\_rot\_calc.f90
+## sim/dcm/src/fortran/msd\_rot\_calc.f90
 
 legacy: this has a set number of dimensions of arrays at compilation, these will need to be resized eventually to be effective.
         There is also currently no setting that lets you move beyond 3 atom molecules - this should be fixed soon as well to be as open as possible. i.e. there needs to be an option to set the atoms\_per\_mol, and then choose how to calculate things.
