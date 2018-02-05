@@ -63,15 +63,16 @@ fc1=["FILES/"+s+"/c1_"+s+'_'+mol_name+".dat" for s in fnames]
 fc2=["FILES/"+s+"/c2_"+s+'_'+mol_name+".dat" for s in fnames]
 
 # Do the block average calculation
+# item in this loop is like energy, volume, etc.
 for item in range(0,len(inp_names)):
-    print inp_names[item]
-    ival=np.genfromtxt(inp_names[item]+'_init.out', unpack=True)
-    for block in range(0,nblocks):
+    print inp_names[item] # prints the name of the ival
+    ival=np.genfromtxt(inp_names[item]+'_init.out', unpack=True) # Reads in the values of the energy.
+    for block in range(0,nblocks): # loop over the blocks
         start=int(block*filesperblock)
         end=int((block+1)*filesperblock)
         print start,end
         ivalavg_bl=np.average(ival[start:end])
-        for j in range(start,end):
+        for j in range(start,end): # calculates the difference from the average
             dival[j]=ival[j]-ivalavg_bl
             d2ival[j]=pow(dival[j],2)
         d2ivalav=np.average(d2ival[start:end])

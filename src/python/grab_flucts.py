@@ -1,3 +1,6 @@
+#grab_flucts.py is the program that actually looks through each of the log files and grabs each of the energies/volumes/whatever thermodynamic data you want to weight the correlation function by.
+
+
 import numpy as np
 
 filenames='file_names'
@@ -11,6 +14,7 @@ coul_list=np.array([])
 ewald_list=np.array([])
 e_list=np.array([])
 vol_list=np.array([])
+# for every file name it looks line by line to find Step and Loop time, then imports the very last line.
 with open(filenames) as f:
     for l in f:
         filename='FILES/'+l.rstrip()+'/log.lammps'
@@ -35,6 +39,7 @@ with open(filenames) as f:
         ewald_list = np.append(ewald_list,ewald[0])
         vol_list = np.append(vol_list, vol[0])
 
+# outputs to a file
 np.savetxt('ke_init.out', ke_list, fmt=['%.4f'])
 np.savetxt('v_init.out', v_list, fmt=['%.4f'])
 np.savetxt('e_init.out', e_list, fmt=['%.4f'])
