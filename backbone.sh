@@ -109,19 +109,12 @@ else
     mkdir ../FILES
     cp src/python/file_setup.py ../
     cp src/python/set_msd_calcs.py ../
-    cp src/sub/nve.sh ../
-    cp src/sub/job_array.sh ../
-    cp src/sub/sub.sh ../
+    cp src/python/gen_sub_scripts.py ../
     cp src/exec/msd_rot_calc ../
     cd ../
+    # Generate Submission Scripts
+    python gen_sub_scripts.py
     # Find and Replace in job_array.sh
-    sed -i -e "s@CCC@$sep_config@" job_array.sh
-    sed -i -e "s@DDD@$start_config@" job_array.sh
-    sed -i -e "s@TIMESTEP@$timestep@" job_array.sh
-    sed -i -e "s@NUMTIMES@$num_times@" job_array.sh
-    # Find and Replace in nve.sh
-    sed -i -e "s@TIMESTEP@$timestep@" nve.sh
-    sed -i -e "s@NUMTIMES@$num_times@" nve.sh
     python file_setup.py
     msub sub.sh
     cd -
