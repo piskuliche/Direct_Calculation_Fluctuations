@@ -26,8 +26,10 @@ end_config=`sed -n '20p' ../input_file`
 sep_config=`sed -n '22p' ../input_file`
 # Timestep (in ps)
 timestep=`sed -n '24p' ../input_file`
+# Num Times
+num_times=`sed -n '26p' ../input_file`
 # Blocks
-blocks=`sed -n '26p' ../input_file`
+blocks=`sed -n '28p' ../input_file`
 
 echo "Input File Parameters"
 echo "Program: "$program
@@ -41,5 +43,6 @@ echo "Start Config: "$start_config
 echo "End Config: "$end_config
 echo "Sep Config: "$sep_config
 echo "Timestep: "$timestep
+echo "Num Times: "$num_times
 echo "Blocks: "$blocks
 echo "End Input File Parameters"

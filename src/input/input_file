@@ -22,5 +22,7 @@ acn
 1000
 # Timestep (in ps)
 0.050
+# Num Times
+400
 # Blocks
 10

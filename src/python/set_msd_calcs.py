@@ -11,9 +11,13 @@ from argparse import RawTextHelpFormatter
 # Read Input from Command Line
 parser = argparse.ArgumentParser(description='''Sets up the msd calculations''', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-inp', help="Input File Number")
+parser.add_argument('-stp', help="Timestep (in ps)")
+parser.add_argument('-times', help="Number of distinct times")
 parser.add_argument('-mol', help="Molecule Name")
 args = parser.parse_args()
 fluctval = int(args.inp)
+timestep = float(args.stp)
+ntimes   = int(args.times)
 mol_name = str(args.mol)
 
 # Looks up the Step and Loop time keywords from log.lammps
@@ -37,7 +41,7 @@ f=open(filepath, 'w')
 f.write("# Numeric File\n")
 f.write("%s\n" % (fluctval))
 f.write("# Number_of_Times Sep_of_Times:\n")
-f.write("400 0.050\n")
+f.write("%s %s\n" % (ntimes, timestep))
 f.write("# Volume\n")
 f.write("%s\n" % (vol[0]))
 f.write("# Molecule Name\n")
