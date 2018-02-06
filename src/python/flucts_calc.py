@@ -12,37 +12,39 @@ parser = argparse.ArgumentParser(description='''Calculates the fluctuations of t
 parser.add_argument('-inp', help="Input File")
 parser.add_argument('-files', help="Number of Files")
 parser.add_argument('-blocks', help="Number of blocks")
+parser.add_argument('-ntimes', help="Number of times")
 parser.add_argument('-mol', help ="Molecule Name")
 args = parser.parse_args()
 
 inputfile = str(args.inp)
 nfiles = int(args.files)
 nblocks = int(args.blocks)
+ntimes = int(args.ntimes)
 mol_name = str(args.mol)
 
 # Read in input file
-inp_names=np.genfromtxt(inputfile, dtype=None,unpack=True)
+inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=None,unpack=True)
 
 # Calculate important quantities
 filesperblock=nfiles/float(nblocks)
 t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
 
 # Initialize Vectors
-msd=[400]
-c2=[400]
+msd=[ntimes]
+c2=[ntimes]
 ival=[nfiles]
 dival=[nfiles]
 d2ival=[nfiles]
 
 # First Derivatives
-divalmsd=[400]
-divalc1=[400]
-divalc2=[400]
+divalmsd=[ntimes]
+divalc1=[ntimes]
+divalc2=[ntimes]
 
 # Second Derivatives
-d2ivalmsd=[400]
-d2ivalc1=[400]
-d2ivalc2=[400]
+d2ivalmsd=[ntimes]
+d2ivalc1=[ntimes]
+d2ivalc2=[ntimes]
 
 eaival_bl=[[] for x in range(0,nblocks)] 
 msd_bl=[[] for x in range(0,nblocks)]

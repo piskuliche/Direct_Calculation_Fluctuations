@@ -75,8 +75,6 @@ sim/job\_array\_[0-$j]
 
 ## sim/dcm/src/python/set\_msd\_calcs.py
 
-legacy - includes a set number of times and timestep value
-
 This code automatically creates the msd input file.
 Run automatically with syntax: python set\_msd\_calc.py -inp # -mol molname
 
@@ -94,9 +92,6 @@ produced output: commands to rerun missing dirs (to screen)
 
 
 ## sim/dcm/src/python/flucts\_calc.py
-
-lecacy = includes a set number of times (in msd arrays)
-future changes - add column number to calculation input file read
 
 This program does the actual calculation of the weighted correlation functions and produces the output of the correlation functions.
 
@@ -118,8 +113,6 @@ produced output: tons, listed now for each value
         bl\_val\_molname\_c2.dat
 
 ## sim/dcm/src/python/grab\_flucts.py
-
-legacy = Need to add an input file (the same as flucts calc) that just provides the item and the location in the log file.
 
 This is the program that actually looks through each of the log files and grabs each of the energies/volumes/whatever thermodynamic data you want to weight the correlation function by.
 

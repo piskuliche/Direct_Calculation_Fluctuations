@@ -23,6 +23,7 @@ else
     cp src/dependencies/in.nve ../
     cp src/dependencies/in.water ../
     cp src/input/input_file ../
+    cp src/input/flucts.inp ../
     touch .flag_instruct
     exit 1
 fi
@@ -202,26 +203,25 @@ else
     echo "-Fluctuation Calculation Flag Missing"
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
-    cp src/input/test.inp ../
     cd ../
     mv msd_calc.o* logs
     for ((x=1; x<=$num_molecs; x++))
         {
             if [ $x -eq 1 ]
             then
-                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec1
+                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec1 -ntimes $num_times
             fi
             if [ $x -eq 2 ]
             then
-                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec2
+                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec2 -ntimes $num_times
             fi
             if [ $x -eq 3 ]
             then
-                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec3
+                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec3 -ntimes $num_times
             fi
             if [ $x -eq 4 ]
             then
-                python flucts_calc.py -inp test.inp -files 5000 -blocks $blocks -mol $molec4
+                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec4 -ntimes $num_times
             fi
         }
     cd -
