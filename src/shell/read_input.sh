@@ -30,6 +30,8 @@ timestep=`sed -n '24p' ../input_file`
 num_times=`sed -n '26p' ../input_file`
 # Blocks
 blocks=`sed -n '28p' ../input_file`
+# Files
+num_files=`sed -n '30p' ../input_file`
 
 echo "Input File Parameters"
 echo "Program: "$program

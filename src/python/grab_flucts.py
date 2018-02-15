@@ -13,10 +13,13 @@ fnames=[]
 
 
 # Read Input File
-ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), unpack=True)
+ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), dtype=(str,int), unpack=True)
+
+print ivalname[0]
+print icolnum[0]
 
 # Loop over types of values, e, v, ke, etc
-for value in range(0, len(ivalname))
+for value in range(0, len(ivalname)):
     ival_list = np.array([])
     with open(filenames) as f:
         for l in f:
@@ -33,10 +36,10 @@ for value in range(0, len(ivalname))
                         endskip=num
                     totlines=num
             endskip=totlines-endskip-4
-            ival = np.genfromtxt(filename, skip_header=startskip, skip_footer=endskip, usecols=(ivalnum-1), unpack=True)
+            ival = np.genfromtxt(filename, skip_header=startskip, skip_footer=endskip, usecols=(int(icolnum[value])-1), unpack=True)
             ival_list = np.append(ival_list, ival[0])
 
-    fileout=ivalname+"_init.out"
+    fileout=str(ivalname[value])+"_init.out"
     np.savetxt(fileout, ival_list, fmt=['%.4f'])
 
         

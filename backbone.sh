@@ -6,10 +6,6 @@
 #   -Activation Volumes
 #of Diffusion and Reorientation
 
-cp src/shell/read_input.sh ./
-source read_input.sh
-rm read_input.sh
-
 module load compiler/pgi/15
 
 echo "Running direct calculations."
@@ -19,15 +15,19 @@ FILE=.flag_instruct
 if [ -f $FILE ]; then
     echo "-Instructions Flag Exists"
 else
-    echo "-Instructions Flag Exists"
+    echo "-Instructions Flag Doesn't Exist"
+    echo "-Please modify input_file"
     cp src/dependencies/in.nve ../
     cp src/dependencies/in.water ../
     cp src/input/input_file ../
     cp src/input/flucts.inp ../
     touch .flag_instruct
-    exit 1
+    exit 0
 fi
 
+cp src/shell/read_input.sh ./
+source read_input.sh
+rm read_input.sh
 # STEP: Compile MSD_ROT_CALC
 FILE=.flag_compile    
 if [ -f $FILE ]; then
@@ -59,6 +59,7 @@ else
                 echo $molec4 >> mol_names
             fi   
         }
+    cp mol_names ../
     touch .flag_compile
 fi
 
@@ -74,7 +75,7 @@ else
     else
         echo "  At this point, you should run the base trajectory"
         echo "  Example NVT and NPT input files are located in src/dependencies"
-        exit 1
+        exit 0
     fi
 fi
 
@@ -91,7 +92,7 @@ else
         echo "  At this point, you should provide an nve simulation input file"
         echo "  An example NVE input file is located in src/dependencies"
         echo "  Place this file in the main run directory to continue"
-        exit 1
+        exit 0
     fi
 fi
 
@@ -123,11 +124,9 @@ else
     echo "  Please Wait until The Job Completes Before Moving Forward"
     echo "  Please also modify the script job_array.sh and nve.sh for your system"
     touch .flag_filesystem
-    exit 1
+    exit 0
 fi
 
-# STEP: Set File Number
-num_files=wc -l < ../file_names
 
 # STEP: RUN NVE TRAJECTORIES
 
@@ -138,11 +137,11 @@ else
     echo "-NVE Flag Missing"
     echo "  Running NVE Trajectories"
     cd ../
-    bash sub_script
+    screen -d -m bash sub_script
     cd -
     echo "  NVE Trajectories Submitted"
     touch .flag_nve
-    exit 1
+    exit 0
 fi
 
 # STEP: CHECK THAT NVE TRAJECTORIES RAN
@@ -175,7 +174,7 @@ else
     echo "  If this step doesn't work the first time,"
     echo "  check your input files"
     touch .flag_checkup
-    exit 1
+    exit 0
 fi
 
 #STEP: Grab Flucts
@@ -191,7 +190,7 @@ else
     cd -
     echo "  Grab Flucts Has Finished!"
     touch .flag_grabflucts
-    exit 1
+    exit 0
 fi
 
 
@@ -209,23 +208,24 @@ else
         {
             if [ $x -eq 1 ]
             then
-                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec1 -ntimes $num_times
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" > flucts_calc.sh
             fi
             if [ $x -eq 2 ]
             then
-                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec2 -ntimes $num_times
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times" >> flucts_calc.sh
             fi
             if [ $x -eq 3 ]
             then
-                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec3 -ntimes $num_times
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times" >> flucts_calc.sh
             fi
             if [ $x -eq 4 ]
             then
-                python flucts_calc.py -inp flucts.inp -files 5000 -blocks $blocks -mol $molec4 -ntimes $num_times
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times" >> flucts_calc.sh
             fi
         }
+    screen -d -m bash flucts_calc.sh
     cd -
     echo "  Fluctuation Calculation Completed"
     touch .flag_valcalc
-    exit 1
+    exit 0
 fi
