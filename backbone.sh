@@ -202,28 +202,29 @@ else
     echo "-Fluctuation Calculation Flag Missing"
     echo "  Running Fluctuation Calc"
     cp src/python/flucts_calc.py ../
+    cp src/shell/fluctssub.sh ../
     cd ../
     mv msd_calc.o* logs
     for ((x=1; x<=$num_molecs; x++))
         {
             if [ $x -eq 1 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" > flucts_calc.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" > fluctssub.sh
             fi
             if [ $x -eq 2 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times" >> flucts_calc.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times" >> fluctssub.sh
             fi
             if [ $x -eq 3 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times" >> flucts_calc.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times" >> fluctssub.sh
             fi
             if [ $x -eq 4 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times" >> flucts_calc.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times" >> fluctssub.sh
             fi
         }
-    screen -d -m bash flucts_calc.sh
+    
     cd -
     echo "  Fluctuation Calculation Completed"
     touch .flag_valcalc
