@@ -17,8 +17,6 @@ if [ -f $FILE ]; then
 else
     echo "-Instructions Flag Doesn't Exist"
     echo "-Please modify input_file"
-    cp src/dependencies/in.nve ../
-    cp src/dependencies/in.water ../
     cp src/input/input_file ../
     cp src/input/flucts.inp ../
     touch .flag_instruct
