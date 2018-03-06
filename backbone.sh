@@ -17,8 +17,6 @@ if [ -f $FILE ]; then
 else
     echo "-Instructions Flag Doesn't Exist"
     echo "-Please modify input_file"
-    cp src/dependencies/in.nve ../
-    cp src/dependencies/in.water ../
     cp src/input/input_file ../
     cp src/input/flucts.inp ../
     touch .flag_instruct
@@ -209,7 +207,7 @@ else
         {
             if [ $x -eq 1 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" > fluctssub.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" >> fluctssub.sh
             fi
             if [ $x -eq 2 ]
             then
