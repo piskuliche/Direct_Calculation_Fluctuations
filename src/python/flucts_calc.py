@@ -8,11 +8,11 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 
-def Third_Order_Weight(i,d3, d, d3av, d2av):
-    return d3av + 3*d[i]*d2av - d3[i]
+def Third_Order_Weight(i, d3, d3av):
+    return -(d3[i]-d3av)
 
-def Fourth_Order_Weight(i,d4, d2, d, d4av, d3av, d2av):
-    return d4[i] -d4av-6*d2[i]*d2av+6*d2av**2 -4*d[i]*d3av
+def Fourth_Order_Weight(i,d4,d4av):
+    return (d4[i] - d4av)
 
 
 # Read in Arguments
@@ -31,7 +31,8 @@ ntimes = int(args.ntimes) # This is the length of the TCF calculation
 mol_name = str(args.mol) # This is the name of the molecule
 
 # Define Corr-Array
-corr_funcs=['msd','c1','c2'] # This is the name of the correlation functions.
+#corr_funcs=['msd','c1','c2'] # This is the name of the correlation functions.
+corr_funcs=['c2']
 
 # Read in input file
 inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True) 
@@ -156,8 +157,13 @@ for corr_name in corr_funcs:
                         dfvalcab=dfvalcab+tcab*dfval1[j] # Singly weighted correlation function
                         d2fvalcab=d2fvalcab+tcab*d2fval[j] # Doubly weighted correlation function
                         d2fvalavcab=d2fvalavcab+tcab*d2fvalavg_bl # Weighted correlation function by avg
-                        d3fvalcab=d3fvalcab+tcab*Third_Order_Weight(j,d3fval, dfval1, d3fvalavg_bl, d2fvalavg_bl)
-                        d4fvalcab=d4fvalcab+tcab*Fourth_Order_Weight(j,d4fval, d2fval, dfval1,d4fvalavg_bl, d3fvalavg_bl, d2fvalavg_bl)
+                        d3fvalcab=d3fvalcab+tcab*Third_Order_Weight(j,d3fval, d3fvalavg_bl)
+                        d4fvalcab=d4fvalcab+tcab*Fourth_Order_Weight(j,d4fval, d4fvalavg_bl)
+
+                    # Add Contributions from other correlation functions
+                    d3fvalcab=d3fvalcab+3*dfvalcab*d2fvalavg_bl
+                    d4fvalcab=d4fvalcab-6*np.subtract(d2fvalcab,d2fvalavcab)*d2fvalavg_bl + 4*dfvalcab*d3fvalavg_bl
+                                                            
                     # Normalize by the number of files in the block
                     cab[:] = [x / float(filesperblock) for x in cab]  
                     dfvalcab[:] = [x / float(filesperblock) for x in dfvalcab]
@@ -165,6 +171,8 @@ for corr_name in corr_funcs:
                     d2fvalavcab[:] = [x / float(filesperblock) for x in d2fvalavcab]
                     d3fvalcab[:] = [x / float(filesperblock) for x in d3fvalcab]
                     d4fvalcab[:] = [x / float(filesperblock) for x in d4fvalcab]
+
+
                     # Calculate the Ratio of Weighted to Unweighted Corr Functions
                     eafval=dfvalcab[1:]/cab[1:]
                     # Save to list
@@ -295,8 +303,11 @@ for corr_name in corr_funcs:
                     dfvalcab=dfvalcab+tcab*dfval1[j] # Weighted Correlation Function
                     d2fvalcab=d2fvalcab+tcab*d2fval[j] # Doubly Weighted Correlation Function
                     d2fvalavcab=d2fvalavcab+tcab*d2fvalavg # Doubly weighted average correlation function
-                    d3fvalcab=d3fvalcab+tcab*Third_Order_Weight(j,d3fval, dfval1, d3fvalavg, d2fvalavg) # Triply weighted correlation function
-                    d4fvalcab=d4fvalcab+tcab*Fourth_Order_Weight(j,d4fval, d2fval, dfval1,d4fvalavg_bl, d3fvalavg_bl, d2fvalavg_bl) # Quadruply weighted correlation function
+                    d3fvalcab=d3fvalcab+tcab*Third_Order_Weight(j,d3fval, d3fvalavg) # Triply weighted correlation function
+                    d4fvalcab=d4fvalcab+tcab*Fourth_Order_Weight(j,d4fval, d4fvalavg) # Quadruply weighted correlation function
+                # Calculated Lower Order Contributions
+                d3fvalcab=d3fvalcab+3*dfvalcab*d2fvalavg
+                d4fvalcab=d4fvalcab - 6*np.subtract(d2fvalcab,d2fvalavcab)*d2fvalavg - 4.0*dfvalcab*d3fvalavg
                 # Normalize
                 cab[:] = [x / float(nfiles) for x in cab]
                 dfvalcab[:] = [x / float(nfiles) for x in dfvalcab]
