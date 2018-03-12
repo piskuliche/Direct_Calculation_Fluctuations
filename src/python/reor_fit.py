@@ -17,7 +17,7 @@ def dCorr_Fit(t,dA1,dA2,dA3,dk1,dk2,dk3):
     return dA1*np.exp(-k1*t)+dA2*np.exp(-k2*t)+dA3*np.exp(-k3*t)-A1*dk1*t*np.exp(-k1*t)-A2*dk2*t*np.exp(-k2*t)-A3*dk3*t*np.exp(-k3*t)
 
 def d2Corr_Fit(t,d2A1, d2A2, d2A3, d2k1, d2k2, d2k3):
-    return (d2A1-t*(2*dA1*dk1+A1*d2k2)+t**2*(A1*dk1*dk1))*np.exp(-k1*t)+(d2A2-t*(2*dA2*dk2+A2*d2k2)+t**2*(A2*dk2*dk2))*np.exp(-k2*t)+(d2A3-t*(2*dA3*dk3+A3*d2k3)+t**2*(A3*dk3*dk3))*np.exp(-k3*t)
+    return (d2A1-t*(2*dA1*dk1+A1*d2k1)+t**2*(A1*dk1*dk1))*np.exp(-k1*t)+(d2A2-t*(2*dA2*dk2+A2*d2k2)+t**2*(A2*dk2*dk2))*np.exp(-k2*t)+(d2A3-t*(2*dA3*dk3+A3*d2k3)+t**2*(A3*dk3*dk3))*np.exp(-k3*t)
 
 def d3Corr_Fit(t, d3A1, d3A2, d3A3, d3k1, d3k2, d3k3):
 
@@ -76,7 +76,7 @@ print inp_names
 print inp_cols
 
 # Calculate important quantities
-t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
+t_val=stats.t.ppf(0.975,nblocks-1)/np.sqrt(nblocks)
 
 # Initialize Block Arrays
 A1_bl=[[] for x in range(0,nblocks)]
@@ -162,7 +162,7 @@ for item1 in inp_names:
                 dk3_bl[block] = dk3 
                 print("Block %s Second Derivative:" % block)
                 d2cab =np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(3), unpack=True)
-                popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(-0.4,0.3,0.4,1.2,1.6,-4.6))
+                popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(-1,0.9,3.0,3.3,-20.0,-100.))
                 d2A=popt_d2cab[:3]
                 d2k=popt_d2cab[3:]
                 print d2A
@@ -181,7 +181,7 @@ for item1 in inp_names:
                 d2k3_bl[block] = d2k3
                 print("Block %s Third Derivative:" % block)
                 d3cab = np.genfromtxt('bl_'+str(block)+'_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', usecols=(1), unpack=True)
-                popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(0.1,20,0.3,-0.2,0.3,0.4))
+                popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(0.1,.2,0.3,-0.2,0.3,0.4))
                 d3A=popt_d3cab[:3]
                 d3k=popt_d3cab[3:]
                 d3A1=d3A[0]
@@ -235,7 +235,8 @@ for item1 in inp_names:
             err_d3k1 = Error(d3k1_bl)
             err_d3k2 = Error(d3k2_bl)
             err_d3k3 = Error(d3k3_bl)
-
+            print dk1_bl
+            print k1_bl
             err_int_tau = Error(int_tau_bl)
             err_int_dc2 = Error(int_dc2_bl)
             err_int_d2c2 = Error(int_d2c2_bl)
@@ -274,7 +275,7 @@ for item1 in inp_names:
             k2=ksrt[1]
             k3=ksrt[2]
             print("First Total Derivative:")
-            popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab, p0=(0.2,0.3,0.4,0.2,0.3,0.4))
+            popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab, p0=(0.2,0.3,0.4,1.0,2.0,3.0))
             dA=popt_dcab[:3]
             dk=popt_dcab[3:]
             dA1=dA[0]
@@ -285,7 +286,7 @@ for item1 in inp_names:
             dk3=dk[2]
             print("Second Total Derivative:")
             d2cab =np.genfromtxt(item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(5), unpack=True)
-            popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(0.2,0.3,0.4,0.2,0.3,0.4))
+            popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(0.2,0.3,0.4,1.2,0.3,0.4))
             d2A=popt_d2cab[:3]
             d2k=popt_d2cab[3:]
             d2A1=d2A[0]
@@ -355,12 +356,13 @@ for item1 in inp_names:
             fout.write(" Ea Librational: %s   err: %s\n" % (dk2*(1.0/k2), E_Mult_Prop(dk2,err_dk2, k2, err_k2)))
             fout.write(" Librational Time: %s +/- %s ps\n" % ((1.0/k2),(err_k2/k2*(1.0/k2)))) 
             fout.write(" Ea Inertial: %s   err: %s\n" % (dk3*(1.0/k3), E_Mult_Prop(dk3,err_dk3, k3, err_k3)))
-            fout.write(" Inertial Time: %s +/- %s ps\n" % ((1.0/k3), (err_k3/k3*(1.0/err_k3))))
+            fout.write(" Inertial Time: %s +/- %s ps\n" % ((1.0/k3), (err_k3/k3*(1.0/k3))))
             fout.write("Integrated Times\n")
             fout.write("<tau2> = %s +/- %s\n" % (int_tau,err_int_tau))
             fout.write("intdc2 = %s +/- %s\n" % (int_dc2,err_int_dc2))
             fout.write("intd2c2 = %s +/- %s\n" % (int_d2c2,err_int_d2c2))
             fout.write("intd3c2 = %s +/- %s\n" % (int_d3c2, err_int_d3c2))
+            fout.write("<EaTau2> = %s +/- %s\n" % (int_dc2*(-1.0/int_tau), E_Mult_Prop(int_tau,err_int_tau,int_dc2, err_int_dc2 )))
             fout.write("End Correlation function\n")
             fout.close()
             cabfit=Corr_Fit(time,*popt_cab)

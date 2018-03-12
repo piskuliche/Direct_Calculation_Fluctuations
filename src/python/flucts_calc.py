@@ -176,22 +176,24 @@ for corr_name in corr_funcs:
                     # Calculate the Ratio of Weighted to Unweighted Corr Functions
                     eafval=dfvalcab[1:]/cab[1:]
                     # Save to list
+                    eafval=np.insert(eafval,0,0)
+
                     eafval_bl[block] = list(eafval)
                     # Save correlation info to sep list
                     cab_bl[block]=list(cab) # block values for correlation function
-                    dcabfval_bl[block]=list(dfvalcab[1:])  # block values for weighted correlation function
-                    d2cabfval_bl[block]=list(d2fvalcab[1:]) # block values for doubly weighted correlation function
-                    d2cabavfval_bl[block]=list(d2fvalavcab[1:]) # block values for doubly averaged correlation function
-                    d3cabfval_bl[block]=list(d3fvalcab[1:]) # block values for triply weighted correlation function
-                    d4cabfval_bl[block]=list(d4fvalcab[1:]) # block values for quadruply weighted correlation function
+                    dcabfval_bl[block]=list(dfvalcab)  # block values for weighted correlation function
+                    d2cabfval_bl[block]=list(d2fvalcab) # block values for doubly weighted correlation function
+                    d2cabavfval_bl[block]=list(d2fvalavcab) # block values for doubly averaged correlation function
+                    d3cabfval_bl[block]=list(d3fvalcab) # block values for triply weighted correlation function
+                    d4cabfval_bl[block]=list(d4fvalcab) # block values for quadruply weighted correlation function
                     # Print Single Correlation Values
-                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:], cab[1:], dfvalcab[1:],eafval], fmt='%s')
+                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+mol_name+"_"+corr_name+".dat", np.c_[time, cab, dfvalcab,eafval], fmt='%s')
                     # Print Second Derivatives
-                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:],d2fvalcab[1:], d2fvalavcab[1:], d2fvalcab[1:]-d2fvalavcab[1:]])
+                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat", np.c_[time,d2fvalcab, d2fvalavcab, d2fvalcab-d2fvalavcab])
                     # Print Third Derivatives
-                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+item3+"_"+mol_name+'_'+corr_name+".dat", np.c_[time[1:], d3fvalcab[1:]])
+                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+item3+"_"+mol_name+'_'+corr_name+".dat", np.c_[time, d3fvalcab])
                     # Print Fourth Derivatives
-                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+'_'+corr_name+".dat", np.c_[time[1:], d4fvalcab[1:]])
+                    np.savetxt("bl_"+str(block)+"_"+item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+'_'+corr_name+".dat", np.c_[time, d4fvalcab])
                     # Zero the items
                     for i in range(start,end):
                         dfval1[i]=0
@@ -209,7 +211,7 @@ for corr_name in corr_funcs:
                         d3fvalcab[i]=0
                         d4fvalcab[i]=0
 
-                    for i in range(0,ntimes-1):
+                    for i in range(0,ntimes):
                         eafval[i]=0
 
             err_cab = np.array(cab_bl).std(0)
@@ -227,7 +229,11 @@ for corr_name in corr_funcs:
             err_d2fvalavcab = [x * t_val for x in err_d2fvalavcab]
             err_d3fvalcab = [x * t_val for x in err_d3fvalcab]
             err_d4fvalcab = [x * t_val for x in err_d4fvalcab]
-            np.savetxt('err_'+item1+'_'+str(mol_name)+'_'+corr_name+".dat", np.c_[err_cab[1:], err_eafvalcab, err_dfvalcab], fmt='%s')
+
+            print len(err_cab)
+            print len(err_eafvalcab)
+            print len(err_dfvalcab)
+            np.savetxt('err_'+item1+'_'+str(mol_name)+'_'+corr_name+".dat", np.c_[err_cab, err_eafvalcab, err_dfvalcab], fmt='%s')
             np.savetxt('err_'+item1+'_'+item2+'_'+str(mol_name)+'_'+corr_name+'.dat', np.c_[err_d2fvalcab, err_d2fvalavcab], fmt='%s')
             np.savetxt('err_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_'+corr_name+'.dat', np.c_[err_d3fvalcab, err_d4fvalcab], fmt='%s')
             jindex+=1
@@ -324,10 +330,11 @@ for corr_name in corr_funcs:
                 err_d2fvalcab, err_d2fvalavcab = np.genfromtxt('err_'+item1+'_'+item2+'_'+str(mol_name)+'_'+corr_name+'.dat',usecols=(0,1), unpack=True)
                 err_d3fvalcab, err_d4fvalcab = np.genfromtxt('err_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_'+corr_name+'.dat', usecols=(0,1), unpack=True)
                 # Print Output
-                np.savetxt(item1+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:], cab[1:], err_cab, dfvalcab[1:],err_dfvalcab, eafval, err_eafvalcab], fmt='%s')
-                np.savetxt(item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:], d2fvalcab[1:], err_d2fvalcab, d2fvalavcab[1:],err_d2fvalavcab, np.subtract(d2fvalcab,d2fvalavcab)[1:], np.subtract(err_d2fvalcab,err_d2fvalavcab)], fmt='%s')
-                np.savetxt(item1+"_"+item2+"_"+item3+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:], d3fvalcab[1:], err_d3fvalcab], fmt='%s')
-                np.savetxt(item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+"_"+corr_name+".dat", np.c_[time[1:], d4fvalcab[1:], err_d4fvalcab], fmt='%s')
+                eafval = np.insert(eafval,0,0)
+                np.savetxt(item1+"_"+mol_name+"_"+corr_name+".dat", np.c_[time, cab, err_cab, dfvalcab,err_dfvalcab, eafval, err_eafvalcab], fmt='%s')
+                np.savetxt(item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat", np.c_[time, d2fvalcab, err_d2fvalcab, d2fvalavcab,err_d2fvalavcab, np.subtract(d2fvalcab,d2fvalavcab), np.subtract(err_d2fvalcab,err_d2fvalavcab)], fmt='%s')
+                np.savetxt(item1+"_"+item2+"_"+item3+"_"+mol_name+"_"+corr_name+".dat", np.c_[time, d3fvalcab, err_d3fvalcab], fmt='%s')
+                np.savetxt(item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+"_"+corr_name+".dat", np.c_[time, d4fvalcab, err_d4fvalcab], fmt='%s')
                 # Zero Items
                 for i in range(0,nfiles):
                     dfval1[i]=0
@@ -346,7 +353,7 @@ for corr_name in corr_funcs:
                     d3fvalcab[i]=0
                     d4fvalcab[i]=0
 
-                for i in range(0,ntimes-1):
+                for i in range(0,ntimes):
                     eafval[i]=0
             jindex+=1
         item_count += 1
