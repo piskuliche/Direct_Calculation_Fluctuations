@@ -35,7 +35,9 @@ else
     echo "  Compiling MSD_ROT_CALC"
     cd src/fortran
     pgf90 -O3 msd_rot_calc.f90 -o msd_rot_calc
+    pgf90 -O3 visc_calc.f90 -o visc_calc
     mv msd_rot_calc ../exec/
+    mv visc_calc ../exec/
     cd ../../
     echo "  Compilation complete"
     for ((x=1; x<=$num_molecs; x++))
@@ -111,6 +113,7 @@ else
     cp src/python/set_msd_calcs.py ../
     cp src/python/gen_sub_scripts.py ../
     cp src/exec/msd_rot_calc ../
+    cp src/exec/visc_calc ../
     cd ../
     # Generate Submission Scripts
     python gen_sub_scripts.py

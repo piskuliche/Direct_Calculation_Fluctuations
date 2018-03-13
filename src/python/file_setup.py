@@ -25,6 +25,8 @@ for i in range (0,nfiles):
     h.write('cp nve.sh FILES/'+ext[i]+'\n')
     h.write('cp set_msd_calcs.py FILES/'+ext[i]+'\n')
     h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
+    h.write('cp grab_press.py FILES/'+ext[i]+'\n')
+    h.write('cp visc_calc FILES/'+ext[i]+'\n')
     h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
     h.write('cd FILES/'+ext[i]+'\n')
     h.write("sed -i -e 's@direct_calc_nve@nve_"+ext[i]+"@g' nve.sh\n")

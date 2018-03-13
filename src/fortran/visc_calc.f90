@@ -3,7 +3,7 @@
 Program visc_calc
 
       implicit none
-      integer :: i, t
+      integer :: i, k, t, itmp
       integer :: ntimes
       real :: dt, volume
       
@@ -18,7 +18,7 @@ Program visc_calc
       real, dimension(6) :: press
       real, dimension(5000) :: P_av
 
-      character(len=10) nfile
+      character(len=10) nfile, mol_name
 
       open(10,file='msd_rot_calc.in',status='old')
 
@@ -28,6 +28,8 @@ Program visc_calc
       read(10,*) ntimes, dt
       read(10,*)
       read(10,*) volume
+      read(10,*)
+      read(10,*) mol_name
       close(10)
 
       L(1) = volume ** (1.0/3.0)
@@ -41,14 +43,13 @@ Program visc_calc
       pxyo = 0.0; pxzo = 0.0; pyzo = 0.0
       p_xyo = 0.0; p_yzo = 0.0
       
-      read(11,*) itmp, pxxo, pyyo, pzzo, pxyo, pxzo, pyzo
+      read(11,*) pxxo, pyyo, pzzo, pxyo, pxzo, pyzo
       p_xyo = (pxxo-pyyo)/2.0
       p_yzo = (pyyo-pzzo)/2.0
-      P_av(0) = (pxyo + pxzo + pyzo + p_xyo + p_yzo)/5.0 
 
       ! Loops over times
-      do t = 1, ntimes
-           read(11,*) itmp, (press(k),k=1,6) 
+      do t = 0, ntimes
+           read(11,*)  (press(k),k=1,6) 
            Pxy = pxyo * press(4) 
            Pxz = pxzo * press(5) 
            Pyz = pyzo * press(6)
@@ -59,7 +60,7 @@ Program visc_calc
       
       open(15, file='shear_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
       do t = 1, ntimes
-        write (15,'(2F12.5)') dt*i, P_av(t)
+        write (15,*) dt*t, P_av(t)
       end do
 
 
