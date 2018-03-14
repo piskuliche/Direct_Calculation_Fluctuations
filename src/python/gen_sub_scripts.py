@@ -55,7 +55,7 @@ ja.write('#MSUB -N direct_calc_nve\n')
 ja.write('#MSUB -q sixhour\n')
 ja.write('#MSUB -j oe\n')
 ja.write('#MSUB -d ./\n')
-ja.write('#MSUB -l nodes=1:ppn=10:intel,mem=5gb,walltime=6:00:00\n')
+ja.write('#MSUB -l nodes=1:ppn=2:intel,mem=5gb,walltime=6:00:00\n')
 ja.write('#MSUB -t AAA-BBB\n\n\n')
 
 ja.write('SEP=%s\n' % (sep_config))
