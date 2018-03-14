@@ -69,12 +69,26 @@ if [ -f $FILE ]; then
     echo "-Trajectory Run Flag Exists"
 else
     echo "  Trajectory Run Flag Missing"
-    if [ -f "../log.lammps" ]; then
-        echo "Trajectory Found"
-        touch .flag_traj
+    if [ $program = 'LAMMPS' ]; then
+        if [ -f "../log.lammps" ]; then
+            echo "Trajectory Found"
+            touch .flag_traj
+        else
+            echo "  At this point, you should run the base trajectory"
+            echo "  Example NVT and NPT input files are located in src/dependencies"
+            exit 0
+        fi
+    elif [ $program = 'CP2K']; then
+        if [ -f "../cp2k.log" ]; then
+            echo "Trajectory Found"
+            touch .flag_traj
+        else
+            echo "  At this point, you should run the base trajectory"
+            echo "  Example NVT and NPT input files are located in src/dependencies"
+            exit 0
+        fi
     else
-        echo "  At this point, you should run the base trajectory"
-        echo "  Example NVT and NPT input files are located in src/dependencies"
+        echo "  Incorrect program type in input_file"
         exit 0
     fi
 fi
@@ -85,13 +99,28 @@ if [ -f $FILE ]; then
     echo "-NVE Input Flag Exists"
 else
     echo "-NVE Input Flag Missing"
-    if [ -f "../in.nve" ]; then
-        echo "  Input File Found"
-        touch .flag_innve
+    if [ $program = 'LAMMPS' ]; then
+        if [ -f "../in.nve" ]; then
+            echo "  Input File Found"
+            touch .flag_innve
+        else
+            echo "  At this point, you should provide an nve (title in.nve) simulation input file"
+            echo "  An example NVE input file is located in src/dependencies"
+            echo "  Place this file in the main run directory to continue"
+            exit 0
+        fi
+    elif [ $program = 'CP2K' ]; then
+        if [ -f "../in.nve.cp2k" ]; then
+            echo "  Input File Found"
+            touch .flag_innve
+        else
+            echo "  At this point, you should provide an nve (title in.nve.cp2k) simulation input file"
+            echo "  An example NVE input file is located in src/dependencies"
+            echo "  Place this file in the main run directory to continue"
+            exit 0
+        fi 
     else
-        echo "  At this point, you should provide an nve simulation input file"
-        echo "  An example NVE input file is located in src/dependencies"
-        echo "  Place this file in the main run directory to continue"
+        echo "  Program information incorrect, check input_file"
         exit 0
     fi
 fi
