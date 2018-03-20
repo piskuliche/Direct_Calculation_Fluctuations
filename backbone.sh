@@ -59,7 +59,7 @@ else
                 echo $molec4 >> mol_names
             fi   
         }
-    cp mol_names ../
+    mv mol_names ../
     touch .flag_compile
 fi
 
@@ -138,14 +138,21 @@ else
         echo $i >> ../file_names
     done
     mkdir ../FILES
+    # Copies various codes up to simulation directory
     cp src/python/file_setup.py ../
     cp src/python/set_msd_calcs.py ../
     cp src/python/gen_sub_scripts.py ../
+    if [ $timestep = 'FALSE' ]
+        cp src/python/non-unif-sample.py ../
+    fi
     cp src/exec/msd_rot_calc ../
     cp src/exec/visc_calc ../
     cd ../
     # Generate Submission Scripts
     python gen_sub_scripts.py
+    if [ $timestep = 'FALSE' ]
+        python non-unif-sample.py -start 0 -end $nve_length
+    fi
     # Find and Replace in job_array.sh
     python file_setup.py
     msub sub.sh

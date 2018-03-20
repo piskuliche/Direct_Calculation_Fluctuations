@@ -12,11 +12,11 @@ start=int(args.start)
 end=int(args.end)
 
 step = 0.0
-f=open('time.dat','w'
+f=open('time.dat','w')
 while step < end:
     if step < 500:
         step = step + 10.0
     else:
         step = step + 50.0
-    f.write("%s" % step)
+    f.write("%d\n" % step)
 

@@ -46,7 +46,7 @@ for i in range(0,int(narrays)):
     m.write("sed -i -e 's@BBB@"+str(int(nend))+"@g' job_array_"+str(i)+"\n")
     m.write("msub job_array_"+str(i)+"\n")
     if (nend % 5000) == 0:
-        m.write("sleep 2h\n")
+        m.write("sleep 30m\n")
 
     
     

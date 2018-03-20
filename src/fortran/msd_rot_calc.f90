@@ -44,7 +44,7 @@ Program msd_rot_calc
     L(3)=L(1)
 
     open(11,file='traj_'//trim(nfile)//'_'//trim(mol_name)//'.xyz',status='old')  !open traj file
-   
+     
     ! Zero the results for NVE trajectory
     msd = 0.0; c1 = 0.0; c2 = 0.0
 
@@ -128,9 +128,9 @@ Program msd_rot_calc
     open(23,file='msd_'//trim(nfile)//'_'//trim(mol_name)//'.dat') !open MSD(t) file for this trajectory
 
     do it = 0, ntimes - 1
-        write(21,'(2F12.5)') real(it)*dt, c1(it)/real(2*nmol)
-        write(22,'(2F12.5)') real(it)*dt, c2(it)/real(2*nmol)
-        write(23,'(5F12.5)') real(it)*dt, (msd(it,k)/real(nmol), k=1,3)
+        write(21,'(2F12.5)') real(it), c1(it)/real(2*nmol)
+        write(22,'(2F12.5)') real(it), c2(it)/real(2*nmol)
+        write(23,'(5F12.5)') real(it), (msd(it,k)/real(nmol), k=1,3)
     enddo
     close(21)
     close(22)

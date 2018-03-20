@@ -7,7 +7,7 @@
 Lammps
 # Run Style (NVT or NPT):
 NVT
-# Number of Molecules
+# Number of Molecule Types
 2
 # Identifier of Molecules(LEAVE 4 LINES SPACE)
 co2
@@ -20,11 +20,13 @@ acn
 6000000
 # Separation of Configurations (in steps)
 1000
-# Timestep (in ps)
+# Dump Frequency (in ps) (FALSE if non-uniform)
 0.050
 # Num Times
 400
 # Blocks
 10
 # Files
+50000
+# NVE Length (Steps)
 50000

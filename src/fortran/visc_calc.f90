@@ -60,7 +60,7 @@ Program visc_calc
       
       open(15, file='shear_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
       do t = 1, ntimes
-        write (15,*) dt*t, P_av(t)
+        write (15,*) t, P_av(t)
       end do
 
 
