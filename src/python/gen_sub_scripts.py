@@ -70,7 +70,7 @@ ja.write('echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n')
 ja.write('echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n\n\n')
 ja.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 for i in range(0,num_molecs):
-    ja.write('python set_msd_calcs.py -inp $CUR -mol %s -times %s -stp %s\n' % (molec[i], num_times, timestep))
+    ja.write('python set_msd_calcs.py -inp $CUR -mol %s -ntimes %s -stp %s\n' % (molec[i], num_times, timestep))
     ja.write('./msd_rot_calc < msd_rot_calc.in\n\n')
     ja.write('python grab_press.py\n')
     ja.write('./visc_calc\n\n')
@@ -101,8 +101,9 @@ nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 for i in range(0,num_molecs):
     nve.write('python set_msd_calcs.py -inp ${PWD##*/} -mol %s -times %s -stp %s\n' % (molec[i], num_times, timestep))
     nve.write('./msd_rot_calc < msd_rot_calc.in\n\n')
-    nve.write('python grab_press.py\n\n')
-    nve.write('./visc_calc')
+
+nve.write('python grab_press.py\n\n')
+nve.write('./visc_calc\n')
 
 nve.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
 
