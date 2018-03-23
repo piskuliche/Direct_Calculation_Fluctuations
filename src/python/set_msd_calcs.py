@@ -16,7 +16,7 @@ parser.add_argument('-times', help="Number of distinct times")
 parser.add_argument('-mol', help="Molecule Name")
 args = parser.parse_args()
 fluctval = int(args.inp)
-if args.stp = 'FALSE':
+if args.stp == 'FALSE':
     timestep=1.0
 else:
     timestep = float(args.stp)
