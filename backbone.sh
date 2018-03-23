@@ -142,7 +142,8 @@ else
     cp src/python/file_setup.py ../
     cp src/python/set_msd_calcs.py ../
     cp src/python/gen_sub_scripts.py ../
-    if [ $timestep = 'FALSE' ]
+    cp src/python/grab_press.py ../
+    if [ $timestep = 'FALSE' ]; then
         cp src/python/non-unif-sample.py ../
     fi
     cp src/exec/msd_rot_calc ../
@@ -150,7 +151,7 @@ else
     cd ../
     # Generate Submission Scripts
     python gen_sub_scripts.py
-    if [ $timestep = 'FALSE' ]
+    if [ $timestep = 'FALSE' ]; then
         python non-unif-sample.py -start 0 -end $nve_length
     fi
     # Find and Replace in job_array.sh
