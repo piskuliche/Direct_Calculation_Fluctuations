@@ -12,7 +12,7 @@ from argparse import RawTextHelpFormatter
 parser = argparse.ArgumentParser(description='''Sets up the msd calculations''', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-inp', help="Input File Number")
 parser.add_argument('-stp', help="Timestep (in ps)")
-parser.add_argument('-times', help="Number of distinct times")
+parser.add_argument('-ntimes', help="Number of distinct times")
 parser.add_argument('-mol', help="Molecule Name")
 args = parser.parse_args()
 fluctval = int(args.inp)
