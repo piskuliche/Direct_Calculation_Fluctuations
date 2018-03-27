@@ -21,7 +21,7 @@ if args.stp == 'FALSE':
 else:
     timestep = float(args.stp)
 
-ntimes   = int(args.times)
+ntimes   = int(args.ntimes)
 mol_name = str(args.mol)
 
 # Looks up the Step and Loop time keywords from log.lammps
@@ -29,6 +29,7 @@ filename='log.lammps'
 lookup= 'Step'
 lookup2= 'Loop time'
 totlines=0
+endskip=0
 with open(filename) as myFile:
     for num, line in enumerate(myFile, 1):
         if lookup in line:

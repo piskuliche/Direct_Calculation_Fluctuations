@@ -10,7 +10,7 @@ args = parser.parse_args()
 
 start=int(args.start)
 end=int(args.end)
-end-=50.0
+end+=50.0
 step = 0.0
 f=open('time.dat','w')
 while step < end:
