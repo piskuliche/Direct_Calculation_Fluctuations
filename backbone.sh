@@ -277,3 +277,23 @@ else
     touch .flag_valcalc
     exit 0
 fi
+
+#STEP: Cleanup
+FILE=.flag_cleanup
+if [ -f $FILE ]; then
+    echo "-Cleanup Flag Exists"
+    echo "-There are no further options"
+else
+    echo "-Cleanup Flag Missing"
+    echo "  Running cleanup"
+    cd ../
+    mkdir Analysis
+    mv *msd.dat Analysis
+    mv *c1.dat Analysis
+    mv *c2.dat Analysis
+    mv *shear.dat Analysis
+    cd -
+    echo "  Cleanup Has Finished!"
+    touch .flag_cleanup
+    exit 0
+fi

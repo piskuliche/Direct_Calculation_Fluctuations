@@ -43,8 +43,9 @@ filesperblock=nfiles/float(nblocks)
 t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
 
 # Creates the time array
-time = np.genfromtxt('time.dat', usecols=0)
+time = np.genfromtxt('real_time.dat', usecols=0)
 time = [0]+time
+time = time[:ntimes]
 
 for corr_name in corr_funcs:
     # Initialize Vectors

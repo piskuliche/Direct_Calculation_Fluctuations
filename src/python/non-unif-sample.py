@@ -13,10 +13,12 @@ end=int(args.end)
 end+=50.0
 step = 0.0
 f=open('time.dat','w')
+g=open('real_time.dat','w')
 while step < end:
     if step < 500:
         step = step + 10.0
     else:
         step = step + 50.0
     f.write("%d\n" % step)
+    g.write("%s\n" % step/1000.0)
 
