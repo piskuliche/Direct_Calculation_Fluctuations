@@ -82,7 +82,7 @@ nve_file="nve.sh"
 nve=open(nve_file, 'w')
 
 nve.write('#MSUB -N direct_calc_nve\n')
-nve.write('#MSUB -q thompson\n')
+nve.write('#MSUB -q sixhour\n')
 nve.write('#MSUB -j oe\n')
 nve.write('#MSUB -d ./\n')
 nve.write('#MSUB -l nodes=1:ppn=10:intel,mem=5gb,walltime=6:00:00\n\n\n')
