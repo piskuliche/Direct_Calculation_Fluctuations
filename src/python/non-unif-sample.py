@@ -20,5 +20,5 @@ while step < end:
     else:
         step = step + 50.0
     f.write("%d\n" % step)
-    g.write("%s\n" % step/1000.0)
+    g.write("%s\n" % str(step/1000.0))
 
