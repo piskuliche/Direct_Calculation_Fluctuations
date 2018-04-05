@@ -197,10 +197,15 @@ else
     fi 
     for (( i=$start_config; i<=$end_config; i+=$sep_config ))
         {
-            [ -s $i/log.lammps ] || echo "cd $i; msub nve.sh; cd ../" >> rerun
+            tail -n1 $i/log.lammps | grep -q Total || echo "cd $i; msub nve.sh; cd ../" >> rerun
         } 
-    bash rerun
-
+    
+    if (( $(wc rerun | awk '{print $1}') > 200 )); then 
+        echo "  Error: More than 100 folders to rerun - check ../FILES/rerun before continuing"
+    else
+        echo "  Submitting $(wc rerun | awk '{print $1}') missed jobs"
+        bash rerun
+    fi
     # Does some cleanup commands
     cd ../
     mkdir logs
@@ -223,9 +228,13 @@ else
     echo "-Grab Flucts Flag Missing"
     echo "  Running Flucts Grab Code"
     cp src/python/grab_flucts.py ../
+    cp src/shell/grabfluctsub.sh ../
     cd ../
-    python grab_flucts.py > grab_flucts.log
+    rm grab_flucts.log
+    msub grabfluctsub.sh
     cd -
+    echo "  Grab Flucts is running as a job"
+    echo "  Please be patient - and check that grab_flucts.py is completed before continuing"
     echo "  Grab Flucts Has Finished!"
     touch .flag_grabflucts
     exit 0
