@@ -99,7 +99,7 @@ nve.write('echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n')
 nve.write('echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n\n\n')
 nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 for i in range(0,num_molecs):
-    nve.write('python set_msd_calcs.py -inp ${PWD##*/} -mol %s -times %s -stp %s\n' % (molec[i], num_times, timestep))
+    nve.write('python set_msd_calcs.py -inp ${PWD##*/} -mol %s -ntimes %s -stp %s\n' % (molec[i], num_times, timestep))
     nve.write('./msd_rot_calc < msd_rot_calc.in\n\n')
 
 nve.write('python grab_press.py\n\n')
