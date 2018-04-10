@@ -271,7 +271,7 @@ else
                 echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times" >> fluctssub.sh
             fi
         }
-    
+    msub fluctssub.sh 
     cd -
     echo "  Fluctuation Calculation Completed"
     touch .flag_valcalc
