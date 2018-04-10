@@ -9,10 +9,9 @@ with open ("log.lammps","r") as log:
             
         if 'Loop time' in line:
             end=it
-
-P = np.genfromtxt('log.lammps', skip_header=start, skip_footer=it-end, usecols=(13,14,15,16,17,18))
+log.close()
+P = np.genfromtxt('log.lammps', skip_header=start, max_rows=int(end-start-1), usecols=(13,14,15,16,17,18))
 
 np.savetxt('pressures_out.log', P, fmt='%f8')
 
 
-print start, end

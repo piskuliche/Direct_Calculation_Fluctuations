@@ -48,7 +48,7 @@ Program visc_calc
       p_yzo = (pyyo-pzzo)/2.0
 
       ! Loops over times
-      do t = 0, ntimes
+      do t = 1, ntimes
            read(11,*)  (press(k),k=1,6) 
            Pxy = pxyo * press(4) 
            Pxz = pxzo * press(5) 
