@@ -54,6 +54,9 @@ def Error(value):
 def E_Mult_Prop(a,ea,b,eb):
     return a*b*np.sqrt((ea/a)**2+(eb/b)**2)
 
+def E_Divi_Prop(a,ea,b,eb):
+    return a/b*np.sqrt((ea/a)**2+(eb/b)**2)
+
 # Read in Arguments
 parser = argparse.ArgumentParser(description='''Calculates the c2 fit''', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-inp', help="Input File")
@@ -127,7 +130,7 @@ for item1 in inp_names:
             item3=item1
             for block in range(0,nblocks):              
                 time, cab, dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_c2.dat', usecols=(0,1,2), unpack=True)
-                popt_cab, pcov_cab = curve_fit(Corr_Fit, time, cab, p0=(.2,.3,.5,.05,.2,1))
+                popt_cab, pcov_cab = curve_fit(Corr_Fit, time, cab, p0=(.2,.5,.5,.002,.3,3),bounds=((0, 0, 0, 0, 0, 0), (1, 1, 1, np.inf, np.inf, np.inf)))
                 A=popt_cab[:3]
                 k=popt_cab[3:]
                 ksrt=sorted(k)
@@ -138,7 +141,7 @@ for item1 in inp_names:
                 k2=ksrt[1]
                 k3=ksrt[2]
                 print("Block %s First Derivative:" % block)
-                popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab, p0=(0.2,0.3,0.4,0.2,0.3,5))
+                popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab, p0=(0.2,0.3,0.5,0.2,0.3,5))
                 dA=popt_dcab[:3]
                 dk=popt_dcab[3:]
                 dA1=dA[0]
@@ -147,6 +150,7 @@ for item1 in inp_names:
                 dk1=dk[0]
                 dk2=dk[1]
                 dk3=dk[2]
+                print("dk3 block %s" % dk3)
                 # Write single item info to file
                 A1_bl[block] = A1
                 A2_bl[block] = A2
@@ -264,7 +268,7 @@ for item1 in inp_names:
         if jindex >= iindex:
             item3=item1
             time, cab, dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_c2.dat', usecols=(0,1,3), unpack=True)
-            popt_cab, pcov_cab = curve_fit(Corr_Fit, time, cab, p0=(.2,.3,.5,.05,.2,1))
+            popt_cab, pcov_cab = curve_fit(Corr_Fit, time, cab, p0=(.2,.5,.5,.002,.3,3),bounds=((0, 0, 0, 0, 0, 0), (1, 1, 1, np.inf, np.inf, np.inf)))
             A=popt_cab[:3]
             k=popt_cab[3:]
             ksrt=sorted(k)
@@ -351,18 +355,18 @@ for item1 in inp_names:
             fout.write("d3k2: %s   err: %s\n" % (d3k2, err_d3k2))
             fout.write("d3k3: %s   err: %s\n" % (d3k3, err_d3k3))
             fout.write("\n")
-            fout.write(" Ea Tau 2: %s   err: %s\n" % (dk1*(1.0/k1), E_Mult_Prop(dk1,err_dk1, k1, err_k1)))
+            fout.write(" Ea Tau 2: %s   err: %s\n" % (dk1*(1.0/k1), E_Divi_Prop(dk1,err_dk1, k1, err_k1)))
             fout.write(" Tau 2 Time: %s +/- %s ps\n" % ((1.0/k1),(err_k1/k1*(1.0/k1))))
-            fout.write(" Ea Librational: %s   err: %s\n" % (dk2*(1.0/k2), E_Mult_Prop(dk2,err_dk2, k2, err_k2)))
+            fout.write(" Ea Librational: %s   err: %s\n" % (dk2*(1.0/k2), E_Divi_Prop(dk2,err_dk2, k2, err_k2)))
             fout.write(" Librational Time: %s +/- %s ps\n" % ((1.0/k2),(err_k2/k2*(1.0/k2)))) 
-            fout.write(" Ea Inertial: %s   err: %s\n" % (dk3*(1.0/k3), E_Mult_Prop(dk3,err_dk3, k3, err_k3)))
+            fout.write(" Ea Inertial: %s   err: %s\n" % (dk3*(1.0/k3), E_Divi_Prop(dk3,err_dk3, k3, err_k3)))
             fout.write(" Inertial Time: %s +/- %s ps\n" % ((1.0/k3), (err_k3/k3*(1.0/k3))))
             fout.write("Integrated Times\n")
             fout.write("<tau2> = %s +/- %s\n" % (int_tau,err_int_tau))
             fout.write("intdc2 = %s +/- %s\n" % (int_dc2,err_int_dc2))
             fout.write("intd2c2 = %s +/- %s\n" % (int_d2c2,err_int_d2c2))
             fout.write("intd3c2 = %s +/- %s\n" % (int_d3c2, err_int_d3c2))
-            fout.write("<EaTau2> = %s +/- %s\n" % (int_dc2*(-1.0/int_tau), E_Mult_Prop(int_tau,err_int_tau,int_dc2, err_int_dc2 )))
+            fout.write("<EaTau2> = %s +/- %s\n" % (int_dc2*(-1.0/int_tau), E_Divi_Prop(int_tau,err_int_tau,int_dc2, err_int_dc2 )))
             fout.write("End Correlation function\n")
             fout.close()
             cabfit=Corr_Fit(time,*popt_cab)
