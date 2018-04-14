@@ -156,7 +156,7 @@ else
     if [ $timestep = 'FALSE' ]; then
         python non-unif-sample.py -start 0 -end $nve_length
     else
-        python unif-sample.py -start 0 -end $nve_length -step 10
+        python unif-sample.py -start 0 -end $nve_length -step $timestep
     fi
     # Find and Replace in job_array.sh
     python file_setup.py
