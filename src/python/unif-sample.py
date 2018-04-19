@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 start=int(args.start)
 end=int(args.end)
-dt=int(args.step)
+dt=float(args.step)*1000.0
 
 step = 0.0
 f=open('time.dat','w')
