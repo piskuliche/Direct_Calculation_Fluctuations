@@ -32,7 +32,7 @@ mol_name = str(args.mol) # This is the name of the molecule
 
 # Define Corr-Array
 #corr_funcs=['msd','c1','c2'] # This is the name of the correlation functions.
-corr_funcs=['c2']
+corr_funcs=['msd']
 
 # Read in input file
 inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True) 
@@ -326,7 +326,7 @@ for corr_name in corr_funcs:
                 eafval=dfvalcab[1:]/cab[1:]
 
                 # Read In Uncertainty
-                err_cab, err_eafval, err_dfvalcab = np.genfromtxt('err_'+item1+'_'+str(mol_name)+'_'+corr_name+'.dat', usecols=(0,1,2), unpack=True)
+                err_cab, err_eafvalcab, err_dfvalcab = np.genfromtxt('err_'+item1+'_'+str(mol_name)+'_'+corr_name+'.dat', usecols=(0,1,2), unpack=True)
                 err_d2fvalcab, err_d2fvalavcab = np.genfromtxt('err_'+item1+'_'+item2+'_'+str(mol_name)+'_'+corr_name+'.dat',usecols=(0,1), unpack=True)
                 err_d3fvalcab, err_d4fvalcab = np.genfromtxt('err_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_'+corr_name+'.dat', usecols=(0,1), unpack=True)
                 # Print Output
