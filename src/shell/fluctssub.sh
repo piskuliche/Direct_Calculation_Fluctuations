@@ -1,9 +1,12 @@
-#MSUB -N FLUCTSCALC
+#MSUB -N flucts_array
 #MSUB -q sixhour
-#MSUB -d ./
 #MSUB -j oe
-#MSUB -l nodes=1:ppn=10:intel,mem=5gb,walltime=6:00:00
+#MSUB -d ./
+#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00
+#MSUB -t 0-6
 
 
-module load Python/2.7
+cd $PBS_O_WORKDIR
 
+echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
+echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o

@@ -260,19 +260,19 @@ else
         {
             if [ $x -eq 1 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times" >> fluctssub.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
             fi
             if [ $x -eq 2 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times" >> fluctssub.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
             fi
             if [ $x -eq 3 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times" >> fluctssub.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
             fi
             if [ $x -eq 4 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times" >> fluctssub.sh
+                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
             fi
         }
     msub fluctssub.sh 

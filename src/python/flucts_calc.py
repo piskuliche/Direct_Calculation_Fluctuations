@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This code is used to calculate the activation energies of diffusion and reorientation based on the fluctuations method.
 # It should run for either the NVT or NPT ensembles.
 
@@ -6,6 +7,7 @@ import numpy as np
 import os
 import argparse
 from argparse import RawTextHelpFormatter
+import sys
 
 
 def Third_Order_Weight(i, d3, d3av):
@@ -22,6 +24,7 @@ parser.add_argument('-files', help="Number of Files")
 parser.add_argument('-blocks', help="Number of blocks")
 parser.add_argument('-ntimes', help="Number of times")
 parser.add_argument('-mol', help ="Molecule Name")
+parser.add_argument('-ind', help = "If you want a single element - type its position in the input file (counting from 0). If you want the whole thing - type FALSE")
 args = parser.parse_args()
 
 inputfile = str(args.inp) # This is the input file that specifies the items and the columns
@@ -30,14 +33,30 @@ nblocks = int(args.blocks) # This is the number of blocks for averaging
 ntimes = int(args.ntimes) # This is the length of the TCF calculation
 mol_name = str(args.mol) # This is the name of the molecule
 
+
+inp_n, inp_c=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True)
+index=0
+inp_names1=[]
+inp_names2=[]
+print args.ind
+if args.ind == 'FALSE' or args.ind == 'None':
+    inp_names1=inp_n
+    inp_names2=inp_n
+    inp_cols=inp_c
+    print "false"
+else:
+    index = int(args.ind)
+    inp_names1.append(inp_n[index])
+    inp_names2=inp_n
+
+print("Calculation Start")
+print("index %s" % index)
+sys.stdout.flush()
 # Define Corr-Array
 #corr_funcs=['msd','c1','c2'] # This is the name of the correlation functions.
-corr_funcs=['msd']
+corr_funcs=['c2']
 
 # Read in input file
-inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True) 
-print inp_names
-print inp_cols
 # Calculate important quantities
 filesperblock=nfiles/float(nblocks)
 t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
@@ -46,7 +65,6 @@ t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
 time = np.genfromtxt('real_time.dat', usecols=0)
 time = [0]+time
 time = time[:ntimes]
-
 for corr_name in corr_funcs:
     # Initialize Vectors
     cab=[ntimes]        # Unweighted Corr func
@@ -108,11 +126,14 @@ for corr_name in corr_funcs:
     # Do the Block Average Calculation
     iindex=0
     jindex=0
-    for item1 in inp_names:
+    print("Read in fluctuations")
+    sys.stdout.flush()
+    for item1 in inp_names1:
         print item1
+        sys.stdout.flush()
         fval1 = np.genfromtxt(str(item1)+'_init.out',unpack=True) # Reads in the values of the energy
         jindex=0
-        for item2 in inp_names:
+        for item2 in inp_names2:
             if jindex >= iindex:
                 print item2
                 item3=item1
@@ -257,11 +278,13 @@ for corr_name in corr_funcs:
     item_count = 0
     iindex=0 #item1 counter
     jindex=0 #item2 counter
-    for item1 in inp_names:
+    print("Total Calculation")
+    for item1 in inp_names1:
         print("item1: %s" % item1)
+        sys.stdout.flush()
         jindex=0
         fval1 = np.genfromtxt(str(item1)+"_init.out", unpack=True) # Reads in Values for the Energy
-        for item2 in inp_names:
+        for item2 in inp_names2:
             if jindex >= iindex:
                 print("item2: %s" % item2)
                 item3 = item1
