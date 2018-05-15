@@ -1,8 +1,8 @@
 #MSUB -N flucts_array
-#MSUB -q sixhour
+#MSUB -q laird
 #MSUB -j oe
 #MSUB -d ./
-#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00
+#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=30:00:00
 #MSUB -t 0-6
 
 
