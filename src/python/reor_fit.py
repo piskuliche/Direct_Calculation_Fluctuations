@@ -9,6 +9,7 @@ import os
 import argparse
 import matplotlib.pyplot as plt
 from argparse import RawTextHelpFormatter
+from numpy import log
 
 def Corr_Fit(t,A1,A2,A3,k1,k2,k3):
     return A1*np.exp(-k1*t)+A2*np.exp(-k2*t)+(1-A1-A2)*np.exp(-k3*t)
@@ -21,6 +22,11 @@ def dCorr_Fit(t,dA1,dA2,dA3,dk1,dk2,dk3):
 
 def Alt_dCorrFit(t,adA1,adA2,adA3,adk1,adk2,adk3):
     return (adA1-Y*aA1*t**Y*ak1**(Y-1)*adk1)*np.exp(-(t*ak1)**Y)+(adA2-aA2*adk2*t)*np.exp(-t*ak2)+(adA3-2*t**2*aA3*ak3*adk3)*np.exp(-(t*ak3)**2)
+
+def Alt2_dCorrFit(t,adA1,adA2,adA3,adk1,adk2,adk3,adY):
+        return (adA1-aA1*(t*ak1)**Y*(Y*adk1/ak1+adY*np.log(t*ak1)))*np.exp(-(t*ak1)**Y)+(adA2-aA2*adk2*t)*np.exp(-t*ak2)+(adA3-2*t**2*aA3*ak3*adk3)*np.exp(-(t*ak3)**2)
+
+
 
 def d2Corr_Fit(t,d2A1, d2A2, d2A3, d2k1, d2k2, d2k3):
     return (d2A1-t*(2*dA1*dk1+A1*d2k1)+t**2*(A1*dk1*dk1))*np.exp(-k1*t)+(d2A2-t*(2*dA2*dk2+A2*d2k2)+t**2*(A2*dk2*dk2))*np.exp(-k2*t)+(d2A3-t*(2*dA3*dk3+A3*d2k3)+t**2*(A3*dk3*dk3))*np.exp(-k3*t)
@@ -126,6 +132,7 @@ int_dc2_bl=[[] for x in range(0,nblocks)]
 int_d2c2_bl=[[] for x in range(0,nblocks)]
 int_d3c2_bl=[[] for x in range(0,nblocks)]
 int_ea_bl=[[] for x in range(0,nblocks)]
+Ea_str_bl=[[] for x in range(0,nblocks)]
 tau2_comp1_bl =[[] for x in range(0,nblocks)]
 tau2_comp2_bl =[[] for x in range(0,nblocks)]
 taul_comp1_bl =[[] for x in range(0,nblocks)]
@@ -165,7 +172,30 @@ for item1 in inp_names:
                 k1=ksrt[0]
                 k2=ksrt[1]
                 k3=ksrt[2]
-                # Fit second correlation function
+                # Fit Alt Correlation 
+                popt_altcab, pcov_altcab = curve_fit(Alt_CorrFit, time[:cut], cab[:cut], p0=(.77799,.14109,.09,.483,2.5,40.,1.0),bounds=((0, 0, 0,0, .1, 0, 0), (1, 1, 1, np.inf,np.inf, np.inf,np.inf)))
+                A_ALT=popt_altcab[:3]
+                k_ALT=popt_altcab[3:]
+                Y_ALT=popt_altcab[6]
+                aA1=A_ALT[0]
+                aA2=A_ALT[1]
+                aA3=A_ALT[2]
+                ak1=k_ALT[0]
+                ak2=k_ALT[1]
+                ak3=k_ALT[2]
+                Y=Y_ALT
+                # Fit Alt Derivative
+                popt_altdcab, pcov_altdcab = curve_fit(Alt_dCorrFit, time[:cut], dcab[:cut], p0=(0.2,0.3,0.4,1.0,2.0,3.0))
+                dAalt=popt_altdcab[:3]
+                dkalt=popt_altdcab[3:]
+                daA1=dAalt[0]
+                daA2=dAalt[1]
+                daA3=dAalt[2]
+                dak1=dkalt[0]
+                dak2=dkalt[1]
+                dak3=dkalt[2]
+                Ea_str_bl[block]=(1.0/ak1)*dak1
+                # Fit first derivative correlation function
                 print("Block %s First Derivative:" % block)
                 popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab, p0=(0.2,0.3,0.4,1.0,2.0,3.0))
                 # Set parameters to variables
@@ -177,6 +207,7 @@ for item1 in inp_names:
                 dk1=dk[0]
                 dk2=dk[1]
                 dk3=dk[2]
+
                 # Write single item info to file
                 A1_bl[block] = A1
                 A2_bl[block] = A2
@@ -234,6 +265,10 @@ for item1 in inp_names:
                 int_d2c2_bl[block] = Integrate(time,d2cab)
                 int_d3c2_bl[block] = Integrate(time,d3cab)
                 int_ea_bl[block] = (1.0/int_tau_bl[block])*int_dc2_bl[block]
+                # Print block info
+                bout=open("bl_"+str(block)+"_"+item1+"_"+str(mol_name)+"_"+str(T)+"_tau.dat",'w')
+                bout.write("%s %s %s %s %s\n" % (1/T, log(k1),log(k2),log(k3),log(1.0/int_tau_bl[block])))
+                bout.close()
                 # Calculate Components
                 tau2_comp1_bl[block], tau2_comp2_bl[block] = Ea_Breakdown(A1,-dA1,(1.0/k1),int_tau_bl[block], dk1*(1.0/k1))
                 taul_comp1_bl[block], taul_comp2_bl[block] = Ea_Breakdown(A2,-dA2,(1.0/k2),int_tau_bl[block], dk2*(1.0/k2))
@@ -291,13 +326,14 @@ for item1 in inp_names:
             err_taui_comp1 = Error(taui_comp1_bl)
             err_taui_comp2 = Error(taui_comp2_bl)
             err_comp_sum = Error(comp_sum_bl)
+            err_Ea_str = Error(Ea_str_bl)
 
             order2prederr=np.array(order2pred_bl).std(0)
             order2prederr=[x * t_val for x in order2prederr]
             order3prederr=np.array(order3pred_bl).std(0)
             order3prederr=[x * t_val for x in order3prederr]
 
-            np.savetxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', np.c_[err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3], fmt='%s')
+            np.savetxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', np.c_[err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3, err_Ea_str], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+str(mol_name)+'_c2.dat', np.c_[err_d2A1, err_d2A2, err_d2A3, err_d2k1, err_d2k2, err_d2k3], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_c2.dat', np.c_[err_d3A1, err_d3A2, err_d3A3, err_d3k1, err_d3k2, err_d3k3], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_intc2.dat', np.c_[err_int_tau, err_int_dc2, err_int_d2c2, err_int_d3c2, err_int_ea, err_tau2_comp1, err_tau2_comp2, err_taul_comp1, err_taul_comp2, err_taui_comp1, err_taui_comp2, err_comp_sum], fmt='%s')
@@ -328,8 +364,8 @@ for item1 in inp_names:
             k3=ksrt[2]
             # Fit Alt Correlation 
             popt_altcab, pcov_altcab = curve_fit(Alt_CorrFit, time[:cut], cab[:cut], p0=(.77799,.14109,.09,.483,2.5,40.,1.0),bounds=((0, 0, 0,0, .1, 0, 0), (1, 1, 1, np.inf,np.inf, np.inf,np.inf)))
-            A_ALT=[popt_altcab[0],popt_altcab[1],popt_altcab[2]]
-            k_ALT=[popt_altcab[3],popt_altcab[4],popt_altcab[5]]
+            A_ALT=popt_altcab[:3]
+            k_ALT=popt_altcab[3:]
             Y_ALT=popt_altcab[6]
             aA1=A_ALT[0]
             aA2=A_ALT[1]
@@ -339,8 +375,16 @@ for item1 in inp_names:
             ak3=k_ALT[2]
             Y=Y_ALT
             # Fit Alt Derivative
-            popt_altdcab, pcov_altdcab = curve_fit(Alt_dCorrFit, time[:cut], dcab[:cut], p0=(0.2,0.3,0.4,1.0,2.0,3.0))
-
+            popt_altdcab, pcov_altdcab = curve_fit(Alt2_dCorrFit, time[:cut], dcab[:cut], p0=(0.2,0.3,0.4,1.0,2.0,3.0,01.0))
+            dAalt=popt_altdcab[:3]
+            dkalt=popt_altdcab[3:]
+            dY=popt_altdcab[6]
+            daA1=dAalt[0]
+            daA2=dAalt[1]
+            daA3=dAalt[2]
+            dak1=dkalt[0]
+            dak2=dkalt[1]
+            dak3=dkalt[2]
             # Fit First Derivative
             print("First Total Derivative:")
             popt_dcab, pcov_dcab = curve_fit(dCorr_Fit,time, dcab,sigma=sig_arr, p0=(0.2,0.3,0.4,1.0,2.0,3.0))
@@ -377,7 +421,7 @@ for item1 in inp_names:
             d3k2=d3k[1]
             d3k3=d3k[2]
             # Read in Uncertainties
-            err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3 = np.genfromtxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True)
+            err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3, err_Ea_str = np.genfromtxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12), unpack=True)
             err_d2A1, err_d2A2, err_d2A3, err_d2k1, err_d2k2, err_d2k3 = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5), unpack=True)
             err_d3A1, err_d3A2, err_d3A3, err_d3k1, err_d3k2, err_d3k3 = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5), unpack=True)
             err_int_tau, err_int_dc2, err_int_d2c2, err_int_d3c2, err_int_ea, err_tau2_comp1, err_tau2_comp2, err_taul_comp1, err_taul_comp2, err_taui_comp1, err_taui_comp2, err_comp_sum= np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_intc2.dat', usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True)
@@ -446,17 +490,32 @@ for item1 in inp_names:
             fout.write("tauiner: %s +/- %s\n" % (taui_comp2[0], err_taui_comp2))
             fout.write("sum: %s +/- %s\n" %((tau2_comp1+tau2_comp2+taul_comp1+taul_comp2+taui_comp1+taui_comp2),err_comp_sum))
             fout.write("-------Alt Cab---------\n")
-            fout.write("tau iner %s\n" % (1.0/k_ALT[2]))
-            fout.write("tau lib  %s\n" % (1.0/k_ALT[1]))
-            fout.write("tau 2    %s\n" % (1.0/k_ALT[0]))
+            fout.write("This makes the assumption that the correlation function takes the form includes a gaussian inertial time, a regular librational time, and a stretched exponential tau_2 time\n")
+            fout.write("A1 %s\n" % aA1)
+            fout.write("A2 %s\n" % aA2)
+            fout.write("A3 %s\n" % aA3)
+            fout.write("k1 %s\n" % ak1)
+            fout.write("k2 %s\n" % ak2)
+            fout.write("k3 %s\n" % ak3)
+            fout.write("dA1 %s\n" % daA1)
+            fout.write("dA2 %s\n" % daA2)
+            fout.write("dA3 %s\n" % daA3)
+            fout.write("dk1 %s\n" % dak1)
+            fout.write("dk2 %s\n" % dak2)
+            fout.write("dk3 %s\n" % dak3)
+            fout.write("dY %s\n" % dY)
+            fout.write("tau iner %s\n" % (1.0/ak3))
+            fout.write("tau lib  %s\n" % (1.0/ak2))
+            fout.write("tau 2    %s\n" % (1.0/ak1))
             fout.write("Y    %s\n" % (Y_ALT))
+            fout.write("Ea_tau2 %s +/- %s\n" % (1.0/k_ALT[0]*dak1,err_Ea_str))
 
             
             fout.write("End Correlation function\n")
             fout.close()
             cabfit=Corr_Fit(time,A1,A2,A3,k1,k2,k3)
             altcabfit=Alt_CorrFit(time,*popt_altcab)
-            altdcabfit=Alt_dCorrFit(time,*popt_altdcab)
+            altdcabfit=Alt2_dCorrFit(time,*popt_altdcab)
             dcabfit=dCorr_Fit(time, dA1,dA2,dA3,dk1,dk2,dk3)
             d2cabfit=d2Corr_Fit(time, *popt_d2cab)
             d3cabfit=d3Corr_Fit(time, *popt_d3cab)
