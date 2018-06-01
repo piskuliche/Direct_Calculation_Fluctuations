@@ -23,7 +23,7 @@ class input:
             if i == 19:
                 self.end_config=int(line.strip())
             if i == 21:
-                self.sep_config=float(line.strip())
+                self.sep_config=int(line.strip())
             if i == 23:
                 self.timestep=float(line.strip())
             if i == 25:
