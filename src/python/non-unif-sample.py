@@ -1,24 +1,20 @@
 import numpy as np
-import argparse
-from argparse import RawTextHelpFormatter
+from read_input import input
 
-parser = argparse.ArgumentParser(description='''Calculates the log freq''', formatter_class=RawTextHelpFormatter)
+inputparam = input('input_file')
 
-parser.add_argument('-start', help = "start")
-parser.add_argument('-end', help = "end")
-args = parser.parse_args()
+pstofs=1000.0
 
-start=int(args.start)
-end=int(args.end)
-end+=50.0
+
+end=inputparam.nve_length+50.0
 step = 0.0
 f=open('time.dat','w')
 g=open('real_time.dat','w')
 while step < end:
     if step < 500:
-        step = step + 10.0
+        step = step + .01*pstofs
     else:
-        step = step + 50.0
+        step = step + inputparam.timestep*pstofs
     f.write("%d\n" % step)
-    g.write("%s\n" % str(step/1000.0))
+    g.write("%s\n" % str(step/inputparam.sep_config))
 

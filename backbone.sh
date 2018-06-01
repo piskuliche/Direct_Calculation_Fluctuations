@@ -78,10 +78,27 @@ else
             echo "  Example NVT and NPT input files are located in src/dependencies"
             exit 0
         fi
-    elif [ $program = 'CP2K']; then
+    elif [ $program = 'CP2K' ]; then
         if [ -f "../cp2k.log" ]; then
             echo "Trajectory Found"
-            touch .flag_traj
+            mkdir RESTART
+            mv *.restart RESTART
+            cd ../RESTART
+            echo "  What is the identifier for your restart files?"
+            echo "  i.e. anything before the # in the .restart files"
+            read identifier
+            if [ -f "$identifier"$start_config".restart" ]; then
+                echo "renaming restart files"
+                for (( i=$start_config; i<=$end_config; i+=$sep_config ))
+                    {
+                        mv "$identifier"$i".restart" restart.$i
+                    }
+                touch .flag_traj
+                cd -
+            else
+                echo "  Improper identifier, try again."
+                exit 0
+            fi
         else
             echo "  At this point, you should run the base trajectory"
             echo "  Example NVT and NPT input files are located in src/dependencies"
@@ -139,7 +156,8 @@ else
     done
     mkdir ../FILES
     # Copies various codes up to simulation directory
-    cp src/python/file_setup.py ../
+    cp src/python/file_setup.py ../ 
+    cp src/python/read_input.py ../
     cp src/python/set_msd_calcs.py ../
     cp src/python/gen_sub_scripts.py ../
     cp src/python/grab_press.py ../
@@ -154,9 +172,9 @@ else
     # Generate Submission Scripts
     python gen_sub_scripts.py
     if [ $timestep = 'FALSE' ]; then
-        python non-unif-sample.py -start 0 -end $nve_length
+        python non-unif-sample.py 
     else
-        python unif-sample.py -start 0 -end $nve_length -step $timestep
+        python unif-sample.py 
     fi
     # Find and Replace in job_array.sh
     python file_setup.py
@@ -177,12 +195,19 @@ if [ -f $FILE ]; then
         echo "-NVE Flag Exists"
 else
     echo "-NVE Flag Missing"
-    echo "  Running NVE Trajectories"
-    cd ../
-    screen -d -m bash sub_script
-    cd -
-    echo "  NVE Trajectories Submitted"
-    touch .flag_nve
+    read -r -p "Would you like to run the NVE trajectories? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+    then
+        echo "  Running NVE Trajectories"
+        cd ../
+        screen -d -m bash sub_script
+        cd -
+        echo "  NVE Trajectories Submitted"
+        touch .flag_nve
+
+    else
+        echo "  NVE Trajectories were NOT submitted."
+    fi
     exit 0
 fi
 
