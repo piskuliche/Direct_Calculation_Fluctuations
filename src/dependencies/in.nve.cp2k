@@ -1,0 +1,103 @@
+ &EXT_RESTART
+     RESTART_FILE_NAME ../../RESTART/restart.2500000
+     RESTART_THERMOSTAT .FALSE.
+ &END EXT_RESTART 
+&GLOBAL
+   BLACS_GRID  SQUARE
+   PREFERRED_FFT_LIBRARY  FFTW3
+   PRINT_LEVEL  LOW
+   PROGRAM_NAME  CP2K
+   PROJECT_NAME flucts
+   RUN_TYPE MD 
+   WALLTIME 129000
+ &END GLOBAL
+ &MOTION
+   &MD
+     ENSEMBLE  NVE
+     STEPS        20000
+     TIMESTEP     1.0
+     TEMPERATURE     298.15
+     TEMP_TOL     0
+     &PRINT ON
+       &ENERGY
+         &EACH
+           MD 100
+         &END EACH
+         FILENAME =flucts.ener
+       &END ENERGY
+     &END PRINT
+   &END MD
+   &CONSTRAINT
+     @INCLUDE ../../spce_pot/g3x3.inc
+   &END CONSTRAINT
+   &PRINT
+     &TRAJECTORY OFF
+       FORMAT XYZ  
+       FILENAME = traj_2500000_water.xyz
+       &EACH
+         MD              50 
+       &END EACH
+     &END TRAJECTORY
+     &VELOCITIES OFF 
+       FILENAME =flucts.vel
+       &EACH
+         MD               100
+       &END EACH
+     &END VELOCITIES
+     &FORCES  OFF
+       FORMAT DCD 
+       FILENAME =flucts_for.dcd
+       &EACH
+         MD               10 
+       &END EACH
+     &END FORCES
+     &RESTART  
+       FILENAME =restart
+       BACKUP_COPIES               3
+       &EACH
+         MD               20000
+       &END EACH
+     &END RESTART
+     &RESTART_HISTORY  
+       &EACH
+         MD             1000
+       &END EACH
+     &END RESTART_HISTORY
+   &END PRINT
+ &END MOTION
+&FORCE_EVAL
+ METHOD FIST
+ &MM
+   @INCLUDE ../../spce_pot/new.pot
+   &POISSON
+     &EWALD
+       EWALD_TYPE EWALD
+       ALPHA 0.3
+       GMAX 25
+       O_SPLINE 6
+     &END EWALD
+    &END POISSON
+  &END MM
+   &SUBSYS
+     &CELL
+       ABC [angstrom] 21.725311 21.725311 21.725311 
+       PERIODIC  XYZ
+     &END CELL
+     &TOPOLOGY
+      CONN_FILE_FORMAT MOL_SET
+      &MOL_SET
+        &MOLECULE
+          NMOL 343
+          CONN_FILE_FORMAT PSF
+          CONN_FILE_NAME ../../spce_pot/SPCE.psf
+        &END MOLECULE
+      &END MOL_SET
+    &END TOPOLOGY
+    &KIND OW
+      ELEMENT O
+    &END KIND
+    &KIND HW
+      ELEMENT H
+    &END KIND
+   &END SUBSYS
+ &END FORCE_EVAL
