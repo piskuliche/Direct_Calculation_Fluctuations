@@ -81,8 +81,8 @@ else
     elif [ $program = 'CP2K' ]; then
         if [ -f "../cp2k.log" ]; then
             echo "Trajectory Found"
-            mkdir RESTART
-            mv *.restart RESTART
+            mkdir ../RESTART
+            mv ../*.restart ../RESTART
             cd ../RESTART
             echo "  What is the identifier for your restart files?"
             echo "  i.e. anything before the # in the .restart files"
