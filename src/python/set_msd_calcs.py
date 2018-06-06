@@ -38,11 +38,11 @@ if inputparam.prog == "LAMMPS":
     vol = np.genfromtxt(filename, skip_header=startskip,skip_footer=endskip,usecols=(11), unpack=True)
 elif inputparam.prog == "CP2K":
     with open("in.nve.cp2k","r") as fi:
-    id = []
-    for ln in fi:
-        if ln.strip().startswith("ABC"):
-            id.append(ln.strip().split()[3:])
-    vol = id[0][0]
+        id = []
+        for ln in fi:
+            if ln.strip().startswith("ABC"):
+                id.append(ln.strip().split()[3:])
+        vol = id[0][0]
 
 
 # Writes the new msd calc input file with the right molecule name and volume
