@@ -5,7 +5,7 @@
 Program msd_rot_calc
 
     implicit none
-    integer :: i, j, k, it, itmp
+    integer :: i, j, k, it
     integer :: ntimes
     integer :: natms, nmol, atms_per_mol
     real :: dt, eavg, volume
@@ -21,6 +21,7 @@ Program msd_rot_calc
     real, dimension(5000) :: ener, dener
 
     character(len=10) nfile, mol_name
+    character(len=2) ctmp
 
     atms_per_mol = 3  ! Set # of atoms per mol !!!!!!!!!!!!
 
@@ -53,9 +54,9 @@ Program msd_rot_calc
     read(11,*)
     nmol = natms/atms_per_mol
     do j = 1, nmol
-        read(11,*) itmp, (rO_zero(j,k),k=1,3)
-        read(11,*) itmp, (r1_zero(j,k),k=1,3)
-        read(11,*) itmp, (r2_zero(j,k),k=1,3)
+        read(11,*) ctmp, (rO_zero(j,k),k=1,3)
+        read(11,*) ctmp, (r1_zero(j,k),k=1,3)
+        read(11,*) ctmp, (r2_zero(j,k),k=1,3)
         r1_zero(j,:) = r1_zero(j,:) - L(:)*anint(( r1_zero(j,:) - rO_zero(j,:) )/L(:))
         r2_zero(j,:) = r2_zero(j,:) - L(:)*anint(( r2_zero(j,:) - rO_zero(j,:) )/L(:))
     
@@ -77,9 +78,9 @@ Program msd_rot_calc
         read(11,*)
         read(11,*)
         do j = 1, nmol
-            read(11,*) itmp, (rO(j,k),k=1,3)
-            read(11,*) itmp, (r1(j,k),k=1,3)
-            read(11,*) itmp, (r2(j,k),k=1,3)
+            read(11,*) ctmp, (rO(j,k),k=1,3)
+            read(11,*) ctmp, (r1(j,k),k=1,3)
+            read(11,*) ctmp, (r2(j,k),k=1,3)
                 r1(j,:) = r1(j,:) - L(:)*anint(( r1(j,:) - rO(j,:) )/L(:))
                 r2(j,:) = r2(j,:) - L(:)*anint(( r2(j,:) - rO(j,:) )/L(:))
          
