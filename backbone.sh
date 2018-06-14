@@ -277,7 +277,8 @@ if [ -f $FILE ]; then
 else
     echo "-Fluctuation Calculation Flag Missing"
     echo "  Running Fluctuation Calc"
-    cp src/python/flucts_calc.py ../
+    cp src/python/init_flucts.py ../
+    cp src/python/do_flucts.py ../
     cp src/shell/fluctssub.sh ../
     cd ../
     mv msd_calc.o* logs
