@@ -38,11 +38,12 @@ if inputparam.prog == "LAMMPS":
     vol = np.genfromtxt(filename, skip_header=startskip,skip_footer=endskip,usecols=(11), unpack=True)
 elif inputparam.prog == "CP2K":
     with open("in.nve.cp2k","r") as fi:
-        id = []
+        id = 0
         for ln in fi:
             if ln.strip().startswith("ABC"):
-                id.append(ln.strip().split()[3:])
-        vol = id[0][0]
+                id=ln.strip().split()[-1]
+        vol = float(id)**3
+        print vol
 
 
 # Writes the new msd calc input file with the right molecule name and volume
@@ -54,7 +55,7 @@ f.write("%s\n" % (fluctval))
 f.write("# Number_of_Times Sep_of_Times:\n")
 f.write("%s %s\n" % (inputparam.num_times, timestep))
 f.write("# Volume\n")
-f.write("%s\n" % (vol[0]))
+f.write("%s\n" % (vol))
 f.write("# Molecule Name\n")
 f.write("%s\n" % (mol_name))
 f.close()
