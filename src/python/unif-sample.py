@@ -12,4 +12,4 @@ g=open('real_time.dat','w')
 while step < inputparam.nve_length:
     f.write("%d\n" % step)
     g.write("%s %s\n" % (str(step/pstofs),1.0))
-    step = step + inputparam.timestep*inputparam.sep_config*pstofs
+    step = step + inputparam.timestep*pstofs

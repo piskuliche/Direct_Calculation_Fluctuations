@@ -276,14 +276,13 @@ fi
 # STEP: INITIALIZE SEGMENTS CORRELATION FUNCTIONS/Act. Eners./Act. Vols
 FILE=.flag_initarray
 if [ -f $FILE ]; then
-    echo "-Fluctuation Calculation Flag Exist"
+    echo "-InitArray Calculation Flag Exist"
 else
-    echo "-Fluctuation Calculation Flag Missing"
-    echo "  Running Fluctuation Calc"
+    echo "-InitArray Calculation Flag Missing"
+    echo "  Running InitArray Calc"
     cp src/python/init_flucts.py ../
     cp src/python/do_flucts.py ../
-    cp src/python/init_array.sh ../
-    cp src/shell/fluctssub.sh ../
+    cp src/shell/init_array.sh ../
     cd ../
     mkdir SEG
     msub init_array.sh
@@ -296,12 +295,13 @@ fi
 
 
 #STEP: Fluctuations Calculation
-FILES=.flag_valcalc
+FILE=.flag_valcalc
 if [ -f $FILE ]; then
     echo "-Fluctuations Calculation Flag Exists"
 else
     echo "-Fluctuations Flag Missing"
     echo "  Running Fluctuations Calculation"
+    cp src/shell/fluctssub.sh ../
     cd ../
         for ((x=1; x<=$num_molecs; x++))
         {
@@ -325,7 +325,8 @@ else
                 echo "python do_flucts.py flucts.inp msd $molec4 $blocks" >> fluctssub.sh
                 echo "python do_flucts.py flucts.inp c2 $molec4 $blocks" >> fluctssub.sh
             fi
-        } 
+        }
+    msub fluctssub.sh 
     cd -
     echo "  Fluctuations has finished!"
     touch .flag_valcalc
