@@ -226,7 +226,11 @@ else
     fi 
     for (( i=$start_config; i<=$end_config; i+=$sep_config ))
         {
-            tail -n1 $i/log.lammps | grep -q Total || echo "cd $i; msub nve.sh; cd ../" >> rerun
+            if [ $program = 'LAMMPS' ]; then
+                tail -n1 $i/log.lammps | grep -q Total || echo "cd $i; msub nve.sh; cd ../" >> rerun
+            elif [ $program = 'CP2K' ]; then
+                echo "  Since you are using CP2K, you need to check individually whether runs have finished."
+            fi
         } 
     
     if (( $(wc rerun | awk '{print $1}') > 200 )); then 
@@ -259,7 +263,6 @@ else
     cp src/python/grab_flucts.py ../
     cp src/shell/grabfluctsub.sh ../
     cd ../
-    rm grab_flucts.log
     msub grabfluctsub.sh
     cd -
     echo "  Grab Flucts is running as a job"
@@ -270,8 +273,8 @@ else
 fi
 
 
-# STEP: CALCULATE WEIGHTED CORRELATION FUNCTIONS/Act. Eners./Act. Vols
-FILE=.flag_valcalc
+# STEP: INITIALIZE SEGMENTS CORRELATION FUNCTIONS/Act. Eners./Act. Vols
+FILE=.flag_initarray
 if [ -f $FILE ]; then
     echo "-Fluctuation Calculation Flag Exist"
 else
@@ -279,31 +282,52 @@ else
     echo "  Running Fluctuation Calc"
     cp src/python/init_flucts.py ../
     cp src/python/do_flucts.py ../
+    cp src/python/init_array.sh ../
     cp src/shell/fluctssub.sh ../
     cd ../
-    mv msd_calc.o* logs
-    for ((x=1; x<=$num_molecs; x++))
+    mkdir SEG
+    msub init_array.sh
+    cd -
+    echo "  Fluctuation Array Submitted"
+    echo "  Please wait until all jobs are completed."
+    touch .flag_initarray
+    exit 0
+fi
+
+
+#STEP: Fluctuations Calculation
+FILES=.flag_valcalc
+if [ -f $FILE ]; then
+    echo "-Fluctuations Calculation Flag Exists"
+else
+    echo "-Fluctuations Flag Missing"
+    echo "  Running Fluctuations Calculation"
+    cd ../
+        for ((x=1; x<=$num_molecs; x++))
         {
             if [ $x -eq 1 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec1 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp msd $molec1 $blocks" > fluctssub.sh
+                echo "python do_flucts.py flucts.inp c2 $molec1 $blocks" >> fluctssub.sh
             fi
             if [ $x -eq 2 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec2 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp msd $molec2 $blocks" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp c2 $molec2 $blocks" >> fluctssub.sh
             fi
             if [ $x -eq 3 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec3 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp msd $molec3 $blocks" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp c2 $molec3 $blocks" >> fluctssub.sh
             fi
             if [ $x -eq 4 ]
             then
-                echo "python flucts_calc.py -inp flucts.inp -files $num_files -blocks $blocks -mol $molec4 -ntimes $num_times -ind \$MOAB_JOBARRAYINDEX >> array_\$MOAB_JOBARRAYINDEX.o" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp msd $molec4 $blocks" >> fluctssub.sh
+                echo "python do_flucts.py flucts.inp c2 $molec4 $blocks" >> fluctssub.sh
             fi
-        }
-    msub fluctssub.sh 
+        } 
     cd -
-    echo "  Fluctuation Calculation Completed"
+    echo "  Fluctuations has finished!"
     touch .flag_valcalc
     exit 0
 fi

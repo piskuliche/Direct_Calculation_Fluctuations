@@ -8,5 +8,6 @@
 
 cd $PBS_O_WORKDIR
 
+python init_average.py $MOAB_JOBARRAYINDEX flucts.inp msd water
 python init_average.py $MOAB_JOBARRAYINDEX flucts.inp c2 water
 
