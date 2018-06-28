@@ -35,7 +35,8 @@ if inputparam.prog == "LAMMPS":
                 endskip=num
             totlines=num
     endskip=totlines-endskip-4
-    vol = np.genfromtxt(filename, skip_header=startskip,skip_footer=endskip,usecols=(11), unpack=True)
+    volu = np.genfromtxt(filename, skip_header=startskip,skip_footer=endskip,usecols=(11), unpack=True)
+    vol = volu[0]
 elif inputparam.prog == "CP2K":
     with open("in.nve.cp2k","r") as fi:
         id = 0

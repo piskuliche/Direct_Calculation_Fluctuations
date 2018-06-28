@@ -34,4 +34,6 @@ class input:
                 self.num_files=int(line.strip())
             if i == 31:
                 self.nve_length=int(line.strip())
+            if i == 33:
+                self.cab=str(line.strip())
         ip.close()

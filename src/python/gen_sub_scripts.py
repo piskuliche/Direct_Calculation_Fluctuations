@@ -51,14 +51,20 @@ if inputparam.prog == "LAMMPS":
     ja.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
     ja.write('mpirun -np 2 cp2k.popt in.nve.cp2k \n\n\n')
-for i in range(0,inputparam.num_molecs):
-    ja.write('echo %s > mol.info\n' % inputparam.molec[i])
-    ja.write('python ../../set_msd_calcs.py \n')
-    ja.write('./msd_rot_calc < msd_rot_calc.in\n\n')
+if inputparam.cab == "TRANSPORT":
+    for i in range(0,inputparam.num_molecs):
+        ja.write('echo %s > mol.info\n' % inputparam.molec[i])
+        ja.write('python ../../set_msd_calcs.py \n')
+        ja.write('./msd_rot_calc < msd_rot_calc.in\n\n')
 
-if inputparam.prog == "LAMMPS":
-    ja.write('python grab_press.py\n')
-    ja.write('./visc_calc\n\n')
+    if inputparam.prog == "LAMMPS":
+        ja.write('python grab_press.py\n')
+        ja.write('./visc_calc\n\n')
+elif inputparam.cab == "IONPAIRING":
+    ja.write('echo %s > mol.info\n' % inputparam.molec[0])
+    ja.write('python ../../set_msd_calcs.py \n')
+    ja.write('./flux_side\n\n')
+
 
 ja.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
 
@@ -72,11 +78,6 @@ nve.write('#MSUB -j oe\n')
 nve.write('#MSUB -d ./\n')
 nve.write('#MSUB -l nodes=1:ppn=10:intel,mem=5gb,walltime=6:00:00\n\n\n')
 
-nve.write('SEP=%s\n' % (inputparam.sep_config))
-nve.write('START=%s\n' % (inputparam.start_config))
-nve.write('CUR=$(( MOAB_JOBARRAYINDEX*SEP - SEP + START ))\n')
-nve.write('cd $PBS_O_WORKDIR\n')
-nve.write('cd FILES/$CUR\n\n\n')
 
 if inputparam.prog == "LAMMPS":
     nve.write('module load lammps/11Aug17\n\n')
@@ -90,14 +91,18 @@ if inputparam.prog == "LAMMPS":
     nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
     nve.write('mpirun -np 2 cp2k.popt in.nve.cp2k \n\n\n')
-
-for i in range(0,inputparam.num_molecs):
-    nve.write('echo %s > mol.info\n' % inputparam.molec[i])
-    nve.write('python ../../set_msd_calcs.py\n')
-    nve.write('./msd_rot_calc < msd_rot_calc.in\n\n')
-if inputparam.prog == "LAMMPS":
-    nve.write('python grab_press.py\n\n')
-    nve.write('./visc_calc\n')
+if inputparam.cab == "TRANSPORT":
+    for i in range(0,inputparam.num_molecs):
+        nve.write('echo %s > mol.info\n' % inputparam.molec[i])
+        nve.write('python ../../set_msd_calcs.py\n')
+        nve.write('./msd_rot_calc < msd_rot_calc.in\n\n')
+    if inputparam.prog == "LAMMPS":
+        nve.write('python grab_press.py\n\n')
+        nve.write('./visc_calc\n')
+elif inputparam.cab == "IONPAIRING":
+    nve.write('echo %s > mol.info\n' % inputparam.molec[0])
+    nve.write('python ../../set_msd_calcs.py \n')
+    nve.write('./flux_side\n\n')
 
 nve.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
 

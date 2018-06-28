@@ -27,6 +27,7 @@ if inputparam.prog == "LAMMPS":
         h.write('cp in.nve FILES/'+ext[i]+'\n')
         h.write('cp nve.sh FILES/'+ext[i]+'\n')
         h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
+        h.write('cp flux_side FILES/'+ext[i]+'\n')
         h.write('cp grab_press.py FILES/'+ext[i]+'\n')
         h.write('cp visc_calc FILES/'+ext[i]+'\n')
         h.write('cp time.dat FILES/'+ext[i]+'\n')
@@ -38,6 +39,8 @@ if inputparam.prog == "LAMMPS":
         h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve\n")
         for j in range(0, nmols):
             h.write("sed -i -e 's@traj.file"+str(j)+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve\n")
+            if inputparam.cab == 'IONPAIRING':
+                h.write("sed -i -e 's@vel.file@vel_"+ext[i]+"_"+molnames[j]+".vxyz@g' in.nve\n")
         h.write('cd ../../\n')
 
     narrays=int(math.ceil(float(nfiles)/500.))
@@ -69,6 +72,8 @@ elif inputparam.prog == "CP2K":
         h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve.cp2k\n")
         for j in range(0, nmols):
             h.write("sed -i -e 's@traj.file"+str(j)+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve.cp2k\n")
+            if inputparam.cab == 'IONPAIRING':
+                h.write("sed -i -e 's@vel.file@vel_"+ext[i]+"_"+molnames[j]+".vxyz@g' in.nve\n")
         h.write('cd ../../\n')
 
     narrays=int(math.ceil(float(nfiles)/500.))

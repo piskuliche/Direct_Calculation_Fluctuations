@@ -30,3 +30,5 @@ acn
 50000
 # NVE Length (Steps)
 50000
+# Correlation Functions (TRANSPORT or IONPAIRING
+IONPAIRING
