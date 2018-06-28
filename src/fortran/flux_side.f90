@@ -105,7 +105,7 @@ Program flux_side
     
 
     ! Loop over the timesteps in each trajectory
-    do it = 2, ntimes
+    do it = 1, ntimes-1
 
         ! Read in configuration at timestep it
         read(11,*)
