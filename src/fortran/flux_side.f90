@@ -3,13 +3,6 @@
 !
 
 
-function heaviside (x) result(h)
-  double precision ::  x
-  integer :: h
-  h = 0
-  if (x .ge. 0) h = 1
-end function heaviside
-
 Program flux_side
     
     implicit none
@@ -21,10 +14,11 @@ Program flux_side
     real :: dt, volume
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
-    real :: vr
+    real :: vr,eval
 
     real, dimension(3) :: L
     real, dimension(0:5000) :: fsc
+    real, dimension(0:5000) :: r
     real, dimension(2,3) :: iro,viro
     real, dimension(2,3) :: ir
 
@@ -75,6 +69,7 @@ Program flux_side
     dy = iro(1,2) - iro(2,2)
     dz = iro(1,3) - iro(2,3)
     dr = sqrt(dx**2+dy**2+dz**2)
+    r(0) = dr
 
     ! Read in first set of velocities
     read(12,*)
@@ -101,7 +96,12 @@ Program flux_side
     dvy = viro(1,2) - viro(2,2)
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
-    fsc(0) = vr * heaviside(dr - 2.0)
+    eval = dr - 2.6
+    if (eval .ge. 0) then
+        fsc(0) = 0
+    else
+        fsc(0) = vr 
+    end if
     
 
     ! Loop over the timesteps in each trajectory
@@ -119,11 +119,17 @@ Program flux_side
         read(11,*) ctmp, (ir(1,k), k=1,3)
         read(11,*) ctmp, (ir(2,k), k=1,3)
         ! Calculates the distances
-        dx = iro(1,1) - iro(2,1)
-        dy = iro(1,2) - iro(2,2)
-        dz = iro(1,3) - iro(2,3)
+        dx = ir(1,1) - ir(2,1)
+        dy = ir(1,2) - ir(2,2)
+        dz = ir(1,3) - ir(2,3)
         dr = sqrt(dx**2+dy**2+dz**2)
-        fsc(it) = vr * heaviside(dr - 2.0)
+        r(it) = dr
+        eval = dr - 2.6
+        if (eval .ge. 0) then
+            fsc(it) = 0
+        else
+            fsc(it) = vr 
+        end if
     enddo ! end loop over timesteps
     close(11)
 
@@ -131,7 +137,7 @@ Program flux_side
     open(21,file='fsc_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
 
     do it = 0, ntimes - 1
-        write(21,'(2F12.5)') real(it), fsc(it)
+        write(21,'(3F12.5)') real(it), fsc(it), r(it)
     enddo
     close(21)
 
