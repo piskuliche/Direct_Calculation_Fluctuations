@@ -68,6 +68,10 @@ Program flux_side
     dx = iro(1,1) - iro(2,1)
     dy = iro(1,2) - iro(2,2)
     dz = iro(1,3) - iro(2,3)
+    dx = dx - L(1)*anint(dx/L(1))
+    dy = dy - L(2)*anint(dy/L(2))
+    dz = dz - L(3)*anint(dz/L(3))
+
     dr = sqrt(dx**2+dy**2+dz**2)
     r(0) = dr
 
@@ -122,6 +126,9 @@ Program flux_side
         dx = ir(1,1) - ir(2,1)
         dy = ir(1,2) - ir(2,2)
         dz = ir(1,3) - ir(2,3)
+        dx = dx - L(1)*anint(dx/L(1))
+        dy = dy - L(2)*anint(dy/L(2))
+        dz = dz - L(3)*anint(dz/L(3))
         dr = sqrt(dx**2+dy**2+dz**2)
         r(it) = dr
         eval = dr - 2.6
