@@ -3,8 +3,8 @@
 #-   Direct Fluctions Calculations  -
 #- Only change uncommented lines    -
 #------------------------------------
-# Program (Lammps or CP2K):
-Lammps
+# Program (LAMMPS or CP2K):
+LAMMPS
 # Run Style (NVT or NPT):
 NVT
 # Number of Molecule Types
@@ -14,21 +14,21 @@ co2
 acn
 
 
-# Starting Configuration (in steps)
+# Starting Configuration (in STEPS)
 1001000
-# Ending Configuration (in steps)
+# Ending Configuration (in STEPS)
 6000000
-# Separation of Configurations (in steps)
+# Separation of Configurations (in STEPS)
 1000
-# Dump Frequency (in ps) (FALSE if non-uniform)
+# Dump Frequency (in picoseconds) (FALSE if non-uniform) 
 0.050
-# Num Times
+# Num Times (How many dumps there are per nve trajectory - (NVE Length/dump freq)
 400
-# Blocks
+# Blocks (How many blocks there should be)
 10
-# Files
+# Files (How many NVE trajectories there are)
 50000
-# NVE Length (Steps)
+# NVE Length (Number of STEPS)
 50000
-# Correlation Functions (TRANSPORT or IONPAIRING
+#Correlation Functions (TRANSPORT or IONPAIRING)
 IONPAIRING
