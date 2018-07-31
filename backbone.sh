@@ -16,8 +16,8 @@ if [ -f $FILE ]; then
     echo "-Instructions Flag Exists"
 else
     echo "-Instructions Flag Doesn't Exist"
-    echo "-Please create an input_file, one is included in src/dependencies"
-    echo "-Please create an flucts.inp, one is included in src/dependencies"
+    echo "-Please create an input_file, one is included in src/input"
+    echo "-Please create an flucts.inp, one is included in src/input"
     touch .flag_instruct
     exit 0
 fi
