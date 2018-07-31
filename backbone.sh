@@ -320,7 +320,7 @@ else
                 echo "python do_flucts.py flucts.inp msd $molec2 $blocks" >> fluctssub.sh
                 echo "python do_flucts.py flucts.inp c2 $molec2 $blocks" >> fluctssub.sh
                 if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec1 $blocks" >> fluctssub.sh
+                    echo "python do_flucts.py flucts.inp shear $molec2 $blocks" >> fluctssub.sh
                 fi 
             fi
             if [ $x -eq 3 ]
@@ -328,7 +328,7 @@ else
                 echo "python do_flucts.py flucts.inp msd $molec3 $blocks" >> fluctssub.sh
                 echo "python do_flucts.py flucts.inp c2 $molec3 $blocks" >> fluctssub.sh
                 if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec1 $blocks" >> fluctssub.sh
+                    echo "python do_flucts.py flucts.inp shear $molec3 $blocks" >> fluctssub.sh
                 fi 
             fi
             if [ $x -eq 4 ]
@@ -336,7 +336,7 @@ else
                 echo "python do_flucts.py flucts.inp msd $molec4 $blocks" >> fluctssub.sh
                 echo "python do_flucts.py flucts.inp c2 $molec4 $blocks" >> fluctssub.sh
                 if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec1 $blocks" >> fluctssub.sh
+                    echo "python do_flucts.py flucts.inp shear $molec4 $blocks" >> fluctssub.sh
                 fi 
             fi
         }
