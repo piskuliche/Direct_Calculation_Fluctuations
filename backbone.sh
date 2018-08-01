@@ -180,7 +180,7 @@ else
     fi
     # Find and Replace in job_array.sh
     python file_setup.py
-    msub sub.sh
+    msub setup_array.sh
     cd -
     echo "  Filesystem is being built"
     echo "  Please Wait until The Job Completes Before Moving Forward"
