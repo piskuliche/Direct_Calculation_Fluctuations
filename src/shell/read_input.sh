@@ -34,6 +34,8 @@ blocks=`sed -n '28p' ../input_file`
 num_files=`sed -n '30p' ../input_file`
 # NVE Length
 nve_length=`sed -n '32p' ../input_file` 
+# TYPE
+calctype=`sed -n '34p' ../input_file`
 
 echo "Input File Parameters"
 echo "Program: "$program

@@ -10,7 +10,7 @@ def block_energy(energy, start, end, itemindex):
     tmp = tmp/(end*sep-start*sep)
     return tmp
 
-def block_array_err(barray, nblocks):
+def block_array_err(barray, noblocks):
     sigma=[]
     for i in range(len(barray)):
         sigma.append(np.std(barray[i])*t_val)
@@ -25,17 +25,17 @@ val=1
 fname = str(sys.argv[1])
 corr_name = str(sys.argv[2])
 mol_name = str(sys.argv[3])
-nblocks = int(sys.argv[4])
 
 
 #Student T Value
-t_val=stats.t.ppf(0.975,nblocks-1)/np.sqrt(nblocks)
+t_val=stats.t.ppf(0.975,inputparam.nblocks-1)/np.sqrt(inputparam.nblocks)
 
 
 #Calculate the Number of Segments
 sep=500
 num_segs = int(inputparam.num_files/float(sep))
-segs_per_block = np.floor(num_segs/float(nblocks))
+segs_per_block = np.floor(num_segs/float(inputparam.nblocks))
+print segs_per_block
 
 inp_n, inp_c=np.genfromtxt(fname, usecols=(0,1), dtype=(str,int),unpack=True)
 time = np.zeros(inputparam.num_times)
@@ -78,12 +78,12 @@ else:
             item3=item1
             item4=item1
             # Zero arrays
-            blockcorr=np.zeros((nblocks,inputparam.num_times))
-            blockd1corr=np.zeros((nblocks,inputparam.num_times))
-            blockd2corr=np.zeros((nblocks,inputparam.num_times))
-            blockd3corr=np.zeros((nblocks,inputparam.num_times))
-            blockd4corr=np.zeros((nblocks,inputparam.num_times))
-            blockea=np.zeros((nblocks,inputparam.num_times))
+            blockcorr=np.zeros((inputparam.nblocks,inputparam.num_times))
+            blockd1corr=np.zeros((inputparam.nblocks,inputparam.num_times))
+            blockd2corr=np.zeros((inputparam.nblocks,inputparam.num_times))
+            blockd3corr=np.zeros((inputparam.nblocks,inputparam.num_times))
+            blockd4corr=np.zeros((inputparam.nblocks,inputparam.num_times))
+            blockea=np.zeros((inputparam.nblocks,inputparam.num_times))
             totcorr=np.zeros(inputparam.num_times)
             totd1corr=np.zeros(inputparam.num_times)
             totd2corr=np.zeros(inputparam.num_times)
@@ -96,7 +96,7 @@ else:
             errd3corr=np.zeros(inputparam.num_times)
             errd4corr=np.zeros(inputparam.num_times)
             errea=np.zeros(inputparam.num_times)
-            for block in range(nblocks):
+            for block in range(inputparam.nblocks):
                 bstart=int(block*segs_per_block)
                 bend=int((block+1)*segs_per_block)
                 bdist=bend-bstart
