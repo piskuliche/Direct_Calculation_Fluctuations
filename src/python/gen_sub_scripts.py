@@ -63,7 +63,10 @@ submitfile="setup_files"
 sfi=open(submitfile,'w')
 for i in range(narrays):
     sfi.write('msub setup_array%s.sh\n' % i)
-    sfi.write('sleep 20m\n')
+    if i != narrays-1:
+        sfi.write('sleep 20m\n')
+    else:
+        sfi.write('touch ../.flag_setcomplete')
 sfi.close()
 
 # Generate Job Array File

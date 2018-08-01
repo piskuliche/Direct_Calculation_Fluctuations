@@ -189,6 +189,17 @@ else
     exit 0
 fi
 
+# Check for setup completion flag:
+FILE=../.flag_setcomplete
+if [ -f $FILE ]; then
+    echo "-Setup Completion Flag Exists"
+else
+    echo "-Setup Completion Flag Missing"
+    echo " Please be patient and wait for NVE trajectories to finish."
+    exit 0
+fi
+
+
 
 # STEP: RUN NVE TRAJECTORIES
 
