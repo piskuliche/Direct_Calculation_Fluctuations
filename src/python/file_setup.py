@@ -19,30 +19,9 @@ molnames = [x.strip() for x in molnames]
 
 nfiles = len(ext)
 nmols = len(molnames)
+narrays=int(math.ceil(float(nfiles)/500.))
 
-h = open('setup_files','w')
 if inputparam.prog == "LAMMPS":
-    for i in range (0,nfiles):
-        h.write('mkdir FILES/'+ext[i]+'\n')
-        h.write('cp in.nve FILES/'+ext[i]+'\n')
-        h.write('cp nve.sh FILES/'+ext[i]+'\n')
-        h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
-        h.write('cp flux_side FILES/'+ext[i]+'\n')
-        h.write('cp grab_press.py FILES/'+ext[i]+'\n')
-        h.write('cp visc_calc FILES/'+ext[i]+'\n')
-        h.write('cp time.dat FILES/'+ext[i]+'\n')
-        h.write('cp set_msd_calcs.py FILES/'+ext[i]+'\n')
-        h.write('cp read_input.py FILES/'+ext[i]+'\n')
-        h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
-        h.write('cd FILES/'+ext[i]+'\n')
-        h.write("sed -i -e 's@direct_calc_nve@nve_"+ext[i]+"@g' nve.sh\n")
-        h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve\n")
-        for j in range(0, nmols):
-            h.write("sed -i -e 's@traj.file"+str(j)+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve\n")
-            if inputparam.cab == 'IONPAIRING':
-                h.write("sed -i -e 's@vel.file@vel_"+ext[i]+"_"+molnames[j]+".vxyz@g' in.nve\n")
-        h.write('cd ../../\n')
-
     narrays=int(math.ceil(float(nfiles)/500.))
 
     m = open ('sub_script', 'w')
@@ -53,29 +32,11 @@ if inputparam.prog == "LAMMPS":
         m.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' job_array_"+str(i)+"\n")
         m.write("sed -i -e 's@BBB@"+str(int(nend))+"@g' job_array_"+str(i)+"\n")
         m.write("msub job_array_"+str(i)+"\n")
-        if (nend % 5000) == 0:
-            m.write("sleep 30m\n")
+        if i != narrays-1:
+            if (nend % 5000) == 0:
+                m.write("sleep 30m\n")
+    m.write('touch .flag_nvecomplete')
 elif inputparam.prog == "CP2K":
-    for i in range (0,nfiles):
-        h.write('mkdir FILES/'+ext[i]+'\n')
-        h.write('cp in.nve.cp2k FILES/'+ext[i]+'\n')
-        h.write('cp nve.sh FILES/'+ext[i]+'\n')
-        h.write('cp msd_rot_calc FILES/'+ext[i]+'\n')
-        h.write('cp grab_press.py FILES/'+ext[i]+'\n')
-        h.write('cp visc_calc FILES/'+ext[i]+'\n')
-        h.write('cp time.dat FILES/'+ext[i]+'\n')
-        h.write('cp set_msd_calcs.py FILES/'+ext[i]+'\n')
-        h.write('cp read_input.py FILES/'+ext[i]+'\n')
-        h.write('cp RESTART/restart.'+ext[i]+' FILES/'+ext[i]+'\n')
-        h.write('cd FILES/'+ext[i]+'\n')
-        h.write("sed -i -e 's@direct_calc_nve@nve_"+ext[i]+"@g' nve.sh\n")
-        h.write("sed -i -e 's@restart.file@../../RESTART/restart."+ext[i]+"@g' in.nve.cp2k\n")
-        for j in range(0, nmols):
-            h.write("sed -i -e 's@traj.file"+str(j)+"@traj_"+ext[i]+"_"+molnames[j]+".xyz@g' in.nve.cp2k\n")
-            if inputparam.cab == 'IONPAIRING':
-                h.write("sed -i -e 's@vel.file@vel_"+ext[i]+"_"+molnames[j]+".vxyz@g' in.nve\n")
-        h.write('cd ../../\n')
-
     narrays=int(math.ceil(float(nfiles)/500.))
 
     m = open ('sub_script', 'w')
@@ -86,8 +47,10 @@ elif inputparam.prog == "CP2K":
         m.write("sed -i -e 's@AAA@"+str(int(nstart))+"@g' job_array_"+str(i)+"\n")
         m.write("sed -i -e 's@BBB@"+str(int(nend))+"@g' job_array_"+str(i)+"\n")
         m.write("msub job_array_"+str(i)+"\n")
-        if (nend % 5000) == 0:
-            m.write("sleep 30m\n")
+        if i != narrays-1:
+            if (nend % 5000) == 0:
+                m.write("sleep 30m\n")
+    m.write('touch .flag_nvecomplete')
 else:  
     print("Input File Choice of %s is incorrect" % inputparam.prog)
            

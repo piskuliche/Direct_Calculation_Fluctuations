@@ -180,7 +180,7 @@ else
     fi
     # Find and Replace in job_array.sh
     python file_setup.py
-    msub setup_array.sh
+    screen -d -m bash setup_files
     cd -
     echo "  Filesystem is being built"
     echo "  Please Wait until The Job Completes Before Moving Forward"
@@ -210,6 +210,16 @@ else
     else
         echo "  NVE Trajectories were NOT submitted."
     fi
+    exit 0
+fi
+
+# Check for nve completion flag:
+FILE=../.flag_nvecomplete
+if [ -f $FILE ]; then
+    echo "-NVE Completion Flag Exists"
+else
+    echo "-NVE Completion Flag Missing"
+    echo " Please be patient and wait for NVE trajectories to finish."
     exit 0
 fi
 
