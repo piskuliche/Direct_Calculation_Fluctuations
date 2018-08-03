@@ -64,7 +64,7 @@ sfi=open(submitfile,'w')
 for i in range(narrays):
     sfi.write('msub setup_array%s.sh\n' % i)
     if i != narrays-1:
-        sfi.write('sleep 20m\n')
+        sfi.write('sleep 30m\n')
     else:
         sfi.write('touch ../.flag_setcomplete')
 sfi.close()
