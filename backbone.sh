@@ -143,64 +143,6 @@ else
     fi
 fi
 
-# STEP: FILE SYSTEM SETUP
-FILE=.flag_filesystem
-if [ -f $FILE ]; then
-    echo "-Filesystem Flag Exists"
-else
-    echo "-Building filesystem"
-    if [ -f ../file_names ]; then
-        rm ../file_names
-    fi
-    for ((i=$start_config; i<=$end_config; i+=$sep_config )); do 
-        echo $i >> ../file_names
-    done
-    mkdir ../FILES
-    # Copies various codes up to simulation directory
-    cp src/python/file_setup.py ../ 
-    cp src/python/read_input.py ../
-    cp src/python/set_msd_calcs.py ../
-    cp src/python/gen_sub_scripts.py ../
-    cp src/python/grab_press.py ../
-    if [ $timestep = 'FALSE' ]; then
-        cp src/python/non-unif-sample.py ../
-    else
-        cp src/python/unif-sample.py ../
-    fi
-    cp src/exec/msd_rot_calc ../
-    cp src/exec/visc_calc ../
-    cp src/exec/flux_side ../
-    cd ../
-    # Generate Submission Scripts
-    python gen_sub_scripts.py
-    if [ $timestep = 'FALSE' ]; then
-        python non-unif-sample.py 
-    else
-        python unif-sample.py 
-    fi
-    # Find and Replace in job_array.sh
-    python file_setup.py
-    screen -d -m bash setup_files
-    cd -
-    echo "  Filesystem is being built"
-    echo "  Please Wait until The Job Completes Before Moving Forward"
-    echo "  Please also modify the script job_array.sh and nve.sh for your system"
-    touch .flag_filesystem
-    exit 0
-fi
-
-# Check for setup completion flag:
-FILE=../.flag_setcomplete
-if [ -f $FILE ]; then
-    echo "-Setup Completion Flag Exists"
-else
-    echo "-Setup Completion Flag Missing"
-    echo " Please be patient and wait for NVE trajectories to finish."
-    exit 0
-fi
-
-
-
 # STEP: RUN NVE TRAJECTORIES
 
 FILE=.flag_nve
@@ -208,16 +150,43 @@ if [ -f $FILE ]; then
         echo "-NVE Flag Exists"
 else
     echo "-NVE Flag Missing"
-    read -r -p "Would you like to run the NVE trajectories? [y/N] " response
+    read -r -p "Would you like to setup and run the NVE trajectories? [y/N] " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
     then
-        echo "  Running NVE Trajectories"
+        echo "  Setting up and running NVE Trajectories"
+        if [ -f ../file_names ]; then
+            rm ../file_names
+        fi
+        for ((i=$start_config; i<=$end_config; i+=$sep_config )); do
+            echo $i >> ../file_names
+        done
+        mkdir ../FILES
+        # Copies various codes up to main directory
+        cp src/python/file_setup.py ../
+        cp src/python/read_input.py ../
+        cp src/python/set_msd_calcs.py ../
+        cp src/python/gen_sub_scripts.py ../
+        cp src/python/grab_press.py ../
+        if [ $timestep = 'FALSE' ]; then
+            cp src/python/non-unif-sample.py ../
+        else
+            cp src/python/unif-sample.py ../
+        fi
+        cp src/exec/msd_rot_calc ../
+        cp src/exec/visc_calc ../
+        cp src/exec/flux_side ../
         cd ../
-        screen -d -m bash sub_script
-        cd -
+        # Generate Submission Script
+        python gen_sub_scripts.py
+        if [ $timestep = 'FALSE' ]; then
+            python non-unif-sample.py
+        else
+            python unif-sample.py
+        fi
+        screen -d -m bash run_array 
+        cd -  
         echo "  NVE Trajectories Submitted"
         touch .flag_nve
-
     else
         echo "  NVE Trajectories were NOT submitted."
     fi
