@@ -18,6 +18,15 @@ else
     echo "-Instructions Flag Doesn't Exist"
     echo "-Please create an input_file, one is included in src/input"
     echo "-Please create an flucts.inp, one is included in src/input"
+    echo "-Alternatively, you can run the input_generator to generate input_file"
+    read -r -p "Would you like to do so [y/N] " inpresponse
+    if [[ "$inpresponse" =~ ^([yY][eE][sS]|[yY])+$ ]]
+    then
+        cp src/python/gen_input.py ../
+        cd ../
+        python gen_input.py
+        cd -
+    fi
     touch .flag_instruct
     exit 0
 fi
