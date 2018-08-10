@@ -37,7 +37,7 @@ nve_length=`sed -n '32p' ../input_file`
 # TYPE
 calctype=`sed -n '34p' ../input_file`
 # Constraint
-constraint=`sed -n '36p' ../input_file
+constraint=`sed -n '36p' ../input_file`
 
 echo "Input File Parameters"
 echo "Program: "$program
