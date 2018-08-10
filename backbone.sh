@@ -171,7 +171,6 @@ else
         done
         mkdir ../FILES
         # Copies various codes up to main directory
-        cp src/python/file_setup.py ../
         cp src/python/read_input.py ../
         cp src/python/set_msd_calcs.py ../
         cp src/python/gen_sub_scripts.py ../

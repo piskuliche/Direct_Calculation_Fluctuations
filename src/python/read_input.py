@@ -37,5 +37,5 @@ class input:
             if i == 33:
                 self.cab=str(line.strip())
             if i == 35:
-                self.constraint=int(line.strip())
+                self.constraint=float(line.strip())
         ip.close()

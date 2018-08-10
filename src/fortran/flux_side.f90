@@ -29,7 +29,7 @@ Program flux_side
     atms_per_mol = 3 ! Set # of atoms per mol
 
     ! Read in the input parameters for the calculation
-    open(10,file='msd_rot_calc.in',status='old')
+    open(10,file='corr_calc.in',status='old')
 
     read(10,*)
     read(10,*) nfile

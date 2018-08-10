@@ -20,7 +20,7 @@ Program visc_calc
 
       character(len=10) nfile, mol_name
 
-      open(10,file='msd_rot_calc.in',status='old')
+      open(10,file='corr_calc.in',status='old')
 
       read(10,*)
       read(10,*) nfile
