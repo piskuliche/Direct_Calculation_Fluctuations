@@ -15,6 +15,7 @@ Program flux_side
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
     real :: vr,eval
+    real :: constraint
 
     real, dimension(3) :: L
     real, dimension(0:5000) :: fsc
@@ -38,6 +39,8 @@ Program flux_side
     read(10,*) volume
     read(10,*)
     read(10,*) mol_name
+    read(10,*)
+    read(10,*) constraint
     close(10)
 
     L(1) = volume ** (1.0/3.0)
@@ -100,14 +103,14 @@ Program flux_side
     dvy = viro(1,2) - viro(2,2)
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
-    eval = dr - 2.6
+    eval = dr - constraint
     if (eval .ge. 0) then
-        fsc(0) = 0
+        fsc(0) = 0.0
     else
-        fsc(0) = vr 
+        fsc(0) = 1.0
     end if
-    
 
+    
     ! Loop over the timesteps in each trajectory
     do it = 1, ntimes-1
 
@@ -131,15 +134,15 @@ Program flux_side
         dz = dz - L(3)*anint(dz/L(3))
         dr = sqrt(dx**2+dy**2+dz**2)
         r(it) = dr
-        eval = dr - 2.6
+        eval = dr - constraint
         if (eval .ge. 0) then
-            fsc(it) = 0
+            fsc(it) = 0.0
         else
-            fsc(it) = vr 
+            fsc(it) = 1.0 
         end if
     enddo ! end loop over timesteps
     close(11)
-
+    fsc = fsc*vr
     ! Write out the FS Correlation Function
     open(21,file='fsc_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
 

@@ -141,3 +141,9 @@ inp.write("# %s\n" % desc)
 paramname = "corrfunc"
 corrfunc = par_input(types, paramname, desc)
 inp.write("%s\n" % corrfunc)
+
+desc = "If IONPAIRING: Input Constraint in Angstroms):"
+inp.write("# %s\n" % desc)
+paramname = "constraint"
+constraint = par_input(types, paramname, desc)
+inp.write("%s\n" % constraint)

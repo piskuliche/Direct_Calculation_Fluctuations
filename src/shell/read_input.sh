@@ -36,6 +36,8 @@ num_files=`sed -n '30p' ../input_file`
 nve_length=`sed -n '32p' ../input_file` 
 # TYPE
 calctype=`sed -n '34p' ../input_file`
+# Constraint
+constraint=`sed -n '36p' ../input_file
 
 echo "Input File Parameters"
 echo "Program: "$program
@@ -51,4 +53,8 @@ echo "Sep Config: "$sep_config
 echo "Timestep: "$timestep
 echo "Num Times: "$num_times
 echo "Blocks: "$blocks
+echo "Num Files: "$num_files
+echo "NVE Length: "$nve_length
+echo "Calc Type: "$calctype
+echo "Constraint: "$constraint
 echo "End Input File Parameters"

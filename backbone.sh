@@ -283,7 +283,6 @@ else
     echo "  Running InitArray Calc"
     cp src/python/init_flucts.py ../
     cp src/python/do_flucts.py ../
-    cp src/shell/init_array.sh ../
     cd ../
     mkdir SEG
     msub init_array.sh
@@ -304,42 +303,7 @@ else
     echo "  Running Fluctuations Calculation"
     cp src/shell/fluctssub.sh ../
     cd ../
-        for ((x=1; x<=$num_molecs; x++))
-        {
-            if [ $x -eq 1 ]
-            then
-                echo "python do_flucts.py flucts.inp msd $molec1 $blocks" > fluctssub.sh
-                echo "python do_flucts.py flucts.inp c2 $molec1 $blocks" >> fluctssub.sh
-                if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec1 $blocks" >> fluctssub.sh
-                fi
-            fi
-            if [ $x -eq 2 ]
-            then
-                echo "python do_flucts.py flucts.inp msd $molec2 $blocks" >> fluctssub.sh
-                echo "python do_flucts.py flucts.inp c2 $molec2 $blocks" >> fluctssub.sh
-                if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec2 $blocks" >> fluctssub.sh
-                fi 
-            fi
-            if [ $x -eq 3 ]
-            then
-                echo "python do_flucts.py flucts.inp msd $molec3 $blocks" >> fluctssub.sh
-                echo "python do_flucts.py flucts.inp c2 $molec3 $blocks" >> fluctssub.sh
-                if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec3 $blocks" >> fluctssub.sh
-                fi 
-            fi
-            if [ $x -eq 4 ]
-            then
-                echo "python do_flucts.py flucts.inp msd $molec4 $blocks" >> fluctssub.sh
-                echo "python do_flucts.py flucts.inp c2 $molec4 $blocks" >> fluctssub.sh
-                if [ $program = 'LAMMPS' ]; then
-                    echo "python do_flucts.py flucts.inp shear $molec4 $blocks" >> fluctssub.sh
-                fi 
-            fi
-        }
-    msub fluctssub.sh 
+    msub do_flucts 
     cd -
     echo "  Fluctuations has finished!"
     touch .flag_valcalc
@@ -360,6 +324,7 @@ else
     mv *c1.dat Analysis
     mv *c2.dat Analysis
     mv *shear.dat Analysis
+    mv *fsc.dat Analysis
     cd -
     echo "  Cleanup Has Finished!"
     touch .flag_cleanup

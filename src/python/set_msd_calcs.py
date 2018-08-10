@@ -48,7 +48,7 @@ elif inputparam.prog == "CP2K":
 
 
 # Writes the new msd calc input file with the right molecule name and volume
-filepath='msd_rot_calc.in'
+filepath='corr_calc.in'
 f=open(filepath, 'w')
 
 f.write("# Numeric File\n")
@@ -59,4 +59,6 @@ f.write("# Volume\n")
 f.write("%s\n" % (vol))
 f.write("# Molecule Name\n")
 f.write("%s\n" % (mol_name))
+f.write("# Constraint (if applicable)\n")
+f.write("%s\n" % (inputparam.constraint))
 f.close()

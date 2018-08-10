@@ -36,4 +36,6 @@ class input:
                 self.nve_length=int(line.strip())
             if i == 33:
                 self.cab=str(line.strip())
+            if i == 35:
+                self.constraint=int(line.strip())
         ip.close()

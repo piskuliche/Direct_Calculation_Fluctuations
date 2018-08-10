@@ -1,6 +1,16 @@
 # This python script generates the needed sub.sh, nve.sh, and job_array.sh scripts in the simulation directory i.e. /sim/
 # required input: input_file
 # produced output: setup_array.sh, nve.sh, job_array.sh
+"""
+This python script generates the needed files in the simulation directory.
+Requires an input_file
+This produces the following output:
+    run_array#.sh
+    run_array
+    nve.sh
+    init_array.sh
+    do_flucts
+"""
 import numpy as np
 from read_input import input
 
@@ -15,7 +25,7 @@ for i in range(narrays):
     end = int(start + 5000.)
     sarr_file="run_array"+str(i)+".sh"
     sarr=open(sarr_file, 'w')
-    sarr.write('#MSUB -N setup_file_array\n')
+    sarr.write('#MSUB -N direct_calc_nve\n')
     sarr.write('#MSUB -q sixhour\n')
     sarr.write('#MSUB -j oe\n')
     sarr.write('#MSUB -d ./\n')
@@ -89,7 +99,7 @@ for i in range(narrays):
     if i != narrays-1:
         sfi.write('sleep 30m\n')
     else:
-        sfi.write('touch ../.flag_nvecomplete')
+        sfi.write('touch .flag_nvecomplete')
 sfi.close()
 
 # Generate NVE Input File
@@ -132,3 +142,43 @@ nve.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
 
 
 nve.close()
+
+# Gen Init Array
+init_file="init_array.sh"
+iarr = open(init_file,'w')
+iarr.write("#MSUB -N init_array\n")
+iarr.write("#MSUB -q sixhour\n")
+iarr.write("#MSUB -j oe\n")
+iarr.write("#MSUB -d ./\n")
+iarr.write("#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00\n")
+iarr.write("#MSUB -t 0-99\n")
+
+
+iarr.write("cd $PBS_O_WORKDIR\n")
+
+if inputparam.cab == "TRANSPORT":
+    for i in range(inputparam.num_molecs):
+        iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp msd %s\n" % inputparam.molec[i])
+        iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp c2 %s\n" % inputparam.molec[i])
+elif inputparam.cab == "IONPAIRING":
+    iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp fsc water\n")
+
+if inputparam.prog == "LAMMPS":
+    iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp shear water\n")
+
+iarr.close()
+
+# Gen Do_Flucts Array
+
+do_file="do_flucts"
+darr = open(do_file, 'w')
+if inputparam.cab == "TRANSPORT":
+    for i in range(inputparam.num_molecs):
+        darr.write("python do_flucts.py flucts.inp msd %s %s\n" % (inputparam.molec[i],inputparam.nblocks))
+        darr.write("python do_flucts.py flucts.inp c2 %s %s\n" % (inputparam.molec[i],inputparam.nblocks))
+elif inputparam.cab == "IONPAIRING":
+    darr.write("python do_flucts.py flucts.inp fsc %s\n" % (inputparam.nblocks))
+
+if inputparam.prog == "LAMMPS":
+    darr.write("python do_flucts.py flucts.inp msd shear %s\n" % (inputparam.nblocks))
+darr.close()
