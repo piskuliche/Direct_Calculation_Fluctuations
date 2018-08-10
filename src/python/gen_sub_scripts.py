@@ -177,8 +177,8 @@ if inputparam.cab == "TRANSPORT":
         darr.write("python do_flucts.py flucts.inp msd %s %s\n" % (inputparam.molec[i],inputparam.nblocks))
         darr.write("python do_flucts.py flucts.inp c2 %s %s\n" % (inputparam.molec[i],inputparam.nblocks))
 elif inputparam.cab == "IONPAIRING":
-    darr.write("python do_flucts.py flucts.inp fsc %s\n" % (inputparam.nblocks))
+    darr.write("python do_flucts.py flucts.inp fsc %s %s\n" % (inputparam.molec[0],inputparam.nblocks))
 
 if inputparam.prog == "LAMMPS":
-    darr.write("python do_flucts.py flucts.inp msd shear %s\n" % (inputparam.nblocks))
+    darr.write("python do_flucts.py flucts.inp msd shear %s %s\n" % (inputparam.molec[0],inputparam.nblocks))
 darr.close()
