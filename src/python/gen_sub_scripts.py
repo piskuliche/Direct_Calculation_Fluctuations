@@ -12,6 +12,7 @@ This produces the following output:
     do_flucts
 """
 import numpy as np
+import sys
 from read_input import input
 
 # Calls the read_input class
@@ -146,12 +147,17 @@ nve.close()
 # Gen Init Array
 init_file="init_array.sh"
 iarr = open(init_file,'w')
+sep = int(inputparam.num_files/500.)
+if sep % inputparam.nblocks != 0:
+    print("Num files and Nblocks do not divide evenly, aborting")
+    sys.exit(1)
+
 iarr.write("#MSUB -N init_array\n")
 iarr.write("#MSUB -q sixhour\n")
 iarr.write("#MSUB -j oe\n")
 iarr.write("#MSUB -d ./\n")
 iarr.write("#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00\n")
-iarr.write("#MSUB -t 0-99\n")
+iarr.write("#MSUB -t 0-%s\n" % sep)
 
 
 iarr.write("cd $PBS_O_WORKDIR\n")

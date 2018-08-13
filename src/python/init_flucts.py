@@ -4,6 +4,7 @@ from read_input import input
 
 
 inputparam = input("input_file")
+narr = floor(inputparam.num_files/500)
 sep = 500
 
 val = sys.argv[1]
