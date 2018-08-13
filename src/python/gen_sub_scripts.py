@@ -157,7 +157,7 @@ iarr.write("#MSUB -q sixhour\n")
 iarr.write("#MSUB -j oe\n")
 iarr.write("#MSUB -d ./\n")
 iarr.write("#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00\n")
-iarr.write("#MSUB -t 0-%s\n" % sep)
+iarr.write("#MSUB -t 0-%s\n" % (sep-1))
 
 
 iarr.write("cd $PBS_O_WORKDIR\n")
