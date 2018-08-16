@@ -41,11 +41,14 @@ for i in range(narrays):
 
     if inputparam.prog == "LAMMPS":
         sarr.write('module load lammps/11Aug17\n\n')
+        sarr.write('mkdir FILES/$CUR\n')
+        sarr.write('cp in.nve FILES/$CUR\n'
     elif inputparam.prog == "CP2K":
         sarr.write('module load cp2k/6.0/popt\n\n')
+        sarr.write('mkdir FILES/$CUR\n')
+        sarr.write('cp in.nve.cp2k FILES/$CUR\n'
+        
 
-    sarr.write('mkdir FILES/$CUR\n')
-    sarr.write('cp in.nve FILES/$CUR\n')
     sarr.write('cp nve.sh FILES/$CUR\n')
     sarr.write('cp RESTART/restart.$CUR FILES/$CUR\n')
     sarr.write('cd FILES/$CUR\n')
@@ -186,5 +189,5 @@ elif inputparam.cab == "IONPAIRING":
     darr.write("python do_flucts.py flucts.inp fsc %s %s\n" % (inputparam.molec[0],inputparam.nblocks))
 
 if inputparam.prog == "LAMMPS":
-    darr.write("python do_flucts.py flucts.inp msd shear %s %s\n" % (inputparam.molec[0],inputparam.nblocks))
+    darr.write("python do_flucts.py flucts.inp shear %s %s\n" % (inputparam.molec[0],inputparam.nblocks))
 darr.close()
