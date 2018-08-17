@@ -114,6 +114,7 @@ else
             echo "  Example NVT and NPT input files are located in src/dependencies"
             exit 0
         fi
+        touch .flag_traj
     else
         echo "  Incorrect program type in input_file"
         exit 0

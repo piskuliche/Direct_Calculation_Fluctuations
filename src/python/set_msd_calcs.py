@@ -61,4 +61,12 @@ f.write("# Molecule Name\n")
 f.write("%s\n" % (mol_name))
 f.write("# Constraint (if applicable)\n")
 f.write("%s\n" % (inputparam.constraint))
+f.write("# Programs (1 for LAMMPS 2 for CP2K)")
+if inputparam.prog == "LAMMPS":
+    f.write("1\n")
+elif inputparam.prog == "CP2K":
+    f.write("2\n")
+else:
+    f.write("0\n")
+
 f.close()

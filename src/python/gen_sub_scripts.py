@@ -42,11 +42,11 @@ for i in range(narrays):
     if inputparam.prog == "LAMMPS":
         sarr.write('module load lammps/11Aug17\n\n')
         sarr.write('mkdir FILES/$CUR\n')
-        sarr.write('cp in.nve FILES/$CUR\n'
+        sarr.write('cp in.nve FILES/$CUR\n')
     elif inputparam.prog == "CP2K":
         sarr.write('module load cp2k/6.0/popt\n\n')
         sarr.write('mkdir FILES/$CUR\n')
-        sarr.write('cp in.nve.cp2k FILES/$CUR\n'
+        sarr.write('cp in.nve.cp2k FILES/$CUR\n')
         
 
     sarr.write('cp nve.sh FILES/$CUR\n')

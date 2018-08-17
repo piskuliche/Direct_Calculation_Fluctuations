@@ -11,6 +11,7 @@ Program flux_side
     integer :: ntimes
     integer :: counter
     integer :: natms, nmol, atms_per_mol
+    integer :: progkey
     real :: dt, volume
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
@@ -41,6 +42,8 @@ Program flux_side
     read(10,*) mol_name
     read(10,*)
     read(10,*) constraint
+    read(10,*)
+    read(10,*) progkey
     close(10)
 
     L(1) = volume ** (1.0/3.0)
@@ -79,24 +82,38 @@ Program flux_side
     r(0) = dr
 
     ! Read in first set of velocities
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    read(12,*)
-    write(*,*) nmol
-    write(*,*) atms_per_mol
-    do j = 1, nmol
-        do k = 1, atms_per_mol
-            read(12,*)
+    if (progkey == 1) then
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        read(12,*)
+        write(*,*) nmol
+        write(*,*) atms_per_mol
+        do j = 1, nmol
+            do k = 1, atms_per_mol
+                read(12,*)
+            enddo
         enddo
-    enddo
-    read(12,*) (viro(1,k), k=1,3)
-    read(12,*) (viro(2,k), k=1,3)
+        read(12,*) (viro(1,k), k=1,3)
+        read(12,*) (viro(2,k), k=1,3)
+    else if (progkey == 2) then
+        read(12,*)
+        read(12,*)
+        write(*,*) nmol
+        write(*,*) atms_per_mol
+        do j = 1, nmol
+            do k = 1, atms_per_mol
+                read(12,*)
+            enddo
+        enddo
+        read(12,*) ctmp, (viro(1,k), k=1,3)
+        read(12,*) ctmp, (viro(2,k), k=1,3)
+    end if
     close(12)
     ! Calculates the distances
     dvx = viro(1,1) - viro(2,1)
