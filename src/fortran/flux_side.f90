@@ -121,7 +121,10 @@ Program flux_side
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
     eval = dr - constraint
-    if (eval .ge. 0) then
+    write(*,*) dr, constraint
+    write(*,*) eval
+    write(*,*) vr
+    if (eval .ge. 0.0) then
         fsc(0) = 0.0
     else
         fsc(0) = 1.0
@@ -164,7 +167,7 @@ Program flux_side
     open(21,file='fsc_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
 
     do it = 0, ntimes - 1
-        write(21,'(3F12.5)') real(it), fsc(it), r(it)
+        write(21,'(3E15.5)') real(it), fsc(it), r(it)
     enddo
     close(21)
 
