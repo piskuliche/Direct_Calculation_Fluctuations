@@ -40,7 +40,7 @@ elif inputparam.prog == 'CP2K':
     # Looks for CP2K Output File
     with open(filenames) as f:
         for l in f:
-            filename='FILES/'+l.rstrip()+'/flucts.ener'
+            filename='FILES/'+l.rstrip()+'/free-1.ener'
             with open(filename) as myFile:
                 myFile.readline()
                 ival=myFile.readline().strip().split()[int(icolnum[value])-1]

@@ -301,7 +301,6 @@ if [ -f $FILE ]; then
 else
     echo "-Fluctuations Flag Missing"
     echo "  Running Fluctuations Calculation"
-    cp src/shell/fluctssub.sh ../
     cd ../
     msub do_flucts 
     cd -
