@@ -71,25 +71,15 @@ else:
             d2corr=np.zeros((inputparam.num_times))
             d3corr=np.zeros((inputparam.num_times))
             d4corr=np.zeros((inputparam.num_times))
-            # Calculate Average Energy
-            e1av = 0.0
-            e2av = 0.0
-            for i in range(sep):
-                enum  = fstart+i
-                e1av   += energy[item1count][enum]
-                e2av   += energy[item2count][enum]
-            e1av /= float(sep)
-            e2av /= float(sep)
-
             for i in range(sep):
                 enum=fstart+i
                 corr=corr+tcab[i]
-                d1=energy[item1count][enum]-e1av
-                d2=energy[item2count][enum]-e2av
-                d1corr=d1corr+tcab[i]*d1
-                d2corr=d2corr+tcab[i]*d1*d2
-                d3corr=d3corr+tcab[i]*d1*d2*d2
-                d4corr=d4corr+tcab[i]*d1*d2*d2*d2
+                e1=energy[item1count][enum]
+                e2=energy[item2count][enum]
+                d1corr=d1corr+tcab[i]*e1
+                d2corr=d2corr+tcab[i]*e1*e2
+                d3corr=d3corr+tcab[i]*e1*e2*e2
+                d4corr=d4corr+tcab[i]*e1*e2*e2*e2
             corr[:] = [x / float(sep) for x in corr]
             d1corr[:] = [x / float(sep) for x in d1corr]
             d2corr[:] = [x / float(sep) for x in d2corr]
