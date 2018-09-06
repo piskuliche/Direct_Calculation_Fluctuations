@@ -192,7 +192,7 @@ else
         else
             python unif-sample.py
         fi
-        screen -d -m bash run_array 
+        msub run_array.sh
         cd -  
         echo "  NVE Trajectories Submitted"
         touch .flag_nve
@@ -228,16 +228,17 @@ else
     for (( i=$start_config; i<=$end_config; i+=$sep_config ))
         {
             if [ $program = 'LAMMPS' ]; then
-                tail -n1 $i/log.lammps | grep -q Total || echo "cd $i; msub nve.sh; cd ../" >> rerun
+                tail -n1 $i/log.lammps | grep -q Total || echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; msub nve.sh; cd ../" >> rerun
             elif [ $program = 'CP2K' ]; then
                 echo "  Since you are using CP2K, you need to check individually whether runs have finished."
+                echo "  Sorry!"
             fi
         } 
-    
-    if (( $(wc rerun | awk '{print $1}') > 200 )); then 
+    MISSEDJOBS=$( wc -l < rerun )    
+    if (( $MISSEDJOBS > 200 )); then 
         echo "  Error: More than 100 folders to rerun - check ../FILES/rerun before continuing"
     else
-        echo "  Submitting $(wc rerun | awk '{print $1}') missed jobs"
+        echo "  Submitting $MISSEDJOBS missed jobs"
         bash rerun
     fi
     # Does some cleanup commands

@@ -18,93 +18,74 @@ from read_input import input
 # Calls the read_input class
 inputparam = input("input_file")
 
-narrays = int(np.ceil(inputparam.num_files/5000.))
-# Generates setupfiles submission array
-# This section is the one that creates the job array that builds the filesystem - should be quick!
-for i in range(narrays):
-    start = int(i*5000)
-    end = int(start + 5000.)
-    sarr_file="run_array"+str(i)+".sh"
-    sarr=open(sarr_file, 'w')
-    sarr.write('#MSUB -N direct_calc_nve\n')
-    sarr.write('#MSUB -q sixhour\n')
-    sarr.write('#MSUB -j oe\n')
-    sarr.write('#MSUB -d ./\n')
-    sarr.write('#MSUB -l nodes=1:ppn=1:intel,mem=5gb,walltime=6:00:00\n')
-    sarr.write('#MSUB -t %s-%s\n\n\n' % (start,end))
-
-    sarr.write('SEP=%s\n' % (inputparam.sep_config))
-    sarr.write('START=%s\n' % (inputparam.start_config))
-    sarr.write('CUR=$(( MOAB_JOBARRAYINDEX*SEP - SEP + START ))\n')
-    sarr.write('cd $PBS_O_WORKDIR\n')
-
-
+njobs = int(np.ceil(inputparam.num_files/50.))
+# Generates a single job array that runs 50 jobs each.
+dcn_file = "run_array.sh"
+dcn = open(dcn_file, 'w')
+dcn.write("#MSUB -N direct_calc_nve\n")
+dcn.write("#MSUB -q sixhour\n")
+dcn.write("#MSUB -j oe\n")
+dcn.write("#MSUB -d ./\n")
+dcn.write("#MSUB -l nodes=1:ppn=2:intel,mem=10gb,walltime=6:00:00\n")
+dcn.write("#MSUB -t 0-%s\n" % (njobs-1))
+dcn.write("\n")
+dcn.write("cd $PBS_O_WORKDIR\n")
+if inputparam.prog == "LAMMPS":
+    dcn.write("module load lammps/11Aug17\n")
+elif inputparam.prog == "CP2K":
+    dcn.write("module load cp2k/6.0/popt\n")
+else:
+    dcn.write("Error: Incorrect program in input_file\n")
+    exit(1)
+dcn.write("\n")
+dcn.write("SEP=1000\n")
+dcn.write("START=1001000\n")
+dcn.write("\n")
+dcn.write("START_JOBS=1\n")
+dcn.write("NUM_RPJ=50\n")
+dcn.write("\n")
+dcn.write("for (( N = $START_JOBS; N <= $NUM_RPJ; N++ ))\n")
+dcn.write("do\n")
+dcn.write("    CUR=$(( START + N*SEP + SEP*NUM_RPJ*MOAB_JOBARRAYINDEX - SEP))\n")
+dcn.write("    mkdir FILES/$CUR\n")
+dcn.write("    cp in.nve nve.sh FILES/$CUR/\n")
+dcn.write("    cp RESTART/restart.$CUR FILES/$CUR\n")
+dcn.write("    cd FILES/$CUR\n")
+dcn.write("    echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n")
+dcn.write("    echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n")
+dcn.write("    \n\n")
+dcn.write("    sed -i -e 's@direct_calc_nve@nve_'$CUR'@g' nve.sh\n")
+if inputparam.prog == "LAMMPS":
+    dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve\n")
+    for j in range(0,inputparam.num_molecs):
+        dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % (str(j),inputparam.molec[j]))
+    dcn.write("    mpirun lmp_mpi < in.nve -screen none\n")
+elif inputparam.prog == "CP2K":
+    dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
+    dcn.write("    sed -i -e 's@traj.file0@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
+    dcn.write("    mpirun cp2k.popt in.nve.cp2k\n")
+dcn.write("    \n\n")
+if inputparam.cab == "TRANSPORT":
+    for i in range(0,inputparam.num_molecs):
+        dcn.write("    echo %s > mol.info\n" % inputparam.molec[i])
+        dcn.write("    python ../../set_msd_calcs.py\n")
+        dcn.write("    ../../msd_rot_calc < corr_calc.in\n")
+    dcn.write("    \n")
     if inputparam.prog == "LAMMPS":
-        sarr.write('module load lammps/11Aug17\n\n')
-        sarr.write('mkdir FILES/$CUR\n')
-        sarr.write('cp in.nve FILES/$CUR\n')
-    elif inputparam.prog == "CP2K":
-        sarr.write('module load cp2k/6.0/popt\n\n')
-        sarr.write('mkdir FILES/$CUR\n')
-        sarr.write('cp in.nve.cp2k FILES/$CUR\n')
-        
+        dcn.write("    python ../../grab_press.py\n")
+        dcn.write("    ../../visc_calc\n")
+        dcn.write("    \n")
+elif inputparam.cab == "IONPAIRING":
+    dcn.write('echo %s > mol.info\n' % inputparam.molec[0])
+    dcn.write('python ../../set_msd_calcs.py \n')
+    dcn.write('../../flux_side\n\n')
+dcn.write("    echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n")
+dcn.write("    rm mol.info\n")
+dcn.write("    rm traj*.xyz\n")
+dcn.write("    cd ../../\n")
+dcn.write("done\n")
+dcn.close()
 
-    sarr.write('cp nve.sh FILES/$CUR\n')
-    sarr.write('cp RESTART/restart.$CUR FILES/$CUR\n')
-    sarr.write('cd FILES/$CUR\n')
-    if inputparam.prog == "LAMMPS":
-        sarr.write("sed -i -e 's@direct_calc_nve@nve_\'$CUR\'@g' nve.sh\n")
-        sarr.write("sed -i -e 's@restart.file@../../RESTART/restart.\'$CUR\'@g' in.nve\n")
-        for j in range(0, inputparam.num_molecs):
-            sarr.write("sed -i -e 's@traj.file%s@traj_\'$CUR\'_%s.xyz@g' in.nve\n" % (str(j), inputparam.molec[j]))
-            if inputparam.cab == 'IONPAIRING':
-                sarr.write("sed -i -e 's@vel.file@vel_\'$CUR\'_%s.vxyz@g' in.nve\n" % inputparam.molec[j])
-    elif inputparam.prog == "CP2K":
-        sarr.write("sed -i -e 's@direct_calc_nve@nve_\'$CUR\'@g' nve.sh\n")
-        sarr.write("sed -i -e 's@restart.file@../../RESTART/restart.\'$CUR\'@g' in.nve.cp2k\n")
-        for j in range(0, inputparam.num_molecs):
-            sarr.write("sed -i -e 's@traj.file%s@traj_\'$CUR\'_%s.xyz@g' in.nve.cp2k\n" % (str(j), inputparam.molec[j]))
-            if inputparam.cab == 'IONPAIRING':
-                sarr.write("sed -i -e 's@vel.file@vel_\'$CUR\'_%s.vxyz@g' in.nve.cp2k\n" % inputparam.molec[j])
-    else: 
-        print("Error: Incorrect input program in input_file")
-
-    sarr.write('echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n')
-    sarr.write('echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n\n\n')
-    if inputparam.prog == "LAMMPS":
-        sarr.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
-    elif inputparam.prog == "CP2K":
-        sarr.write('mpirun -np 2 cp2k.popt in.nve.cp2k \n\n\n')
-    if inputparam.cab == "TRANSPORT":
-        for i in range(0,inputparam.num_molecs):
-            sarr.write('echo %s > mol.info\n' % inputparam.molec[i])
-            sarr.write('python ../../set_msd_calcs.py \n')
-            sarr.write('../../msd_rot_calc < msd_rot_calc.in\n\n')
-
-        if inputparam.prog == "LAMMPS":
-            sarr.write('python ../../grab_press.py\n')
-            sarr.write('../../visc_calc\n\n')
-    elif inputparam.cab == "IONPAIRING":
-        sarr.write('echo %s > mol.info\n' % inputparam.molec[0])
-        sarr.write('python ../../set_msd_calcs.py \n')
-        sarr.write('../../flux_side\n\n')
-
-
-    sarr.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
-    sarr.write('rm mol.info\n')
-    sarr.write('cd ../../\n')
-    sarr.close()
-
-# generate submit file
-submitfile="run_array"
-sfi=open(submitfile,'w')
-for i in range(narrays):
-    sfi.write('msub run_array%s.sh\n' % i)
-    if i != narrays-1:
-        sfi.write('sleep 30m\n')
-    else:
-        sfi.write('touch .flag_nvecomplete')
-sfi.close()
 
 # Generate NVE Input File
 nve_file="nve.sh"
@@ -126,8 +107,13 @@ nve.write('echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n')
 nve.write('echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n\n\n')
 
 if inputparam.prog == "LAMMPS":
+    nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve\n")
+    for j in range(0,inputparam.num_molecs):
+        nve.write("sed -i -e 's@traj.file%s@traj_AAA_%s.xyz@g' in.nve.cp2k\n" % (str(j),inputparam.molec[j]))
     nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
+    nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve.cp2k\n")
+    nve.write("sed -i -e 's@traj.file0@traj_AAA_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     nve.write('mpirun -np 2 cp2k.popt in.nve.cp2k \n\n\n')
 if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
