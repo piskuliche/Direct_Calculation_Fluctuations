@@ -303,7 +303,7 @@ else
     echo "-Fluctuations Flag Missing"
     echo "  Running Fluctuations Calculation"
     cd ../
-    msub do_flucts 
+    msub do_fluctsub.sh 
     cd -
     echo "  Fluctuations has finished!"
     touch .flag_valcalc

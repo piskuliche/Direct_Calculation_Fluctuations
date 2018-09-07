@@ -21,6 +21,7 @@ if inputparam.prog == 'LAMMPS':
     with open(filenames) as f:
         for l in f:
             filename='FILES/'+l.rstrip()+'/log.lammps'
+            print("Grabbing File: %s" % filename)
             lookup='Step'
             lookup2='Loop time'
             totlines = 0
@@ -41,6 +42,7 @@ elif inputparam.prog == 'CP2K':
     with open(filenames) as f:
         for l in f:
             filename='FILES/'+l.rstrip()+'/free-1.ener'
+            print("Grabbing File: %s" % filename)
             with open(filename) as myFile:
                 myFile.readline()
                 ival=myFile.readline().strip().split()[int(icolnum[value])-1]

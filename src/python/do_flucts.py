@@ -30,24 +30,40 @@ def BLOCK_ARRAY_ERR(barray, noblocks):
 def NORM(array, n):
     return array/float(n)
 
+"""
+Derivative for the first derivative
+C'(t) = -<dh(0)A(0)B(t)>
+"""
 def FIRST_DERIV(w1corr):
     d1corr = -w1corr
     return d1corr
 
+"""
+Derivative for the second derivative
+C''(t) = <dh(0)^2A(0)B(t)>-<dh^2>C(t)
+"""
 def SECOND_DERIV(corr, w2corr, d2av):
     d2corr = w2corr - d2av*corr
     return d2corr
 
-def THIRD_DERIV(corr, w1corr, w3corr, d2av, d3av):
-    d3corr = -w3corr - 3*d2av*w1corr + d3av*corr
+"""
+Derivative for the third derivative
+C'''(t) = -<dh(0)^3A(0)B(t)> + <dh^3>C(t) - 3<dh^3>C'(t)
+"""
+def THIRD_DERIV(corr, d1corr, w3corr, d2av, d3av):
+    d3corr = -w3corr - 3*d2av*d1corr + d3av*corr
     return d3corr
-
-def FOURTH_DERIV(corr, w1corr, w2corr, w4corr, d2av, d3av, d4av):
-    d4corr = w4corr - 6*d2av*w2corr + 4*d3av*w1corr - d4av*corr
+"""
+Derivative for the fourth derivative
+C''''(t) = <[dh(0)^4 -<dh^4>]A(0)B(t)> - 6*<dh^2>C''(t)+4<dh^3>C'(t)
+"""
+def FOURTH_DERIV(corr, d1corr, d2corr, w4corr, d2av, d3av, d4av):
+    d4corr = w4corr - 6*d2av*d2corr + 4*d3av*d1corr - d4av*corr
     return d4corr
 
 def RATIO(corr, d1corr):
-    ea = d1corr/corr
+    ea = d1corr[1:]/corr[1:]
+    ea=np.insert(ea,0,0.0)
     return ea
     
 
@@ -57,7 +73,7 @@ inputparam = input('input_file')
 
 # Read in command line args
 if len(sys.argv) != 4:
-    print("Usage: python new_do.py fname corr_name mol_name")
+    print("Usage: python do_flucts.py fname corr_name mol_name")
     exit(1)
 fname = str(sys.argv[1])
 corr_name = str(sys.argv[2])
@@ -70,6 +86,8 @@ t_val = stats.t.ppf(0.975,inputparam.nblocks-1)/np.sqrt(inputparam.nblocks)
 sep = 500
 num_segs = int(inputparam.num_files/float(sep))
 segs_per_block = np.floor(num_segs/float(inputparam.nblocks))
+print("There are %s total segments" % num_segs)
+print("There are %s blocks" % inputparam.nblocks)
 print("There are %s segs_per_block" % segs_per_block)
 
 # Read in corr-names
@@ -99,13 +117,14 @@ for item1 in inp_n:
     item1count += 1
 print("---End Read---")
 print("---Start Blocking---")
-for item 1 in inp_n:
+for item1 in inp_n:
     energy.append(np.genfromtxt(item1+'_init.out'))
 item1count = 0
 for item1 in inp_n:
     print("Starting loop for %s" % item1)
     item2count = 0
     for item2 in inp_n:
+        print("Calculating %s %s" % (item1,item2))
         item3 = item2
         item4 = item2
         # Zero Block Weighted Arrays
@@ -146,6 +165,7 @@ for item1 in inp_n:
         err_ea     = np.zeros(inputparam.num_times)
         # Sum Segments into blocks
         for block in range(inputparam.nblocks):
+            print("     BLOCK %s" % block)
             # Block indices calculation
             bstart = int(block*segs_per_block)
             bend   = int((block+1)*segs_per_block)
@@ -212,32 +232,38 @@ for item1 in inp_n:
         err_ea      =   np.array(bl_ea).std(0)
         err_ea      =   [x * t_val for x in err_corr]
         seg_start = 0
-        e1_av = BLOCK_ENERGY(energy, seg_start, num_segs, item1count)
-        d1_av = BLOCK_DENERGY(energy, seg_start, num_segs, item1count,e1_av, 1)
-        d2_av = BLOCK_DENERGY(energy, seg_start, num_segs, item1count,e1_av, 2)
-        d3_av = BLOCK_DENERGY(energy, seg_start, num_segs, item1count,e1_av, 3)
-        d4_av = BLOCK_DENERGY(energy, seg_start, num_segs, item1count,e1_av, 4)
+        seg_end   = num_segs
+        seg_dist  = seg_end - seg_start
+        e1_av = BLOCK_ENERGY(energy, seg_start, seg_end, item1count)
+        d1_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 1)
+        d2_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 2)
+        d3_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 3)
+        d4_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 4)
+        print("d1_av = %s" % d1_av)
+        print("d2_av = %s" % d2_av)
+        print("d3_av = %s" % d3_av)
+        print("d4_av = %s" % d4_av)
         for i in range(inputparam.num_times):
             for seg in range(num_segs):
-                tot_corr[i]   += corr[i]
-                tot_w1corr[i] += w1corr[i]
-                tot_w2corr[i] += w2corr[i]
-                tot_w3corr[i] += w3corr[i]
-                tot_w4corr[i] += w4corr[i]
+                tot_corr[i]   += corr[item1count][item2count][seg][i]
+                tot_w1corr[i] += w1corr[item1count][item2count][seg][i]
+                tot_w2corr[i] += w2corr[item1count][item2count][seg][i]
+                tot_w3corr[i] += w3corr[item1count][item2count][seg][i]
+                tot_w4corr[i] += w4corr[item1count][item2count][seg][i]
             # Normalize
-            tot_corr[i] = NORM(tot_corr[i], num_segs) 
-            tot_w1corr[i] = NORM(tot_w1corr[i], num_segs)
-            tot_w2corr[i] = NORM(tot_w2corr[i], num_segs)
-            tot_w3corr[i] = NORM(tot_w3corr[i], num_segs)
-            tot_w4corr[i] = NORM(tot_w4corr[i], num_segs)
+            tot_corr[i] = NORM(tot_corr[i], seg_dist) 
+            tot_w1corr[i] = NORM(tot_w1corr[i], seg_dist)
+            tot_w2corr[i] = NORM(tot_w2corr[i], seg_dist)
+            tot_w3corr[i] = NORM(tot_w3corr[i], seg_dist)
+            tot_w4corr[i] = NORM(tot_w4corr[i], seg_dist)
             # Calculate Derivatives
             tot_d1corr[i] = FIRST_DERIV(tot_w1corr[i])
             tot_d2corr[i] = SECOND_DERIV(tot_corr[i],tot_d2corr[i],d2_av)
             tot_d3corr[i] = THIRD_DERIV(tot_corr[i], tot_d1corr[i],tot_d3corr[i],d2_av, d3_av)
             tot_d4corr[i] = FOURTH_DERIV(tot_corr[i], tot_d1corr[i], tot_d2corr[i], tot_d4corr[i], d2_av, d3_av, d4_av)
-        tot_ea = tot_d1corr/tot_corr
-        tot_name   = item1+"_"+mol_name+"_"+corr_name+".dat"
-        tot_d1name = item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat"
+        tot_ea = RATIO(tot_corr,tot_d1corr)
+        tot_name   = mol_name+"_"+corr_name+".dat"
+        tot_d1name = item1+"_"+mol_name+"_"+corr_name+".dat"
         tot_d2name = item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat"
         tot_d3name = item1+"_"+item2+"_"+item3+"_"+mol_name+"_"+corr_name+".dat"
         tot_d4name = item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+"_"+corr_name+".dat"

@@ -70,8 +70,8 @@ def E_Divi_Prop(a,ea,b,eb):
     return a/b*np.sqrt((ea/a)**2+(eb/b)**2)
 
 def Ea_Breakdown(A, dA, tau, inttau, Ea):
-    comp1=dA*tau/inttau
-    comp2=A*tau/inttau*Ea
+    comp1=-dA*tau/inttau
+    comp2=-A*tau/inttau*Ea
     return comp1, comp2
 
 # Read in Arguments
@@ -159,7 +159,8 @@ for item1 in inp_names:
             item3=item1
             for block in range(0,nblocks):
                 # Read in correlation function, 1st derivative
-                time, cab, dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_c2.dat', usecols=(0,1,2), unpack=True)
+                time, cab = np.genfromtxt('bl_' + str(block) + '_' + str(mol_name) + '_c2.dat', usecols=(0,1), unpack=True)
+                dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_c2.dat', usecols=(1), unpack=True)
                 # Fit correlation function
                 popt_cab, pcov_cab = curve_fit(Corr_Fit, time[:cut], cab[:cut], p0=(.2,.5,.5,.002,.3,3),bounds=((0, 0, 0, 0, 0, 0), (1, 1, 1, np.inf, np.inf, np.inf)))
                 # Set parameters to variables
@@ -223,7 +224,7 @@ for item1 in inp_names:
                 dk3_bl[block] = dk3 
                 # Read and Fit Second Derivative 
                 print("Block %s Second Derivative:" % block)
-                d2cab =np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(3), unpack=True)
+                d2cab =np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(1), unpack=True)
                 popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(-1,0.9,3.0,3.3,-20.0,-100.))
                 d2A=popt_d2cab[:3]
                 d2k=popt_d2cab[3:]
@@ -264,7 +265,7 @@ for item1 in inp_names:
                 int_dc2_bl[block] = Integrate(time,dcab)
                 int_d2c2_bl[block] = Integrate(time,d2cab)
                 int_d3c2_bl[block] = Integrate(time,d3cab)
-                int_ea_bl[block] = (1.0/int_tau_bl[block])*int_dc2_bl[block]
+                int_ea_bl[block] = -(1.0/int_tau_bl[block])*int_dc2_bl[block]
                 # Print block info
                 bout=open("bl_"+str(block)+"_"+item1+"_"+str(mol_name)+"_"+str(T)+"_tau.dat",'w')
                 bout.write("%s %s %s %s %s\n" % (1/T, log(k1),log(k2),log(k3),log(1.0/int_tau_bl[block])))
@@ -351,7 +352,8 @@ for item1 in inp_names:
         if jindex >= iindex:
             item3=item1
             # Read and Fit Corr
-            time, cab, dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_c2.dat', usecols=(0,1,3), unpack=True)
+            time, cab  = np.genfromtxt(str(mol_name) + '_c2.dat', usecols=(0,1), unpack=True)
+            dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_c2.dat', usecols=(1), unpack=True)
             popt_cab, pcov_cab = curve_fit(Corr_Fit, time[:cut], cab[:cut], p0=(.2,.5,.5,.025,.45,3.1),bounds=((0, 0, 0, 0, 0, 0), (1, 1, 1, np.inf, np.inf, np.inf)))
             A=popt_cab[:3]
             k=popt_cab[3:]
@@ -398,7 +400,7 @@ for item1 in inp_names:
             dk3=dk[2]
             # Fit Second Derivative
             print("Second Total Derivative:")
-            d2cab =np.genfromtxt(item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(5), unpack=True)
+            d2cab =np.genfromtxt(item1 + '_' + item2 + '_' + str(mol_name) + '_c2.dat', usecols=(1), unpack=True)
             popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(0.2,0.3,0.4,1.2,0.3,0.4))
             d2A=popt_d2cab[:3]
             d2k=popt_d2cab[3:]
@@ -466,18 +468,18 @@ for item1 in inp_names:
             fout.write("d3k2: %s   err: %s\n" % (d3k2, err_d3k2))
             fout.write("d3k3: %s   err: %s\n" % (d3k3, err_d3k3))
             fout.write("\n")
-            fout.write(" Ea Tau 2: %s   err: %s\n" % (dk1*(1.0/k1), E_Divi_Prop(dk1,err_dk1, k1, err_k1)))
+            fout.write(" Ea Tau 2: %s   err: %s\n" % (-dk1*(1.0/k1), E_Divi_Prop(dk1,err_dk1, k1, err_k1)))
             fout.write(" Tau 2 Time: %s +/- %s ps\n" % ((1.0/k1),(err_k1/k1*(1.0/k1))))
-            fout.write(" Ea Librational: %s   err: %s\n" % (dk2*(1.0/k2), E_Divi_Prop(dk2,err_dk2, k2, err_k2)))
+            fout.write(" Ea Librational: %s   err: %s\n" % (-dk2*(1.0/k2), E_Divi_Prop(dk2,err_dk2, k2, err_k2)))
             fout.write(" Librational Time: %s +/- %s ps\n" % ((1.0/k2),(err_k2/k2*(1.0/k2)))) 
-            fout.write(" Ea Inertial: %s   err: %s\n" % (dk3*(1.0/k3), E_Divi_Prop(dk3,err_dk3, k3, err_k3)))
+            fout.write(" Ea Inertial: %s   err: %s\n" % (-dk3*(1.0/k3), E_Divi_Prop(dk3,err_dk3, k3, err_k3)))
             fout.write(" Inertial Time: %s +/- %s ps\n" % ((1.0/k3), (err_k3/k3*(1.0/k3))))
             fout.write("Integrated Times\n")
             fout.write("<tau2> = %s +/- %s\n" % (int_tau,err_int_tau))
             fout.write("intdc2 = %s +/- %s\n" % (int_dc2,err_int_dc2))
             fout.write("intd2c2 = %s +/- %s\n" % (int_d2c2,err_int_d2c2))
             fout.write("intd3c2 = %s +/- %s\n" % (int_d3c2, err_int_d3c2))
-            fout.write("<EaTau2> = %s +/- %s\n" % (int_dc2*(-1.0/int_tau), err_int_ea))
+            fout.write("<EaTau2> = %s +/- %s\n" % (-int_dc2*(-1.0/int_tau), err_int_ea))
             fout.write("---split Ea terms---\n")
             tau2_comp1, tau2_comp2 = Ea_Breakdown(A1,-dA1,(1.0/k1),int_tau, dk1*(1.0/k1))
             taul_comp1, taul_comp2 = Ea_Breakdown(A2,-dA2,(1.0/k2),int_tau, dk2*(1.0/k2))

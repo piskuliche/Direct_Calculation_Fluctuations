@@ -165,8 +165,14 @@ iarr.close()
 
 # Gen Do_Flucts Array
 
-do_file="do_flucts"
+do_file="do_fluctsub.sh"
 darr = open(do_file, 'w')
+darr.write("#MSUB -N do_flucts\n")
+darr.write("#MSUB -q sixhour\n")
+darr.write("#MSUB -j oe\n")
+darr.write("#MSUB -m ae\n")
+darr.write("#MSUB -d ./\n")
+darr.write("#MSUB -l nodes=1:ppn=20:intel,mem=100gb,walltime=6:00:00\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
         darr.write("python do_flucts.py flucts.inp msd %s %s\n" % (inputparam.molec[i],inputparam.nblocks))

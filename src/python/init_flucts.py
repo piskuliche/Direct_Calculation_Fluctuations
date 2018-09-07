@@ -95,7 +95,7 @@ else:
             d2corr[:] = [x / float(sep) for x in d2corr]
             d3corr[:] = [x / float(sep) for x in d3corr]
             d4corr[:] = [x / float(sep) for x in d4corr]
-            print d1corr[0]
+            print len(corr), len(time), len(d1corr), len(d2corr), len(d3corr), len(d4corr)
             np.savetxt('SEG/seg_'+str(int(val))+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', np.c_[time, corr, d1corr, d2corr, d3corr, d4corr])
             item2count+=1
         item1count+=1
