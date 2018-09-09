@@ -47,6 +47,7 @@ dcn.write("\n")
 dcn.write("for (( N = $START_JOBS; N <= $NUM_RPJ; N++ ))\n")
 dcn.write("do\n")
 dcn.write("    CUR=$(( START + N*SEP + SEP*NUM_RPJ*MOAB_JOBARRAYINDEX - SEP))\n")
+dcn.write("    echo $CUR\n")
 dcn.write("    mkdir FILES/$CUR\n")
 dcn.write("    cp in.nve nve.sh FILES/$CUR/\n")
 dcn.write("    cp RESTART/restart.$CUR FILES/$CUR\n")
@@ -58,7 +59,7 @@ dcn.write("    sed -i -e 's@direct_calc_nve@nve_'$CUR'@g' nve.sh\n")
 if inputparam.prog == "LAMMPS":
     dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve\n")
     for j in range(0,inputparam.num_molecs):
-        dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % (str(j),inputparam.molec[j]))
+        dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve\n" % (str(j),inputparam.molec[j]))
     dcn.write("    mpirun lmp_mpi < in.nve -screen none\n")
 elif inputparam.prog == "CP2K":
     dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
