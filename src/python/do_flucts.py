@@ -95,6 +95,11 @@ inp_n, inp_c = np.genfromtxt(fname, usecols=(0,1), dtype=(str,int), unpack=True)
 
 # Initialize Arrays
 time   = np.zeros(inputparam.num_times)
+blcorr   = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
+blw1corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
+blw2corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
+blw3corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
+blw4corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
 corr   = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
 w1corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
 w2corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
@@ -113,6 +118,9 @@ for item1 in inp_n:
         for seg in range(num_segs):
             # 4D Arrays of shape [item1][item2][seg][time]
             time,corr[item1count][item2count][seg],w1corr[item1count][item2count][seg],w2corr[item1count][item2count][seg],w3corr[item1count][item2count][seg],w4corr[item1count][item2count][seg]=np.genfromtxt('SEG/seg_'+str(seg)+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', usecols=(0,1,2,3,4,5), unpack=True)
+            for block in range(inputparam.nblocks):
+                blcorr[block][item1count][item2count][seg],blw1corr[block][item1count][item2count][seg],blw2corr[block][item1count][item2count][seg],blw3corr[block][item1count][item2count][seg],blw4corr[block][item1count][item2count][seg] = np.genfromtxt('SEG/bl_'+str(block)+'_seg_'+str(seg)+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', usecols=(1,2,3,4,5), unpack=True)
+
         item2count += 1
     item1count += 1
 print("---End Read---")
@@ -180,11 +188,11 @@ for item1 in inp_n:
             for i in range(inputparam.num_times):
                 for seg in range(bstart,bend):
                     # Need to normalize.
-                    bl_corr[block][i]   +=   corr[item1count][item2count][seg][i]
-                    bl_w1corr[block][i] += w1corr[item1count][item2count][seg][i]
-                    bl_w2corr[block][i] += w2corr[item1count][item2count][seg][i] 
-                    bl_w3corr[block][i] += w3corr[item1count][item2count][seg][i]
-                    bl_w4corr[block][i] += w4corr[item1count][item2count][seg][i]
+                    bl_corr[block][i]   +=   blcorr[block][item1count][item2count][seg][i]
+                    bl_w1corr[block][i] += blw1corr[block][item1count][item2count][seg][i]
+                    bl_w2corr[block][i] += blw2corr[block][item1count][item2count][seg][i] 
+                    bl_w3corr[block][i] += blw3corr[block][item1count][item2count][seg][i]
+                    bl_w4corr[block][i] += blw4corr[block][item1count][item2count][seg][i]
                 # Average over segments
                 bl_corr[block][i]   = NORM(bl_corr[block][i], bdist)
                 bl_w1corr[block][i] = NORM(bl_w1corr[block][i], bdist)
@@ -193,9 +201,9 @@ for item1 in inp_n:
                 bl_w4corr[block][i] = NORM(bl_w4corr[block][i], bdist)
                 # Calculate Derivatives
                 bl_d1corr[block][i] = FIRST_DERIV(bl_w1corr[block][i])
-                bl_d2corr[block][i] = SECOND_DERIV(bl_corr[block][i],bl_d2corr[block][i],d2_av)
-                bl_d3corr[block][i] = THIRD_DERIV(bl_corr[block][i], bl_d1corr[block][i],bl_d3corr[block][i],d2_av, d3_av)
-                bl_d4corr[block][i] = FOURTH_DERIV(bl_corr[block][i], bl_d1corr[block][i], bl_d2corr[block][i], bl_d4corr[block][i], d2_av, d3_av, d4_av)
+                bl_d2corr[block][i] = SECOND_DERIV(bl_corr[block][i],bl_w2corr[block][i],d2_av)
+                bl_d3corr[block][i] = THIRD_DERIV(bl_corr[block][i], bl_d1corr[block][i],bl_w3corr[block][i],d2_av, d3_av)
+                bl_d4corr[block][i] = FOURTH_DERIV(bl_corr[block][i], bl_d1corr[block][i], bl_d2corr[block][i], bl_w4corr[block][i], d2_av, d3_av, d4_av)
             # Calculate ratio function
             bl_ea[block] = RATIO(bl_corr[block], bl_d1corr[block])
             # Sets File Names
@@ -258,9 +266,9 @@ for item1 in inp_n:
             tot_w4corr[i] = NORM(tot_w4corr[i], seg_dist)
             # Calculate Derivatives
             tot_d1corr[i] = FIRST_DERIV(tot_w1corr[i])
-            tot_d2corr[i] = SECOND_DERIV(tot_corr[i],tot_d2corr[i],d2_av)
-            tot_d3corr[i] = THIRD_DERIV(tot_corr[i], tot_d1corr[i],tot_d3corr[i],d2_av, d3_av)
-            tot_d4corr[i] = FOURTH_DERIV(tot_corr[i], tot_d1corr[i], tot_d2corr[i], tot_d4corr[i], d2_av, d3_av, d4_av)
+            tot_d2corr[i] = SECOND_DERIV(tot_corr[i],tot_w2corr[i],d2_av)
+            tot_d3corr[i] = THIRD_DERIV(tot_corr[i], tot_d1corr[i],tot_w3corr[i],d2_av, d3_av)
+            tot_d4corr[i] = FOURTH_DERIV(tot_corr[i], tot_d1corr[i], tot_d2corr[i], tot_w4corr[i], d2_av, d3_av, d4_av)
         tot_ea = RATIO(tot_corr,tot_d1corr)
         tot_name   = mol_name+"_"+corr_name+".dat"
         tot_d1name = item1+"_"+mol_name+"_"+corr_name+".dat"

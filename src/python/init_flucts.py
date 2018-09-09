@@ -2,9 +2,17 @@ import numpy as np
 import sys
 from read_input import input
 
+def BLOCK_ENERGY(energy,start,end,itemindex):
+    eav = 0
+    for i in range(start*sep, end*sep):
+        eav += energy[itemindex][i]
+    eav = eav/(end*sep-start*sep)
+    return eav
 
 inputparam = input("input_file")
 sep = 500
+num_segs = int(inputparam.num_files/float(sep))
+segs_per_block = np.floor(num_segs/float(inputparam.nblocks))
 
 val = sys.argv[1]
 fname = str(sys.argv[2])
@@ -67,36 +75,58 @@ else:
         item2count=0
         for item2 in inp_n:
             corr=np.zeros((inputparam.num_times))
-            d1corr=np.zeros((inputparam.num_times))
-            d2corr=np.zeros((inputparam.num_times))
-            d3corr=np.zeros((inputparam.num_times))
-            d4corr=np.zeros((inputparam.num_times))
-            # Calculate Average Energy
-            e1av = 0.0
-            e2av = 0.0
-            for i in range(sep):
-                enum  = fstart+i
-                e1av   += energy[item1count][enum]
-                e2av   += energy[item2count][enum]
-            e1av /= float(sep)
-            e2av /= float(sep)
+            bl_corr = np.zeros((inputparam.num_times))
+            bl_w1corr  = np.zeros((inputparam.num_times))
+            bl_w2corr  = np.zeros((inputparam.num_times))
+            bl_w3corr  = np.zeros((inputparam.num_times))
+            bl_w4corr  = np.zeros((inputparam.num_times))
+            w1corr=np.zeros((inputparam.num_times))
+            w2corr=np.zeros((inputparam.num_times))
+            w3corr=np.zeros((inputparam.num_times))
+            w4corr=np.zeros((inputparam.num_times))
+            for block in range(inputparam.nblocks):
+                bstart = int(block*segs_per_block)
+                bend = int((block+1)*segs_per_block)
+                bdist = bend - bstart
+                bl_e1av = BLOCK_ENERGY(energy,bstart,bend,item1count)
+                bl_e2av = BLOCK_ENERGY(energy,bstart,bend,item2count)
+                for i in range(sep):
+                    enum = fstart + i
+                    d1=energy[item1count][enum]-bl_e1av
+                    d2=energy[item2count][enum]-bl_e2av
+                    bl_corr = bl_corr + tcab[i]
+                    bl_w1corr=bl_w1corr+tcab[i]*d1
+                    bl_w2corr=bl_w2corr+tcab[i]*d1*d2
+                    bl_w3corr=bl_w3corr+tcab[i]*d1*d2*d2
+                    bl_w4corr=bl_w4corr+tcab[i]*d1*d2*d2*d2 
+                bl_corr[:] = [x / float(sep) for x in bl_corr]
+                bl_w1corr[:] = [x / float(sep) for x in bl_w1corr]
+                bl_w2corr[:] = [x / float(sep) for x in bl_w2corr]
+                bl_w3corr[:] = [x / float(sep) for x in bl_w3corr]
+                bl_w4corr[:] = [x / float(sep) for x in bl_w4corr] 
+                np.savetxt('SEG/bl_'+str(block)+'_seg_'+str(int(val))+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', np.c_[time, bl_corr, bl_w1corr, bl_w2corr, bl_w3corr, bl_w4corr])
 
+            # Calculate Average Energy
+            seg_start = 0
+            seg_end = num_segs
+            seg_dist = seg_end - seg_start
+            e1av = BLOCK_ENERGY(energy,seg_start,seg_end,item1count)
+            e2av = BLOCK_ENERGY(energy,seg_start,seg_end,item2count)
             for i in range(sep):
                 enum=fstart+i
                 corr=corr+tcab[i]
                 d1=energy[item1count][enum]-e1av
                 d2=energy[item2count][enum]-e2av
-                d1corr=d1corr+tcab[i]*d1
-                d2corr=d2corr+tcab[i]*d1*d2
-                d3corr=d3corr+tcab[i]*d1*d2*d2
-                d4corr=d4corr+tcab[i]*d1*d2*d2*d2
+                w1corr=w1corr+tcab[i]*d1
+                w2corr=w2corr+tcab[i]*d1*d2
+                w3corr=w3corr+tcab[i]*d1*d2*d2
+                w4corr=w4corr+tcab[i]*d1*d2*d2*d2
             corr[:] = [x / float(sep) for x in corr]
-            d1corr[:] = [x / float(sep) for x in d1corr]
-            d2corr[:] = [x / float(sep) for x in d2corr]
-            d3corr[:] = [x / float(sep) for x in d3corr]
-            d4corr[:] = [x / float(sep) for x in d4corr]
-            print len(corr), len(time), len(d1corr), len(d2corr), len(d3corr), len(d4corr)
-            np.savetxt('SEG/seg_'+str(int(val))+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', np.c_[time, corr, d1corr, d2corr, d3corr, d4corr])
+            w1corr[:] = [x / float(sep) for x in w1corr]
+            w2corr[:] = [x / float(sep) for x in w2corr]
+            w3corr[:] = [x / float(sep) for x in w3corr]
+            w4corr[:] = [x / float(sep) for x in w4corr]
+            np.savetxt('SEG/seg_'+str(int(val))+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', np.c_[time, corr, w1corr, w2corr, w3corr, w4corr])
             item2count+=1
         item1count+=1
 
