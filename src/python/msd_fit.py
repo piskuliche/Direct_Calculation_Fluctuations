@@ -101,7 +101,8 @@ for item1 in inp_names:
             item3=item1
             item4=item1
             for block in range(0,nblocks):              
-                time, cab, dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_msd.dat', usecols=(0,1,2), unpack=True)
+                time, cab = np.genfromtxt('bl_' + str(block) + '_' + str(mol_name) + '_msd.dat', usecols=(0,1), unpack=True)
+                dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
                 time=time[skip:]
                 cab=cab[skip:]
                 dcab=dcab[skip:]
@@ -113,7 +114,7 @@ for item1 in inp_names:
                 dm_bl[block]=popt_dcab[0]
                 db_bl[block]=popt_dcab[1]
                 print("Block %s Second Derivative:" % block)
-                d2cab =np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + item2 + '_' + str(mol_name) + '_msd.dat', usecols=(3), unpack=True)
+                d2cab =np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + item2 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
                 d2cab=d2cab[skip:]
                 popt_d2cab, pcov_d2cab = curve_fit(Corr_Fit, time, d2cab, p0=(1,0))
                 d2m_bl[block]=popt_d2cab[0]
@@ -183,7 +184,8 @@ for item1 in inp_names:
         if jindex >= iindex:
             item3=item1
             item4=item1
-            time, cab, dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_msd.dat', usecols=(0,1,3), unpack=True)
+            time, cab = np.genfromtxt(str(mol_name) + '_msd.dat', usecols=(0,1,), unpack=True)
+            dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
             time=time[skip:]
             cab=cab[skip:]
             dcab=dcab[skip:]
@@ -195,7 +197,7 @@ for item1 in inp_names:
             dm=popt_dcab[0]
             db=popt_dcab[1]
             print("Second Total Derivative:")
-            d2cab =np.genfromtxt(item1 + '_' + item2 + '_' + str(mol_name) + '_msd.dat', usecols=(5), unpack=True)
+            d2cab =np.genfromtxt(item1 + '_' + item2 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
             d2cab=d2cab[skip:]
             popt_d2cab, pcov_d2cab = curve_fit(Corr_Fit, time, d2cab, p0=(0.2,0.3))
             d2m=popt_d2cab[0]
@@ -206,7 +208,7 @@ for item1 in inp_names:
             popt_d3cab, pcov_d3cab = curve_fit(Corr_Fit, time, d3cab, p0=(0.2,0.3))
             d3m=popt_d3cab[0]
             d3b=popt_d3cab[1]
-            
+            print("Fourth Total Derivative")
             d4cab = np.genfromtxt(item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_msd.dat', usecols=(1), unpack=True)
             d4cab=d4cab[skip:]
             popt_d4cab, pcov_d4cab = curve_fit(Corr_Fit, time, d4cab, p0=(1,0))

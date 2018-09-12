@@ -62,7 +62,7 @@ def FOURTH_DERIV(corr, d1corr, d2corr, w4corr, d2av, d3av, d4av):
     return d4corr
 
 def RATIO(corr, d1corr):
-    ea = d1corr[1:]/corr[1:]
+    ea = np.divide(d1corr[1:],corr[1:])
     ea=np.insert(ea,0,0.0)
     return ea
     
