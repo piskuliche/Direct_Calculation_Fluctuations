@@ -22,15 +22,15 @@ def E_Mult_Prop(a,ea,b,eb):
 
 def Order1_Prediction(x,T,M,dM):
     bzero=(1.0/(kb*T))
-    return (1.0/6.0)*(M - dM*(x-bzero))
+    return (1.0/6.0)*(M + dM*(x-bzero))*conv_d
 
 def Order2_Prediction(x,T,M,dM,d2M):
     bzero=(1.0/(kb*T))
-    return (1.0/6.0)*(M - dM*(x-bzero) + 0.5*d2M*(x-bzero)**2)
+    return (1.0/6.0)*(M + dM*(x-bzero) + 0.5*d2M*(x-bzero)**2)*conv_d
 
 def Order3_Prediction(x,T,M,dM,d2M,d3M):
     bzero=(1.0/(kb*T))
-    return (1.0/6.0)*(M - dM*(x-bzero) + 0.5*d2M*(x-bzero)**2+(1.0/6.0)*d3M*(x-bzero)**3)*conv_d
+    return (1.0/6.0)*(M+dM*(x-bzero) + 0.5*d2M*(x-bzero)**2+(1.0/6.0)*d3M*(x-bzero)**3)*conv_d
 
 def Order4_Prediction(x,T,M,dM,d2M,d3M,d4M):
     bzero=(1.0/(kb*T))
@@ -217,12 +217,12 @@ for item1 in inp_names:
 
             err_m, err_b, err_dm, err_db, err_d2m, err_d2b, err_d3m, err_d3b, err_d4m, err_d4b= np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_msd.dat', usecols=(0,1,2,3,4,5,6,7,8,9), unpack=True)
             order1prederr,order2prederr,order3prederr,order4prederr = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_errmsd.dat', usecols=(0,1,2,3), unpack=True)
-            for b in range(0,200):
-                beta[b]=0.5+float(b)*0.01
-                order1pred[b]=Order1_Prediction(beta[b],T,m,dm)
-                order2pred[b]=Order2_Prediction(beta[b],T,m, dm, d2m)
-                order3pred[b]=Order3_Prediction(beta[b],T,m, dm, d2m, d3m)
-                order4pred[b]=Order4_Prediction(beta[b],T,m, dm, d2m, d3m, d4m)
+            for bi in range(0,200):
+                beta[bi]=0.5+float(bi)*0.01
+                order1pred[bi]=Order1_Prediction(beta[bi],T,m,dm)
+                order2pred[bi]=Order2_Prediction(beta[bi],T,m, dm, d2m)
+                order3pred[bi]=Order3_Prediction(beta[bi],T,m, dm, d2m, d3m)
+                order4pred[bi]=Order4_Prediction(beta[bi],T,m, dm, d2m, d3m, d4m)
                 
 
             filepath=str('fit_results_'+item1+'_'+item2+'_'+str(mol_name)+'_msd.dat')
@@ -239,6 +239,9 @@ for item1 in inp_names:
             fout.write(" d3b: %s   err: %s\n" % (d3b, err_d3b))
             fout.write(" d4m: %s   err: %s\n" % (d4m, err_d4m))
             fout.write(" d4b: %s   err: %s\n" % (d4b, err_d4b))
+            ea = -dm/m
+            err_ea = (dm/m)*np.sqrt((err_dm/dm)**2+(err_m/m)**2)
+            fout.write(" Ea: %s    err: %s\n" % (ea, err_ea))
             fout.close()
             cabfit=Corr_Fit(time,*popt_cab)
             dcabfit=Corr_Fit(time, *popt_dcab)
@@ -248,6 +251,7 @@ for item1 in inp_names:
             print len(order2prederr)
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_msd.dat', np.c_[time,cabfit, dcabfit,d2cabfit], fmt='%s')
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(mol_name)+'_msd.dat', np.c_[time, d3cabfit], fmt='%s')
+            np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(item4)+'_'+str(mol_name)+'_msd.dat', np.c_[time, d4cabfit], fmt='%s')
             np.savetxt('int_fit_'+str(item1)+'_'+str(mol_name)+'_msd.dat', np.c_[beta, order1pred, order1prederr], fmt='%s')
             np.savetxt('int_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_msd.dat', np.c_[beta, order2pred, order2prederr], fmt='%s')
             np.savetxt('int_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(mol_name)+'_msd.dat', np.c_[beta, order3pred, order3prederr], fmt='%s')

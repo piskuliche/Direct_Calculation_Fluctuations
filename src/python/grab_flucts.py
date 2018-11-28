@@ -15,28 +15,29 @@ filenames='file_names'
 
 ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), dtype=(str,int), unpack=True)
 ival_list = np.array([])
-
+fileout=str(ivalname[value])+"_init.out"
+outputfile=open(fileout,'w')
 if inputparam.prog == 'LAMMPS':
     # Looks for log.lammps
     with open(filenames) as f:
         for l in f:
-            filename='FILES/'+l.rstrip()+'/log.lammps'
+            filename="log.lammps"
+            if float(l.rstrip()) < 501001000:
+                filename='FILES/'+l.rstrip()+'/log.lammps'
+            else:
+                filename='FILES2/'+l.rstrip()+'/log.lammps'
             print("Grabbing File: %s" % filename)
             lookup='Step'
             lookup2='Loop time'
-            totlines = 0
             with open(filename) as myFile:
+                startskip=-1
                 for num, line in enumerate(myFile,1):
                     if lookup in line:
                         startskip=num
-                    if lookup2 in line:
-                        endskip=num
-                    totlines=num
-            endskip=totlines-endskip-4
-            ival = np.genfromtxt(filename, skip_header=startskip, skip_footer=endskip, usecols=(int(icolnum[value])-1), unpack=True)
-            ival_list = np.append(ival_list, ival[0])
-    fileout=str(ivalname[value])+"_init.out"
-    np.savetxt(fileout, ival_list, fmt=['%.4f'])
+                    if num == startskip+1:
+                        ival=line.split()[int(icolnum[value])-1]
+                        break
+            outputfile.write("%s\n"%float(ival))
 elif inputparam.prog == 'CP2K':
     # Looks for CP2K Output File
     with open(filenames) as f:

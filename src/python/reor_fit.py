@@ -31,6 +31,19 @@ def Alt2_dCorrFit(t,adA1,adA2,adA3,adk1,adk2,adk3,adY):
 def d2Corr_Fit(t,d2A1, d2A2, d2A3, d2k1, d2k2, d2k3):
     return (d2A1-t*(2*dA1*dk1+A1*d2k1)+t**2*(A1*dk1*dk1))*np.exp(-k1*t)+(d2A2-t*(2*dA2*dk2+A2*d2k2)+t**2*(A2*dk2*dk2))*np.exp(-k2*t)+(d2A3-t*(2*dA3*dk3+A3*d2k3)+t**2*(A3*dk3*dk3))*np.exp(-k3*t)
 
+def d3Corr_long_Fit(t,d3A1,d3k1):
+    i=0
+    A=[A1,A2,A3]
+    k=[k1, k2, k3]
+    dA=[dA1, dA2, dA3]
+    dk=[dk1, dk2, dk3]
+    d2A=[d2A1, d2A2, d2A3]
+    d2k=[d2k1, d2k2, d2k3]
+    d3A=[d3A1]
+    d3k=[d3k1]
+    third_fit_val = (d3A[i] - t * (3*d2A[i]*dk[i] +3*dA[i]*d2k[i]+A[i]*d3k[i]) + t**2 * (3*A[i]*dk[i]*d2k[i]+3*dA[i]*(dk[i])**2) - t**3 * (A[i] * dk[i]**3))*np.exp(-k[i]*t)
+    return third_fit_val
+
 def d3Corr_Fit(t, d3A1, d3A2, d3A3, d3k1, d3k2, d3k3):
 
     third_fit_val = 0
@@ -65,19 +78,33 @@ def d4Corr_Fit(t, d4A1, d4A2, d4A3, d4k1, d4k2, d4k3):
 def Integrate(x,y):
     return np.trapz(y,x)
 
-def Taylor_Series(x,T,tau,dtau,d2tau,d3tau,d4tau,terms):
+def Int_Taylor_Series(x,T,tau,dtau,d2tau,d3tau,d4tau,terms):
     pred = 0.0
     bo = (1.0 / (kb*T))
     invtau = (1.0 / tau)
     pred = invtau
     if terms >= 1:
-        pred += -(invtau**2.0)*dtau*(x-bo)
+        pred += (invtau**2.0)*dtau*(x-bo)
     if terms >= 2:
         pred += 0.5*(2*(invtau**3.0)*(dtau**2.0)-(invtau**2)*d2tau)*(x-bo)**2.0
     if terms >= 3:
-        pred += (1.0/6.0)*(-6.0*(invtau**4.0)*(dtau**3.0)+6.0*(invtau*3.0)*dtau*d2tau-(invtau**2.0)*d3tau)*(x-bo)**3.0
+        pred += (1.0/6.0)*(-6.0*(invtau**4.0)*(dtau**3.0)+6.0*(invtau**3.0)*dtau*d2tau-(invtau**2.0)*d3tau)*(x-bo)**3.0
     if terms == 4:
-        pred += (1.0/24.0)*(24.0*(invtau**5.0)*(dtau**4.0)-36.0*(invtau**4.0)*(dtau**2.0)*d2tau+6.0*(invtau**3.0)*(d2tau**2.0)+8.0*(invtau**3.0)*dtau*d3tau-(invtau**2.0)*d4tau)*(x-bo)**4.0
+        pred += (1.0/24.0)*(24.0*(invtau**5.0)*(dtau**4.0)-36.0*(invtau**4.0)*(dtau**2.0)*d2tau-6.0*(invtau**3.0)*(d2tau**2.0)+8.0*(invtau**3.0)*dtau*d3tau-(invtau**2.0)*d4tau)*(x-bo)**4.0
+    return pred
+
+def Taylor_Series(x, T, k, dk, d2k, d3k, d4k, terms):
+    pred = 0.0
+    bo = (1.0 / (kb*T))
+    pred = k
+    if terms >= 1:
+        pred += dk*(x-bo)
+    if terms >= 2:
+        pred += (1./2.)*d2k*(x-bo)**2.0
+    if terms >= 3:
+        pred += (1./6.)*d3k*(x-bo)**3.0
+    if terms >= 4:
+        pred += (1./24.)*d4k*(x-bo)**4.0
     return pred
 
 
@@ -181,15 +208,46 @@ taui_comp2_bl =[[] for x in range(0,nblocks)]
 comp_sum_bl = [[] for x in range(0,nblocks)]
 
 beta=[[] for x in range(0,200)]
-order2pred=[[] for x in range(0,200)]
-order2prederr=[[] for x in range(0,200)]
-order2pred_bl=[[] for x in range(0,nblocks)]
-order3pred=[[] for x in range(0,200)]
-order3prederr=[[] for x in range(0,200)]
-order3pred_bl=[[] for x in range(0,nblocks)]
-order4pred=[[] for x in range(0,200)]
-order4prederr=[[] for x in range(0,200)]
-order4pred_bl=[[] for x in range(0,nblocks)]
+# Integrated Predictions
+int_order2pred=[[] for x in range(0,200)]
+int_order2prederr=[[] for x in range(0,200)]
+int_order2pred_bl=[[] for x in range(0,nblocks)]
+int_order3pred=[[] for x in range(0,200)]
+int_order3prederr=[[] for x in range(0,200)]
+int_order3pred_bl=[[] for x in range(0,nblocks)]
+int_order4pred=[[] for x in range(0,200)]
+int_order4prederr=[[] for x in range(0,200)]
+int_order4pred_bl=[[] for x in range(0,nblocks)]
+# k1 Predictions
+k1_order2pred=[[] for x in range(0,200)]
+k1_order2prederr=[[] for x in range(0,200)]
+k1_order2pred_bl=[[] for x in range(0,nblocks)]
+k1_order3pred=[[] for x in range(0,200)]
+k1_order3prederr=[[] for x in range(0,200)]
+k1_order3pred_bl=[[] for x in range(0,nblocks)]
+k1_order4pred=[[] for x in range(0,200)]
+k1_order4prederr=[[] for x in range(0,200)]
+k1_order4pred_bl=[[] for x in range(0,nblocks)]
+# k2 Predictions
+k2_order2pred=[[] for x in range(0,200)]
+k2_order2prederr=[[] for x in range(0,200)]
+k2_order2pred_bl=[[] for x in range(0,nblocks)]
+k2_order3pred=[[] for x in range(0,200)]
+k2_order3prederr=[[] for x in range(0,200)]
+k2_order3pred_bl=[[] for x in range(0,nblocks)]
+k2_order4pred=[[] for x in range(0,200)]
+k2_order4prederr=[[] for x in range(0,200)]
+k2_order4pred_bl=[[] for x in range(0,nblocks)]
+# k3 Predictions
+k3_order2pred=[[] for x in range(0,200)]
+k3_order2prederr=[[] for x in range(0,200)]
+k3_order2pred_bl=[[] for x in range(0,nblocks)]
+k3_order3pred=[[] for x in range(0,200)]
+k3_order3prederr=[[] for x in range(0,200)]
+k3_order3pred_bl=[[] for x in range(0,nblocks)]
+k3_order4pred=[[] for x in range(0,200)]
+k3_order4prederr=[[] for x in range(0,200)]
+k3_order4pred_bl=[[] for x in range(0,nblocks)]
 
 iindex=0
 jindex=0
@@ -288,7 +346,8 @@ for item1 in inp_names:
                 # Read and Fit Third Derivative
                 print("Block %s Third Derivative:" % block)
                 d3cab = np.genfromtxt('bl_'+str(block)+'_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', usecols=(1), unpack=True)
-                popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(0.1,.2,0.3,-0.2,0.3,0.4))
+                popt_d3cab, pcov_d3cab = curve_fit(d3Corr_long_Fit, time, d3cab, p0=(0.1,-0.2))
+                popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(popt_d3cab[0],.2,0.3,popt_d3cab[1],0.3,0.4))
                 d3A=popt_d3cab[:3]
                 d3k=popt_d3cab[3:]
                 d3A1=d3A[0]
@@ -343,12 +402,30 @@ for item1 in inp_names:
                 # Make predictions for the blocks
                 for b in range(0,200):
                     beta[b]=0.5+float(b)*0.01
-                    order2pred[b]=Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block],0.0,0.0,2)
-                    order3pred[b]=Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block], int_d3c2_bl[block], 0.0,3)
-                    order4pred[b]=Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block], int_d3c2_bl[block], int_d4c2_bl[block], 4)
-                order2pred_bl[block]=order2pred
-                order3pred_bl[block]=order3pred
-                order4pred_bl[block]=order4pred
+                    int_order2pred[b]   =   Int_Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block],0.0,0.0,2)
+                    int_order3pred[b]   =   Int_Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block], int_d3c2_bl[block], 0.0,3)
+                    int_order4pred[b]   =   Int_Taylor_Series(beta[b],T,int_tau_bl[block], int_dc2_bl[block], int_d2c2_bl[block], int_d3c2_bl[block], int_d4c2_bl[block], 4)
+                    k1_order2pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, 0.0, 0.0, 2)
+                    k1_order3pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, d3k1, 0.0, 3)
+                    k1_order4pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, d3k1, d4k1, 4)
+                    k2_order2pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, 0.0, 0.0, 2)
+                    k2_order3pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, d3k2, 0.0, 3)
+                    k2_order4pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, d3k2, d4k2, 4)
+                    k3_order2pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, 0.0, 0.0, 2)
+                    k3_order3pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, d3k3, 0.0, 3)
+                    k3_order4pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, d3k3, d4k3, 4)
+                int_order2pred_bl[block]    =   int_order2pred
+                int_order3pred_bl[block]    =   int_order3pred
+                int_order4pred_bl[block]    =   int_order4pred
+                k1_order2pred_bl[block]     =   k1_order2pred
+                k1_order3pred_bl[block]     =   k1_order3pred
+                k1_order4pred_bl[block]     =   k1_order4pred
+                k2_order2pred_bl[block]     =   k2_order2pred
+                k2_order3pred_bl[block]     =   k2_order3pred
+                k2_order4pred_bl[block]     =   k2_order4pred   
+                k3_order2pred_bl[block]     =   k3_order2pred
+                k3_order3pred_bl[block]     =   k3_order3pred
+                k3_order4pred_bl[block]     =   k3_order4pred
                 
             # I apologize for the lazy coding in the next section - for clarity:
             # Yes I am intentionally writing all the errors out to files just so they
@@ -398,19 +475,25 @@ for item1 in inp_names:
             err_comp_sum = Error(comp_sum_bl)
             err_Ea_str = Error(Ea_str_bl)
 
-            order2prederr=np.array(order2pred_bl).std(0)
-            order2prederr=[x * t_val for x in order2prederr]
-            order3prederr=np.array(order3pred_bl).std(0)
-            order3prederr=[x * t_val for x in order3prederr]
-            order4prederr=np.array(order3pred_bl).std(0)
-            order4prederr=[x * t_val for x in order4prederr]
+            int_order2prederr=np.array(int_order2pred_bl).std(0)
+            int_order2prederr=[x * t_val for x in int_order2prederr]
+            int_order3prederr=np.array(int_order3pred_bl).std(0)
+            int_order3prederr=[x * t_val for x in int_order3prederr]
+            int_order4prederr=np.array(int_order3pred_bl).std(0)
+            int_order4prederr=[x * t_val for x in int_order4prederr]
+            k1_order2prederr=np.array(k1_order2pred_bl).std(0)
+            k1_order2prederr=[x * t_val for x in k1_order2prederr]
+            k2_order3prederr=np.array(k2_order3pred_bl).std(0)
+            k2_order3prederr=[x * t_val for x in k2_order3prederr]
+            k3_order4prederr=np.array(k3_order3pred_bl).std(0)
+            k3_order4prederr=[x * t_val for x in int_order4prederr]
 
             np.savetxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', np.c_[err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3, err_Ea_str], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+str(mol_name)+'_c2.dat', np.c_[err_d2A1, err_d2A2, err_d2A3, err_d2k1, err_d2k2, err_d2k3], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_c2.dat', np.c_[err_d3A1, err_d3A2, err_d3A3, err_d3k1, err_d3k2, err_d3k3], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_c2.dat', np.c_[err_d4A1, err_d4A2, err_d4A3, err_d4k1, err_d4k2, err_d4k3], fmt='%s')
             np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_intc2.dat', np.c_[err_int_tau, err_int_dc2, err_int_d2c2, err_int_d3c2, err_int_d4c2, err_int_ea, err_tau2_comp1, err_tau2_comp2, err_taul_comp1, err_taul_comp2, err_taui_comp1, err_taui_comp2, err_comp_sum], fmt='%s')
-            np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_errc2.dat', np.c_[order2prederr,order3prederr,order4prederr], fmt='%s')
+            np.savetxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_errc2.dat', np.c_[int_order2prederr,int_order3prederr,int_order4prederr], fmt='%s')
         jindex+=1
     iindex+=1
 
@@ -486,7 +569,8 @@ for item1 in inp_names:
             # Read and Fit Third Derivative
             print("Third Total Derivative:")
             d3cab = np.genfromtxt(item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', usecols=(1), unpack=True)
-            popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(0.2,0.3,0.4,0.2,0.3,0.4))
+            popt_d3cab, pcov_d3cab = curve_fit(d3Corr_long_Fit, time[1000:], d3cab[1000:], p0=(0.1,-0.2))
+            popt_d3cab, pcov_d3cab = curve_fit(d3Corr_Fit, time, d3cab, p0=(popt_d3cab[0],0.3,0.4,popt_d3cab[1],0.3,0.4))
             d3A=popt_d3cab[:3]
             d3k=popt_d3cab[3:]
             d3A1=d3A[0]
@@ -513,19 +597,32 @@ for item1 in inp_names:
             err_d3A1, err_d3A2, err_d3A3, err_d3k1, err_d3k2, err_d3k3 = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5), unpack=True)
             err_d4A1, err_d4A2, err_d4A3, err_d4k1, err_d4k2, err_d4k3 = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_c2.dat', usecols=(0,1,2,3,4,5), unpack=True)
             err_int_tau, err_int_dc2, err_int_d2c2, err_int_d3c2, err_int_d4c2, err_int_ea, err_tau2_comp1, err_tau2_comp2, err_taul_comp1, err_taul_comp2, err_taui_comp1, err_taui_comp2, err_comp_sum= np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_intc2.dat', usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12), unpack=True)
-            order2prederr, order3prederr, order4prederr = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_errc2.dat', usecols=(0,1,2), unpack=True)
+            int_order2prederr, int_order3prederr, int_order4prederr = np.genfromtxt('fiterr_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+str(mol_name)+'_errc2.dat', usecols=(0,1,2), unpack=True)
             # Calculate integrated times
             int_tau=Integrate(time,cab)
             int_dc2=Integrate(time,dcab)
             int_d2c2=Integrate(time,d2cab)
             int_d3c2=Integrate(time,d3cab)
             int_d4c2=Integrate(time,d4cab)
+            dinttau=-int_dc2
+            d2inttau=int_d2c2
+            d3inttau=-int_d3c2
+            d4inttau=int_d4c2
             # Make predictions
             for b in range(0,200):
                 beta[b]=0.5+float(b)*0.01
-                order2pred[b]=Taylor_Series(beta[b],T,int_tau, int_dc2, int_d2c2,0.0,0.0,2)
-                order3pred[b]=Taylor_Series(beta[b],T,int_tau, int_dc2, int_d2c2, int_d3c2,0.0,3)
-                order4pred[b]=Taylor_Series(beta[b],T,int_tau, int_dc2, int_d2c2, int_d3c2, int_d4c2, 4)
+                int_order2pred[b]=Int_Taylor_Series(beta[b],T,int_tau, dinttau, d2inttau,0.0,0.0,2)
+                int_order3pred[b]=Int_Taylor_Series(beta[b],T,int_tau, dinttau, d2inttau, d3inttau,0.0,3)
+                int_order4pred[b]=Int_Taylor_Series(beta[b],T,int_tau, dinttau, d2inttau, d3inttau, d4inttau, 4)
+                k1_order2pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, 0.0, 0.0, 2)
+                k1_order3pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, d3k1, 0.0, 3)
+                k1_order4pred[b]  =   Taylor_Series(beta[b], T, k1, dk1, d2k1, d3k1, d4k1, 4)
+                k2_order2pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, 0.0, 0.0, 2)
+                k2_order3pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, d3k2, 0.0, 3)
+                k2_order4pred[b]  =   Taylor_Series(beta[b], T, k2, dk2, d2k2, d3k2, d4k2, 4)
+                k3_order2pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, 0.0, 0.0, 2)
+                k3_order3pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, d3k3, 0.0, 3)
+                k3_order4pred[b]  =   Taylor_Series(beta[b], T, k3, dk3, d2k3, d3k3, d4k3, 4)
             # Write out to log
             filepath=str('fit_results_'+item1+'_'+item2+'_'+str(mol_name)+'_c2.dat')
             fout=open(filepath,'w')
@@ -575,6 +672,39 @@ for item1 in inp_names:
             fout.write("intd3c2 = %s +/- %s\n" % (int_d3c2, err_int_d3c2))
             fout.write("intd4c2 = %s +/- %s\n" % (int_d4c2, err_int_d4c2))
             fout.write("<EaTau2> = %s +/- %s\n" % (-int_dc2*(-1.0/int_tau), err_int_ea))
+            fout.write("---HO Deriv Part---\n")
+            fout.write("First Order Pred Prefactor:\n")
+            invtau = 1.0/int_tau
+            prefactor1 = (invtau**2.0)*dinttau
+            fout.write("(invtau**2)*dtau = %s\n" % prefactor1)
+            fout.write("Second Order Pred Prefactors\n")
+            prefactor1 = (invtau**3.0)*(dinttau**2.0)
+            prefactor2 = -0.5*(invtau**2.0)*d2inttau
+            fout.write("invtau**3.0*dinttau**2.0 = %s\n" % prefactor1)
+            fout.write("-0.5*(invtau**2.0)*d2tau = %s\n" % prefactor2)
+            fout.write("Total = %s\n" % (prefactor1 + prefactor2))
+            fout.write("Third Order Pred Prefactors\n")
+            prefactor1 = -(invtau**4.0)*(dinttau**3.0)
+            prefactor2 = (invtau**3.0)*dinttau*d2inttau
+            prefactor3 = -(1.0/6.0)*(invtau**2.0)*d3inttau
+            fout.write("-(invtau**4.0)*(dtau**3.0) = %s\n" % prefactor1)
+            fout.write("(invtau*3.0)*dtau*d2tau = %s\n" % prefactor2)
+            fout.write("-(1.0/6.0)*(invtau**2.0)*d3tau = %s\n" % prefactor3)
+            fout.write("Total = %s\n" % (prefactor1 + prefactor2 + prefactor3))
+            fout.write("Fourth Order Pred Prefactors\n")
+            prefactor1 = (invtau**5.0)*(dinttau**4.0)
+            prefactor2 = -(3.0/2.0)*(invtau**4.0)*(dinttau**2.0)*d2inttau
+            prefactor3 = -(1.0/4.0)*(invtau**3.0)*(d2inttau**2.0)
+            prefactor4 = (1.0/3.0)*(invtau**3.0)*dinttau*d3inttau
+            prefactor5 = -(1.0/24.0)*(invtau**2.0)*d4inttau
+            fout.write("(invtau**5.0)*(dinttau**4.0) = %s\n" % prefactor1)
+            fout.write("-(3.0/2.0)*(invtau**4.0)*(dinttau**2.0)*d2inttau = %s\n" % prefactor2)
+            fout.write("-(1.0/4.0)*(invtau**3.0)*(d2inttau**2.0) = %s\n" % prefactor3)
+            fout.write("(1.0/3.0)*(invtau**3.0)*dinttau*d3inttau = %s\n" % prefactor4)
+            fout.write("-(1.0/24.0)*(invtau**2.0)*d4inttau = %s\n" % prefactor5)
+            fout.write("Total = %s\n" % (prefactor1 + prefactor2 + prefactor3 + prefactor4 + prefactor5))
+
+
             fout.write("---split Ea terms---\n")
             tau2_comp1, tau2_comp2 = Ea_Breakdown(A1,-dA1,(1.0/k1),int_tau, dk1*(1.0/k1))
             taul_comp1, taul_comp2 = Ea_Breakdown(A2,-dA2,(1.0/k2),int_tau, dk2*(1.0/k2))
@@ -621,9 +751,19 @@ for item1 in inp_names:
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[time,cabfit, dcabfit,d2cabfit], fmt='%s')
             np.savetxt('total_altfit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[time,altcabfit,altdcabfit], fmt='%s')
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(mol_name)+'_c2.dat', np.c_[time, d3cabfit], fmt='%s')
-            np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(item4)+'_'+str(mol_name)+'_c2.dat', np.c_[time, d4cabfit], fmt='%s') 
-            np.savetxt('int_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[beta, order2pred, order2prederr], fmt='%s')
-            np.savetxt('int_fit_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', np.c_[beta, order3pred, order3prederr], fmt='%s')
-            np.savetxt('int_fit_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_c2.dat', np.c_[beta, order4pred, order4prederr], fmt='%s')
+            np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(item4)+'_'+str(mol_name)+'_c2.dat', np.c_[time, d4cabfit], fmt='%s')
+            # Output Predictions!
+            np.savetxt('int_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[beta, int_order2pred, int_order2prederr], fmt='%s')
+            np.savetxt('int_fit_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', np.c_[beta, int_order3pred, int_order3prederr], fmt='%s')
+            np.savetxt('int_fit_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_c2.dat', np.c_[beta, int_order4pred, int_order4prederr], fmt='%s')
+            np.savetxt('k1_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[beta, k1_order2pred, k1_order2prederr], fmt='%s')
+            np.savetxt('k1_fit_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', np.c_[beta, k1_order3pred, k1_order3prederr], fmt='%s')
+            np.savetxt('k1_fit_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_c2.dat', np.c_[beta, k1_order4pred, k1_order4prederr], fmt='%s')
+            np.savetxt('k2_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[beta, k2_order2pred, k2_order2prederr], fmt='%s')
+            np.savetxt('k2_fit_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', np.c_[beta, k2_order3pred, k2_order3prederr], fmt='%s')
+            np.savetxt('k2_fit_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_c2.dat', np.c_[beta, k2_order4pred, k2_order4prederr], fmt='%s')
+            np.savetxt('k3_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_c2.dat', np.c_[beta, k3_order2pred, k3_order2prederr], fmt='%s')
+            np.savetxt('k3_fit_'+item1+'_'+item2+'_'+item3+'_'+mol_name+'_c2.dat', np.c_[beta, k3_order3pred, k3_order3prederr], fmt='%s')
+            np.savetxt('k3_fit_'+item1+'_'+item2+'_'+item3+'_'+item4+'_'+mol_name+'_c2.dat', np.c_[beta, k3_order4pred, k3_order4prederr], fmt='%s')
         jindex+=1
     iindex+=1

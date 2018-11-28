@@ -192,7 +192,7 @@ else
         else
             python unif-sample.py
         fi
-        msub run_array.sh
+        #msub run_array.sh
         cd -  
         echo "  NVE Trajectories Submitted"
         touch .flag_nve
