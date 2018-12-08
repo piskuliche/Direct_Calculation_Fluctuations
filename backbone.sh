@@ -176,6 +176,7 @@ else
         cp src/python/set_msd_calcs.py ../
         cp src/python/gen_sub_scripts.py ../
         cp src/python/grab_press.py ../
+        cp src/python/vel_reselect.py ../
         if [ $timestep = 'FALSE' ]; then
             cp src/python/non-unif-sample.py ../
         else

@@ -66,6 +66,8 @@ if inputparam.prog == "LAMMPS":
         dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve\n" % (str(j),inputparam.molec[j]))
     dcn.write("    mpirun lmp_mpi < in.nve -screen none\n")
 elif inputparam.prog == "CP2K":
+    if inputparam.cab == "IONPAIRING":
+        dcn.write("    python ../../vel_reselect.py 6.94 18.998 298.15 restart.'$CUR'\n")
     dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
     dcn.write("    sed -i -e 's@traj.file0@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     dcn.write("    mpirun cp2k.popt in.nve.cp2k\n")
