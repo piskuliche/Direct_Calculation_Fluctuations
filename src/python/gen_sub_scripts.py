@@ -22,16 +22,20 @@ njobs = int(np.ceil(inputparam.num_files/50.))
 # Generates a single job array that runs 50 jobs each.
 dcn_file = "run_array.sh"
 dcn = open(dcn_file, 'w')
-dcn.write("#MSUB -N direct_calc_nve\n")
-dcn.write("#MSUB -q sixhour\n")
-dcn.write("#MSUB -j oe\n")
-dcn.write("#MSUB -d ./\n")
-dcn.write("#MSUB -l nodes=1:ppn=2:intel,mem=10gb,walltime=6:00:00\n")
-dcn.write("#MSUB -t 0-%s\n" % (njobs-1))
+dcn.write("#!/bin/bash\n")
+dcn.write("#SBATCH --job-name=direct_calc_nve\n")
+dcn.write("#SBATCH --partition=sixhour\n")
+dcn.write("#SBATCH --output=slurm-%A_%a.out\n")
+dcn.write("#SBATCH --nodes=1\n")
+dcn.write("#SBATCH --ntasks-per-node=2\n")
+dcn.write("#SBATCH --constraint=intel\n")
+dcn.write("#SBATCH --mem=10G\n")
+dcn.write("#SBATCH --time=06:00:00\n")
+dcn.write("#SBATCH --array 0-%s\n" % (njobs-1))
 dcn.write("\n")
-dcn.write("cd $PBS_O_WORKDIR\n")
+dcn.write("cd $SLURM_SUBMIT_DIR\n")
 if inputparam.prog == "LAMMPS":
-    dcn.write("module load lammps/11Aug17\n")
+    dcn.write("module load lammps/22Aug2018\n")
 elif inputparam.prog == "CP2K":
     dcn.write("module load cp2k/6.0/popt\n")
 else:
@@ -46,14 +50,14 @@ dcn.write("NUM_RPJ=50\n")
 dcn.write("\n")
 dcn.write("for (( N = $START_JOBS; N <= $NUM_RPJ; N++ ))\n")
 dcn.write("do\n")
-dcn.write("    CUR=$(( START + N*SEP + SEP*NUM_RPJ*MOAB_JOBARRAYINDEX - SEP))\n")
+dcn.write("    CUR=$(( START + N*SEP + SEP*NUM_RPJ*SLURM_ARRAY_TASK_ID - SEP))\n")
 dcn.write("    echo $CUR\n")
 dcn.write("    mkdir FILES/$CUR\n")
 dcn.write("    cp in.nve nve.sh FILES/$CUR/\n")
 dcn.write("    cp RESTART/restart.$CUR FILES/$CUR\n")
 dcn.write("    cd FILES/$CUR\n")
-dcn.write("    echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n")
-dcn.write("    echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n")
+dcn.write("    echo Time is `date` > array_$SLURM_ARRAY_TASK_ID.o\n")
+dcn.write("    echo Directory is `pwd` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    \n\n")
 dcn.write("    sed -i -e 's@direct_calc_nve@nve_'$CUR'@g' nve.sh\n")
 if inputparam.prog == "LAMMPS":
@@ -80,7 +84,7 @@ elif inputparam.cab == "IONPAIRING":
     dcn.write('echo %s > mol.info\n' % inputparam.molec[0])
     dcn.write('python ../../set_msd_calcs.py \n')
     dcn.write('../../flux_side\n\n')
-dcn.write("    echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n")
+dcn.write("    echo Ending Time is `date` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    rm mol.info\n")
 dcn.write("    rm traj*.xyz\n")
 dcn.write("    cd ../../\n")
@@ -89,23 +93,28 @@ dcn.close()
 
 
 # Generate NVE Input File
+#   This is the file that is generated in every directory that need it if
+#   something doesn't run correctly.
 nve_file="nve.sh"
 nve=open(nve_file, 'w')
 
-nve.write('#MSUB -N direct_calc_nve\n')
-nve.write('#MSUB -q sixhour\n')
-nve.write('#MSUB -j oe\n')
-nve.write('#MSUB -d ./\n')
-nve.write('#MSUB -l nodes=1:ppn=10:intel,mem=5gb,walltime=6:00:00\n\n\n')
-
+nve.write("#!/bin/bash\n")
+nve.write('#SBATCH --jobname=direct_calc_nve\n')
+nve.write('#SBATCH --partition=sixhour\n')
+nve.write('#SBATCH --output="direct_calc_nve\n')
+nve.write('#SBATCH --nodes=1\n')
+nve.write('#SBATCH --ntasks-per-node=10\n')
+nve.write('#SBATCH --constraint=intel\n')
+nve.write('#SBATCH --mem=5G\n')
+nve.write('#SBATCH --time=06:00:00\n\n\n')
 
 if inputparam.prog == "LAMMPS":
-    nve.write('module load lammps/11Aug17\n\n')
+    nve.write('module load lammps/22Aug2018\n\n')
 elif inputparam.prog == "CP2K":
     nve.write('module load cp2k/6.0/popt\n\n')
             
-nve.write('echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o\n')
-nve.write('echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o\n\n\n')
+nve.write('echo Time is `date` > array.o\n')
+nve.write('echo Directory is `pwd` >> array.o\n\n\n')
 
 if inputparam.prog == "LAMMPS":
     nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve\n")
@@ -129,7 +138,7 @@ elif inputparam.cab == "IONPAIRING":
     nve.write('python ../../set_msd_calcs.py \n')
     nve.write('../../flux_side\n\n')
 
-nve.write('echo Ending Time is `date` >> array_$MOAB_JOBARRAYINDEX.o\n')
+nve.write('echo Ending Time is `date` >> array.o\n')
 
 
 nve.close()
@@ -141,39 +150,46 @@ sep = int(inputparam.num_files/500.)
 if sep % inputparam.nblocks != 0:
     print("Num files and Nblocks do not divide evenly, aborting")
     sys.exit(1)
+iarr.write("#!/bin/bash\n")
+iarr.write("#SBATCH --job-name=init_array\n")
+iarr.write("#SBATCH --partition=sixhour\n")
+iarr.write("#SBATCH --output=init_array%A_%a.out\n")
+iarr.write("#SBATCH --nodes=1\n")
+iarr.write("#SBATCH --ntasks-per-node=2\n")
+iarr.write("#SBATCH --constraint=intel\n")
+iarr.write("#SBATCH --mem=30G\n")
+iarr.write("#SBATCH --time=06:00:00\n")
+iarr.write("#SBATCH --array=0-%s\n" % (sep-1))
 
-iarr.write("#MSUB -N init_array\n")
-iarr.write("#MSUB -q sixhour\n")
-iarr.write("#MSUB -j oe\n")
-iarr.write("#MSUB -d ./\n")
-iarr.write("#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00\n")
-iarr.write("#MSUB -t 0-%s\n" % (sep-1))
 
-
-iarr.write("cd $PBS_O_WORKDIR\n")
+iarr.write("cd $SLURM_SUBMIT_DIR\n")
 
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp msd %s\n" % inputparam.molec[i])
-        iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp c2 %s\n" % inputparam.molec[i])
+        iarr.write("python init_flucts.py $SLURM_ARRAY_TASK_ID flucts.inp msd %s\n" % inputparam.molec[i])
+        iarr.write("python init_flucts.py $SLURM_ARRAY_TASK_ID flucts.inp c2 %s\n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
-    iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp fsc water\n")
+    iarr.write("python init_flucts.py $SLURM_ARRAY_TASK_ID flucts.inp fsc water\n")
 
 if inputparam.prog == "LAMMPS":
-    iarr.write("python init_flucts.py $MOAB_JOBARRAYINDEX flucts.inp shear water\n")
+    iarr.write("python init_flucts.py $SLURM_ARRAY_TASK_ID flucts.inp shear water\n")
 
 iarr.close()
 
 # Gen Do_Flucts Array
+# This submits the do_flucts python code which does the final analysis.
 
 do_file="do_fluctsub.sh"
 darr = open(do_file, 'w')
-darr.write("#MSUB -N do_flucts\n")
-darr.write("#MSUB -q sixhour\n")
-darr.write("#MSUB -j oe\n")
-darr.write("#MSUB -m ae\n")
-darr.write("#MSUB -d ./\n")
-darr.write("#MSUB -l nodes=1:ppn=20:intel,mem=100gb,walltime=6:00:00\n")
+darr.write("#!/bin/bash\n")
+darr.write("#SBATCH --job-name=do_flucts\n")
+darr.write("#SBATCH --partition=sixhour\n")
+darr.write("#SBATCH --output=do_flucts.out\n")
+darr.write("#SBATCH --nodes=1\n")
+darr.write("#SBATCH --ntasks-per-node=20\n")
+darr.write("#SBATCH --constraint=intel\n")
+darr.write("#SBATCH --mem=100G\n")
+darr.write("#SBATCH --time=06:00:00\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
         darr.write("python do_flucts.py flucts.inp msd %s %s\n" % (inputparam.molec[i],inputparam.nblocks))

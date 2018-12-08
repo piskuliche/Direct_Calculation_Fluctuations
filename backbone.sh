@@ -192,7 +192,7 @@ else
         else
             python unif-sample.py
         fi
-        #msub run_array.sh
+        sbatch run_array.sh
         cd -  
         echo "  NVE Trajectories Submitted"
         touch .flag_nve
@@ -228,18 +228,21 @@ else
     for (( i=$start_config; i<=$end_config; i+=$sep_config ))
         {
             if [ $program = 'LAMMPS' ]; then
-                tail -n1 $i/log.lammps | grep -q Total || echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; msub nve.sh; cd ../" >> rerun
+                tail -n1 $i/log.lammps | grep -q Total || echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
             elif [ $program = 'CP2K' ]; then
                 echo "  Since you are using CP2K, you need to check individually whether runs have finished."
                 echo "  Sorry!"
             fi
-        } 
-    MISSEDJOBS=$( wc -l < rerun )    
-    if (( $MISSEDJOBS > 200 )); then 
-        echo "  Error: More than 100 folders to rerun - check ../FILES/rerun before continuing"
-    else
-        echo "  Submitting $MISSEDJOBS missed jobs"
-        bash rerun
+        }
+    # Checks if the rerun file exists - and then submits a series of them if needed.
+    if [ -f rerun ]; then
+        MISSEDJOBS=$( wc -l < rerun )
+        if (( $MISSEDJOBS > 200 )); then 
+            echo "  Error: More than 100 folders to rerun - check ../FILES/rerun before continuing"
+        else
+            echo "  Submitting $MISSEDJOBS missed jobs"
+            bash rerun
+        fi
     fi
     # Does some cleanup commands
     cd ../
@@ -265,7 +268,7 @@ else
     cp src/python/grab_flucts.py ../
     cp src/shell/grabfluctsub.sh ../
     cd ../
-    msub grabfluctsub.sh
+    sbatch grabfluctsub.sh
     cd -
     echo "  Grab Flucts is running as a job"
     echo "  Please be patient - and check that grab_flucts.py is completed before continuing"
@@ -286,7 +289,7 @@ else
     cp src/python/do_flucts.py ../
     cd ../
     mkdir SEG
-    msub init_array.sh
+    sbatch init_array.sh
     cd -
     echo "  Fluctuation Array Submitted"
     echo "  Please wait until all jobs are completed."
@@ -303,12 +306,26 @@ else
     echo "-Fluctuations Flag Missing"
     echo "  Running Fluctuations Calculation"
     cd ../
-    msub do_fluctsub.sh 
+    sbatch do_fluctsub.sh 
     cd -
     echo "  Fluctuations has finished!"
     touch .flag_valcalc
     exit 0
 fi
+
+#STEP: Fit Functions
+FILE=.flag_corrfit
+if [ -f $FILE ]; then
+    echo "-Fit Flag Exists"
+else
+    echo "-Fit Flag Missing"
+    echo "  Copying reor_fit.py and msd_fit.py to directory"
+    cp src/python/reor_fit.py ../
+    cp src/python/msd_fit.py ../
+    echo "  Feel free to fit."
+    exit 0
+fi
+
 
 #STEP: Cleanup
 FILE=.flag_cleanup

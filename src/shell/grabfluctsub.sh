@@ -1,14 +1,19 @@
-#MSUB -N grabflucts_array
-#MSUB -q sixhour
-#MSUB -j oe
-#MSUB -d ./
-#MSUB -l nodes=1:ppn=2:intel,mem=30gb,walltime=6:00:00
-#MSUB -t 0-6
+#!/bin/bash
+#SBATCH --job-name=grabflucts_array
+#SBATCH --partition=sixhour
+#SBATCH --output=grabflucts_array%A_%a.out
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --constraint=intel
+#SBATCH --mem=30G
+#SBATCH --time=06:00:00
+#SBATCH --array=0-6
 
 
-cd $PBS_O_WORKDIR
 
-echo Time is `date` > array_$MOAB_JOBARRAYINDEX.o
-echo Directory is `pwd` >> array_$MOAB_JOBARRAYINDEX.o
+cd $SLURM_SUBMIT_DIR
 
-python grab_flucts.py flucts.inp $MOAB_JOBARRAYINDEX
+echo Time is `date` > array_$SLURM_ARRAY_TASK_ID.o
+echo Directory is `pwd` >> array_$SLURM_ARRAY_TASK_ID.o
+
+python grab_flucts.py flucts.inp $SLURM_ARRAY_TASK_ID
