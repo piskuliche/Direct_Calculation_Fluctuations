@@ -193,7 +193,7 @@ else
         else
             python unif-sample.py
         fi
-        sbatch run_array.sh
+        #sbatch run_array.sh
         cd -  
         echo "  NVE Trajectories Submitted"
         touch .flag_nve
@@ -231,8 +231,7 @@ else
             if [ $program = 'LAMMPS' ]; then
                 tail -n1 $i/log.lammps | grep -q Total || echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
             elif [ $program = 'CP2K' ]; then
-                echo "  Since you are using CP2K, you need to check individually whether runs have finished."
-                echo "  Sorry!"
+                tail -n1 $i/array_*.o | grep -q Ending || echo "mkdir $i; cp ../in.nve.cp2k $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
             fi
         }
     # Checks if the rerun file exists - and then submits a series of them if needed.
@@ -280,37 +279,37 @@ fi
 
 
 # STEP: INITIALIZE SEGMENTS CORRELATION FUNCTIONS/Act. Eners./Act. Vols
-FILE=.flag_initarray
+FILE=.flag_segarray
 if [ -f $FILE ]; then
-    echo "-InitArray Calculation Flag Exist"
+    echo "-Segment Creation Calculation Flag Exist"
 else
-    echo "-InitArray Calculation Flag Missing"
-    echo "  Running InitArray Calc"
-    cp src/python/init_flucts.py ../
-    cp src/python/do_flucts.py ../
+    echo "-Segment Creation Calculation Flag Missing"
+    echo "  Running Segment Creation Calc"
+    cp src/python/init_segments.py ../
+    cp src/python/combine_segments.py ../
     cd ../
     mkdir SEG
-    sbatch init_array.sh
+    sbatch init_segments.sh
     cd -
-    echo "  Fluctuation Array Submitted"
+    echo "  Segment Creation Array Submitted"
     echo "  Please wait until all jobs are completed."
-    touch .flag_initarray
+    touch .flag_segarray
     exit 0
 fi
 
 
 #STEP: Fluctuations Calculation
-FILE=.flag_valcalc
+FILE=.flag_combineseg
 if [ -f $FILE ]; then
-    echo "-Fluctuations Calculation Flag Exists"
+    echo "-Segment Combination Flag Exists"
 else
-    echo "-Fluctuations Flag Missing"
-    echo "  Running Fluctuations Calculation"
+    echo "-Segment Combination Flag Missing"
+    echo "  Running Segment Combination Calculation"
     cd ../
-    sbatch do_fluctsub.sh 
+    sbatch combine_segments.sh 
     cd -
-    echo "  Fluctuations has finished!"
-    touch .flag_valcalc
+    echo "  Segment Combination has finished!"
+    touch .flag_combineseg
     exit 0
 fi
 

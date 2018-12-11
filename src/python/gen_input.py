@@ -124,6 +124,12 @@ paramname = "numblocks"
 numblocks = par_input(typei, paramname, desc)
 inp.write("%s \n" % numblocks)
 
+desc = "Files Per Segment (How many files there should be averaged into a single segment):"
+inp.write("# %s\n" % desc)
+paramname = "segsplit"
+numblocks = par_input(typei, paramname, desc)
+inp.write("%s \n" % segsplit)
+
 desc = "Files (How many NVE trajectories there are):"
 inp.write("# %s\n" % desc)
 paramname = "numfiles"

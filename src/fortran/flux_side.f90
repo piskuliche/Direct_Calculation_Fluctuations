@@ -15,7 +15,7 @@ Program flux_side
     real :: dt, volume
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
-    real :: vr,eval
+    real :: vr,vs, eval
     real :: constraint
 
     real, dimension(3) :: L
@@ -120,15 +120,23 @@ Program flux_side
     dvy = viro(1,2) - viro(2,2)
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
+    vs = -vr
     eval = dr - constraint
     write(*,*) dr, constraint
     write(*,*) eval
-    write(*,*) vr
+    write(*,*) vr, vs
     if (eval .ge. 0.0) then
         fsc(0) = 0.0
     else
         fsc(0) = 1.0
     end if
+    open(22, file='kappa.dat')
+    if (vs .ge. 0.0) then
+        write(22,'(2E15.5)') fsc(0)*vs, 0.0
+    else
+        write(22,'(2E15.5)') 0.0, fsc(0)*vs
+    end if
+    close(22)
 
     
     ! Loop over the timesteps in each trajectory
@@ -162,7 +170,7 @@ Program flux_side
         end if
     enddo ! end loop over timesteps
     close(11)
-    fsc = fsc*vr
+    fsc = fsc*vs
     ! Write out the FS Correlation Function
     open(21,file='fsc_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
 
@@ -170,6 +178,15 @@ Program flux_side
         write(21,'(3E15.5)') real(it), fsc(it), r(it)
     enddo
     close(21)
+    open(22, file='kappa.dat')
+    do it = 0, ntimes - 1 
+        if (vs .ge. 0.0) then
+            write(22,'(2E15.5)') vs, 0.0
+        else
+            write(22,'(2E15.5)') 0.0, vs
+        end if
+    enddo
+    close(22)
 
 End Program flux_side
 
