@@ -107,6 +107,15 @@ else
                 cd -
             else
                 echo "  Improper identifier, try again."
+                read -r -p "Would you like to skip? [y/N] " inpresponse
+                if [[ "$inpresponse" =~ ^([yY][eE][sS]|[yY])+$ ]]
+                then
+                    echo "  Okay, skipping."
+                    echo "  At this point, you should run the base trajectory"
+                    echo "  Example NVT and NPT input files are located in src/dependencies"
+                    cd -
+                    touch .flag_traj
+                fi
                 exit 0
             fi
         else
