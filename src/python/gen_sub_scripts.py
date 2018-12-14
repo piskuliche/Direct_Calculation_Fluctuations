@@ -181,7 +181,8 @@ if inputparam.cab == "TRANSPORT":
         iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp msd %s\n" % inputparam.molec[i])
         iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp c2 %s\n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
-    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc water\n")
+    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_f water\n")
+    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_b water\n")
 
 if inputparam.prog == "LAMMPS":
     iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp shear water\n")
@@ -207,7 +208,8 @@ if inputparam.cab == "TRANSPORT":
         darr.write("python combine_segments.py flucts.inp msd %s\n" % (inputparam.molec[i]))
         darr.write("python combine_segments.py flucts.inp c2 %s\n" % (inputparam.molec[i]))
 elif inputparam.cab == "IONPAIRING":
-    darr.write("python combine_segments.py flucts.inp fsc %s\n" % (inputparam.molec[0]))
+    darr.write("python combine_segments.py flucts.inp fsc_f %s\n" % (inputparam.molec[0]))
+    darr.write("python combine_segments.py flucts.inp fsc_b %s\n" % (inputparam.molec[0]))
 
 if inputparam.prog == "LAMMPS":
     darr.write("python combine_segments.py flucts.inp shear %s\n" % (inputparam.molec[0]))

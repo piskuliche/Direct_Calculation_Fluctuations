@@ -15,11 +15,12 @@ Program flux_side
     real :: dt, volume
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
-    real :: vr,vs, eval
+    real :: vr,vs, eval, eval
     real :: constraint
 
     real, dimension(3) :: L
-    real, dimension(0:5000) :: fsc
+    real, dimension(0:5000) :: fsc_f
+    real, dimension(0:5000) :: fsc_b
     real, dimension(0:5000) :: r
     real, dimension(2,3) :: iro,viro
     real, dimension(2,3) :: ir
@@ -55,7 +56,8 @@ Program flux_side
     open(12, file='vel_'//trim(nfile)//'_'//trim(mol_name)//'.vxyz',status='old')
 
     ! Zero the results for the NVE trajectory
-    fsc=0.0
+    fsc_f=0.0
+    fsc_b=0.0
 
     ! Read in the first configuration and set it as the zero.
     read(11,*) natms
@@ -121,22 +123,19 @@ Program flux_side
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
     vs = -vr
+    ! Calculates the distance from the transition state
     eval = dr - constraint
+    eval = constraint - dr
     write(*,*) dr, constraint
     write(*,*) eval
     write(*,*) vr, vs
     if (eval .ge. 0.0) then
-        fsc(0) = 0.0
+        fsc_f(0) = 0.0
+        fsc_b(0) = 1.0
     else
-        fsc(0) = 1.0
+        fsc_f(0) = 1.0
+        fsc_b(0) = 0.0
     end if
-    open(22, file='kappa.dat')
-    if (vs .ge. 0.0) then
-        write(22,'(2E15.5)') fsc(0)*vs, 0.0
-    else
-        write(22,'(2E15.5)') 0.0, fsc(0)*vs
-    end if
-    close(22)
 
     
     ! Loop over the timesteps in each trajectory
@@ -164,21 +163,31 @@ Program flux_side
         r(it) = dr
         eval = dr - constraint
         if (eval .ge. 0) then
-            fsc(it) = 0.0
+            fsc_f(it) = 0.0
+            fsc_b(it) = 1.0
         else
-            fsc(it) = 1.0 
+            fsc_f(it) = 1.0 
+            fsc_b(it) = 0.0
         end if
     enddo ! end loop over timesteps
     close(11)
-    fsc = fsc*vs
-    ! Write out the FS Correlation Function
-    open(21,file='fsc_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
-
+    fsc_f = fsc_f*vs
+    fsc_b = fsc_b*-1*vs
+    ! Write out the Forward FS Correlation Function
+    open(21,file='fsc_f_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
     do it = 0, ntimes - 1
-        write(21,'(3E15.5)') real(it), fsc(it), r(it)
+        write(21,'(3E15.5)') real(it), fsc_f(it), r(it)
     enddo
     close(21)
-    open(22, file='kappa.dat')
+    ! Write out the Backward FS Correlation Function
+    open(23,file='fsc_f_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
+
+    do it = 0, ntimes - 1
+        write(23,'(3E15.5)') real(it), fsc_b(it), r(it)
+    enddo
+    close(23)
+    ! Write out the denominator of the forward recrossing factor
+    open(22, file='kappa_f.dat')
     do it = 0, ntimes - 1 
         if (vs .ge. 0.0) then
             write(22,'(2E15.5)') vs, 0.0
@@ -187,6 +196,16 @@ Program flux_side
         end if
     enddo
     close(22)
+    ! Write out the denominator of the backward recrossing factor
+    open(24, file='kappa_b.dat')
+    do it = 0, ntimes - 1
+        if (-1*vs .ge. 0.0) then
+            write(24,'(2E15.5)') -vs, 0.0
+        else
+            write(24,'(2E15.5)') 0.0, -vs
+        end if
+    enddo
+    close(24)
 
 End Program flux_side
 
