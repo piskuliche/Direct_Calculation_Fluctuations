@@ -36,10 +36,12 @@ segsplit=`sed -n '30p' ../input_file`
 num_files=`sed -n '32p' ../input_file`
 # NVE Length
 nve_length=`sed -n '34p' ../input_file` 
+# Num RPJ
+num_rpj=`sed -n '36p' ../input_file`
 # TYPE
-calctype=`sed -n '36p' ../input_file`
+calctype=`sed -n '38p' ../input_file`
 # Constraint
-constraint=`sed -n '38p' ../input_file`
+constraint=`sed -n '40p' ../input_file`
 
 echo "Input File Parameters"
 echo "Program: "$program
@@ -58,6 +60,7 @@ echo "Blocks: "$blocks
 echo "Segments: "$segsplit
 echo "Num Files: "$num_files
 echo "NVE Length: "$nve_length
+echo "NUM RPJ: "$num_rpj
 echo "Calc Type: "$calctype
 echo "Constraint: "$constraint
 echo "End Input File Parameters"

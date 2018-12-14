@@ -37,7 +37,9 @@ class input:
             if i == 33:
                 self.nve_length=int(line.strip())
             if i == 35:
-                self.cab=str(line.strip())
+                self.num_rpj=int(line.strip())
             if i == 37:
+                self.cab=str(line.strip())
+            if i == 39:
                 self.constraint=float(line.strip())
         ip.close()

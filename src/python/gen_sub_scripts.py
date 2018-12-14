@@ -46,7 +46,7 @@ dcn.write("SEP=1000\n")
 dcn.write("START=1001000\n")
 dcn.write("\n")
 dcn.write("START_JOBS=1\n")
-dcn.write("NUM_RPJ=50\n")
+dcn.write("NUM_RPJ=%s\n" % inputparam.num_rpj)
 dcn.write("\n")
 dcn.write("for (( N = $START_JOBS; N <= $NUM_RPJ; N++ ))\n")
 dcn.write("do\n")
@@ -156,7 +156,7 @@ nve.write('echo Ending Time is `date` >> array.o\n')
 nve.close()
 
 # Gen Init Array
-init_file="init_array.sh"
+init_file="init_segments.sh"
 iarr = open(init_file,'w')
 sep = int(inputparam.num_files/500.)
 if sep % inputparam.nblocks != 0:
