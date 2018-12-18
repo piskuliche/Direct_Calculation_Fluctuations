@@ -1,0 +1,8 @@
+#SBATCH --job-name=direct_calc_nve
+#SBATCH --partition=sixhour
+#SBATCH --output=direct_calc_nve-%A_%a.out
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --constraint=intel
+#SBATCH --mem=10G
+#SBATCH --time=06:00:00

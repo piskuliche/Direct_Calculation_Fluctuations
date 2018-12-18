@@ -15,6 +15,12 @@ import numpy as np
 import sys
 from read_input import input
 
+machine = str(sys.argv[1])
+lines=[]
+with open("Direct_Calculation_Fluctuations/src/dependencies/"+machine+"_header.dat",'r') as mfile:
+    for line in mfile:
+        lines.append(line)
+
 # Calls the read_input class
 inputparam = input("input_file")
 
@@ -22,28 +28,27 @@ njobs = int(np.ceil(inputparam.num_files/50.))
 # Generates a single job array that runs 50 jobs each.
 dcn_file = "run_array.sh"
 dcn = open(dcn_file, 'w')
-dcn.write("#!/bin/bash\n")
-dcn.write("#SBATCH --job-name=direct_calc_nve\n")
-dcn.write("#SBATCH --partition=sixhour\n")
-dcn.write("#SBATCH --output=direct_calc_nve-%A_%a.out\n")
-dcn.write("#SBATCH --nodes=1\n")
-dcn.write("#SBATCH --ntasks-per-node=2\n")
-dcn.write("#SBATCH --constraint=intel\n")
-dcn.write("#SBATCH --mem=10G\n")
-dcn.write("#SBATCH --time=06:00:00\n")
+for item in lines:
+    dcn.write(item)
 dcn.write("#SBATCH --array 0-%s\n" % (njobs-1))
 dcn.write("\n")
 dcn.write("cd $SLURM_SUBMIT_DIR\n")
-if inputparam.prog == "LAMMPS":
-    dcn.write("module load lammps/22Aug2018\n")
-elif inputparam.prog == "CP2K":
-    dcn.write("module load cp2k/6.0/popt\n")
-else:
-    dcn.write("Error: Incorrect program in input_file\n")
-    exit(1)
+if machine == "CRC":
+    if inputparam.prog == "LAMMPS":
+        dcn.write("module load lammps/22Aug2018\n")
+    elif inputparam.prog == "CP2K":
+        dcn.write("module load cp2k/6.0/popt\n")
+    else:
+        dcn.write("Error: Incorrect program in input_file\n")
+        exit(1)
+elif machine == "CORI":
+    dcn.write("export OMP_NUM_THREADS=8\n")
+    dcn.write("export OMP_PLACES=threads\n")
+    dcn.write("export OMP_PROC_BIND=spread\n")
+
 dcn.write("\n")
-dcn.write("SEP=1000\n")
-dcn.write("START=1001000\n")
+dcn.write("SEP=%s\n" % int(inputparam.sep_config))
+dcn.write("START=%s\n" % int(inputparam.start_config))
 dcn.write("\n")
 dcn.write("START_JOBS=1\n")
 dcn.write("NUM_RPJ=%s\n" % inputparam.num_rpj)
@@ -76,7 +81,11 @@ elif inputparam.prog == "CP2K":
         dcn.write("    sed -i -e 's@vel.file@vel_'$CUR'_%s.vxyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     dcn.write("    sed -i -e 's@restart.file@RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
     dcn.write("    sed -i -e 's@traj.file0@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
-    dcn.write("    mpirun cp2k.popt in.nve.cp2k\n")
+    if machine == "CRC":
+        dcn.write("    mpirun cp2k.popt in.nve.cp2k\n")
+    elif machine == "CORI":
+        dcn.write("srun -n 128 -c 8 --cpu_bind=cores  /global/homes/c/cjmundy/SOURCEFORGE_CP2K/cp2k-5.1/cp2k/exe/CRAY-cori-Haswell-gnu/cp2k.psmp in.nve.cp2k > cp2k.out\n")
+
 dcn.write("    \n\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
@@ -108,21 +117,17 @@ dcn.close()
 nve_file="nve.sh"
 nve=open(nve_file, 'w')
 
-nve.write("#!/bin/bash\n")
-nve.write('#SBATCH --job-name=direct_calc_nve\n')
-nve.write('#SBATCH --partition=sixhour\n')
-nve.write('#SBATCH --output=direct_calc_nve\n')
-nve.write('#SBATCH --nodes=1\n')
-nve.write('#SBATCH --ntasks-per-node=10\n')
-nve.write('#SBATCH --constraint=intel\n')
-nve.write('#SBATCH --mem=5G\n')
-nve.write('#SBATCH --time=06:00:00\n\n\n')
-
-if inputparam.prog == "LAMMPS":
-    nve.write('module load lammps/22Aug2018\n\n')
-elif inputparam.prog == "CP2K":
-    nve.write('module load cp2k/6.0/popt\n\n')
-            
+for item in lines:
+    nve.write(item)
+if machine == "CRC":
+    if inputparam.prog == "LAMMPS":
+        nve.write('module load lammps/22Aug2018\n\n')
+    elif inputparam.prog == "CP2K":
+        nve.write('module load cp2k/6.0/popt\n\n')
+elif machine == "CORI":
+    nve.write("export OMP_NUM_THREADS=8\n")
+    nve.write("export OMP_PLACES=threads\n")
+    nve.write("export OMP_PROC_BIND=spread\n")
 nve.write('echo Time is `date` > array.o\n')
 nve.write('echo Directory is `pwd` >> array.o\n\n\n')
 
@@ -133,10 +138,14 @@ if inputparam.prog == "LAMMPS":
     nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
     if inputparam.cab == "IONPAIRING":
-        nve.write("    python ../../vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
+        nve.write("python ../../vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
     nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve.cp2k\n")
     nve.write("sed -i -e 's@traj.file0@traj_AAA_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
-    nve.write('mpirun -np 2 cp2k.popt in.nve.cp2k \n\n\n')
+    if machine == "CRC":
+        nve.write("    mpirun cp2k.popt in.nve.cp2k\n")
+    elif machine == "CORI":
+        nve.write("srun -n 128 -c 8 --cpu_bind=cores  /global/homes/c/cjmundy/SOURCEFORGE_CP2K/cp2k-5.1/cp2k/exe/CRAY-cori-Haswell-gnu/cp2k.psmp in.nve.cp2k > cp2k.out\n")
+                                        
 if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])

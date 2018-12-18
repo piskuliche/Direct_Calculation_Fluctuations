@@ -6,9 +6,27 @@
 #   -Activation Volumes
 #of Diffusion and Reorientation
 
-module load compiler/pgi/15
+# STEP: Check that MACHINENAME is set.
+if [ -f machine.name ]; then
+    MACHINENAME=$(cat machine.name)
+    echo "Running on $MACHINENAME!"
+else
+    read -r -p "What is MACHINENAME? `echo $'\n>'`" MACHINENAME
+    echo $MACHINENAME > machine.name
+    exit 0
+fi
+
+if [ "$MACHINENAME" == "CRC" ]; then
+    module load compiler/pgi/15
+elif [ "$MACHINENAME" == "CORI" ]; then
+    module load pgi
+else
+    echo "Error: $MACHINENAME is not a valid Machine"
+    exit 0
+fi
 
 echo "Running direct calculations."
+
 
 # STEP: Initial Instructions
 FILE=.flag_instruct
