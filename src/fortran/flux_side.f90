@@ -15,7 +15,7 @@ Program flux_side
     real :: dt, volume
     real :: dx, dy, dz, dr
     real :: dvx, dvy, dvz, dvs
-    real :: vr,vs, eval, eval
+    real :: vr,vs, eval
     real :: constraint
 
     real, dimension(3) :: L
