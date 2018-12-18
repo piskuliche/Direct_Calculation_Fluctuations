@@ -180,7 +180,7 @@ Program flux_side
     enddo
     close(21)
     ! Write out the Backward FS Correlation Function
-    open(23,file='fsc_f_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
+    open(23,file='fsc_b_'//trim(nfile)//'_'//trim(mol_name)//'.dat')
 
     do it = 0, ntimes - 1
         write(23,'(3E15.5)') real(it), fsc_b(it), r(it)
