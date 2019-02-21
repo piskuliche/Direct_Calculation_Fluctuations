@@ -214,15 +214,14 @@ else
         cp src/exec/flux_side ../
         cd ../
         # Generate Submission Script
-        python gen_sub_scripts.py
+        python gen_sub_scripts.py $MACHINENAME
         if [ $timestep = 'FALSE' ]; then
             python non-unif-sample.py
         else
             python unif-sample.py
         fi
-        #sbatch run_array.sh
         cd -  
-        echo "  NVE Trajectories Submitted"
+        echo "  NVE Trajectories are ready to be submitted as sbatch run_array.sh"
         touch .flag_nve
     else
         echo "  NVE Trajectories were NOT submitted."
