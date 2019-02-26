@@ -71,7 +71,7 @@ dcn.write("    echo Directory is `pwd` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    \n\n")
 dcn.write("    sed -i -e 's@direct_calc_nve@nve_'$CUR'@g' nve.sh\n")
 if inputparam.prog == "LAMMPS":
-    dcn.write("    sed -i -e 's@restart.file@RESTART/restart.'$CUR'@g' in.nve\n")
+    dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve\n")
     for j in range(0,inputparam.num_molecs):
         dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve\n" % (str(j),inputparam.molec[j]))
     dcn.write("    mpirun lmp_mpi < in.nve -screen none\n")
@@ -134,7 +134,7 @@ nve.write('echo Directory is `pwd` >> array.o\n\n\n')
 if inputparam.prog == "LAMMPS":
     nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve\n")
     for j in range(0,inputparam.num_molecs):
-        nve.write("sed -i -e 's@traj.file%s@traj_AAA_%s.xyz@g' in.nve.cp2k\n" % (str(j),inputparam.molec[j]))
+        nve.write("sed -i -e 's@traj.file%s@traj_AAA_%s.xyz@g' in.nve\n" % (str(j),inputparam.molec[j]))
     nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
     if inputparam.cab == "IONPAIRING":
@@ -167,7 +167,7 @@ nve.close()
 # Gen Init Array
 init_file="init_segments.sh"
 iarr = open(init_file,'w')
-sep = int(inputparam.num_files/500.)
+sep = int(inputparam.segsplit)
 if sep % inputparam.nblocks != 0:
     print("Num files and Nblocks do not divide evenly, aborting")
     sys.exit(1)
