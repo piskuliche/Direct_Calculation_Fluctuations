@@ -150,7 +150,7 @@ if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])
         nve.write('python ../../set_msd_calcs.py\n')
-        nve.write('../../msd_rot_calc < msd_rot_calc.in\n\n')
+        nve.write('../../msd_rot_calc < corr_calc.in\n\n')
     if inputparam.prog == "LAMMPS":
         nve.write('python ../../grab_press.py\n\n')
         nve.write('../../visc_calc\n')
