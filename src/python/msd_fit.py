@@ -98,8 +98,8 @@ for item1 in inp_names:
     jindex=0
     for item2 in inp_names:
         if jindex >= iindex:
-            item3=item1
-            item4=item1
+            item3=item2
+            item4=item2
             for block in range(0,nblocks):              
                 time, cab = np.genfromtxt('bl_' + str(block) + '_' + str(mol_name) + '_msd.dat', usecols=(0,1), unpack=True)
                 dcab = np.genfromtxt('bl_' + str(block) + '_' + item1 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
@@ -182,8 +182,8 @@ for item1 in inp_names:
     jindex=0
     for item2 in inp_names:
         if jindex >= iindex:
-            item3=item1
-            item4=item1
+            item3=item2
+            item4=item2
             time, cab = np.genfromtxt(str(mol_name) + '_msd.dat', usecols=(0,1,), unpack=True)
             dcab = np.genfromtxt(item1 + '_' + str(mol_name) + '_msd.dat', usecols=(1), unpack=True)
             time=time[skip:]

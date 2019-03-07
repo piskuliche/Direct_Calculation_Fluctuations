@@ -24,7 +24,7 @@ with open("Direct_Calculation_Fluctuations/src/dependencies/"+machine+"_header.d
 # Calls the read_input class
 inputparam = input("input_file")
 
-njobs = int(np.ceil(inputparam.num_files/50.))
+njobs = int(np.ceil(inputparam.num_files/float(inputparam.num_rpj)))
 # Generates a single job array that runs 50 jobs each.
 dcn_file = "run_array.sh"
 dcn = open(dcn_file, 'w')
