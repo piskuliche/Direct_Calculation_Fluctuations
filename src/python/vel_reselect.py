@@ -1,4 +1,8 @@
 #This is a code aimed at reselecting the velcoties from the appropriate temperature distribution.
+"""
+This is used in the Ion Pairing code calculation. This takes the current velocities and then creates a 
+velocity in the axial direction i.e. to undo rigid bonds.
+"""
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt

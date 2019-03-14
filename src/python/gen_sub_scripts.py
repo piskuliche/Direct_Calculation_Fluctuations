@@ -1,15 +1,12 @@
 # This python script generates the needed sub.sh, nve.sh, and job_array.sh scripts in the simulation directory i.e. /sim/
-# required input: input_file
-# produced output: setup_array.sh, nve.sh, job_array.sh
 """
 This python script generates the needed files in the simulation directory.
 Requires an input_file
 This produces the following output:
-    run_array#.sh
-    run_array
+    run_array.sh
     nve.sh
-    init_array.sh
-    do_flucts
+    init_segments.sh
+    combine_segments.sh
 """
 import numpy as np
 import sys
@@ -112,7 +109,7 @@ dcn.close()
 
 
 # Generate NVE Input File
-#   This is the file that is generated in every directory that need it if
+#   This is the file that is generated in every directory that needs it if
 #   something doesn't run correctly.
 nve_file="nve.sh"
 nve=open(nve_file, 'w')

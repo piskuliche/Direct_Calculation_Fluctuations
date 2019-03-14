@@ -1,6 +1,9 @@
 #set_msd_calcs.py
-#This code automatically creates an msd input file for each trajectory folder
+""" 
+This file creates the corr_calc.in file that is needed by the correlation function calculations to run them.
 
+This file is used by msd_rot_calc among others.
+"""
 
 from scipy import stats
 import numpy as np
@@ -9,6 +12,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 from read_input import input
 
+# Reads the input file
 inputparam = input('../../input_file')
 fluctval = int(os.path.split(os.getcwd())[1])
 

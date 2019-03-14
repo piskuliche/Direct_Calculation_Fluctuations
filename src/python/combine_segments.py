@@ -4,7 +4,7 @@ from scipy import stats
 from read_input import input
 
 """
-This is a python program to take the weighted correlation functions calculated in init_flucts.py and turn them into the derivative correlation functions.
+This is a python program to take the weighted correlation functions calculated in init_segments.py and turn them into the derivative correlation functions.
 """
 
 def BLOCK_ENERGY(energy,start,end,itemindex):

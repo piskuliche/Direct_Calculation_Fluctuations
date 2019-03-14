@@ -53,11 +53,13 @@ else:
     # Read in Correlation Functions
     fnames = np.genfromtxt('file_names', dtype='string', unpack=True)
     print("Choosing %s of %s files" % (sep, len(fnames)))
+    # Chooses where to pull from in cases when there are a lot of files.
     if itmp < 500:
         fcab=["FILES/"+str(s)+"/"+str(corr_name)+"_"+str(s)+"_"+str(mol_name)+".dat" for s in fnames[fstart:fend]]
     else:
         fcab=["FILES2/"+str(s)+"/"+str(corr_name)+"_"+str(s)+"_"+str(mol_name)+".dat" for s in fnames[fstart:fend]]
     item1count=0
+    # Read in the energy files
     for item1 in inp_n:
         energy.append(np.genfromtxt(item1+'_init.out'))
         print("Average of %s is: %s" % (item1, np.average(energy[item1count])))
