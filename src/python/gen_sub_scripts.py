@@ -98,6 +98,7 @@ elif inputparam.cab == "IONPAIRING":
     dcn.write('    echo %s > mol.info\n' % inputparam.molec[0])
     dcn.write('    python ../../set_msd_calcs.py \n')
     dcn.write('    ../../flux_side\n\n')
+dcn.write('    touch corr_complete\n')
 dcn.write("    echo Ending Time is `date` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    rm mol.info\n")
 dcn.write("    rm traj*.xyz\n")
@@ -156,6 +157,7 @@ elif inputparam.cab == "IONPAIRING":
     nve.write('python ../../set_msd_calcs.py \n')
     nve.write('../../flux_side\n\n')
 
+nve.write('touch corr_complete\n')
 nve.write('echo Ending Time is `date` >> array.o\n')
 
 

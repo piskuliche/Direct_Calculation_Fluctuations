@@ -6,7 +6,8 @@ import os.path
 with open("file_names") as f:
     for file in f:
         filepath=str("FILES/")+str(file).strip()+str("/log.lammps")
-        if os.path.isfile(filepath):
+        filepath2=str("FILES/")+str(file).strip()+str("corr_complete")
+        if os.path.isfile(filepath) and os.path.isfile(filepath2):
             output=1
         else:
             cd=str("cd FILES/")+str(file).strip()
