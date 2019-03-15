@@ -164,7 +164,7 @@ nve.close()
 # Gen Init Array
 init_file="init_segments.sh"
 iarr = open(init_file,'w')
-sep = int(inputparam.segsplit)
+sep = int(inputparam.num_files/inputparam.segsplit)
 if sep % inputparam.nblocks != 0:
     print("Num files and Nblocks do not divide evenly, aborting")
     sys.exit(1)
