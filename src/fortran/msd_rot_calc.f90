@@ -15,8 +15,8 @@ Program msd_rot_calc
     real, dimension(500,3) :: rO_zero, r1_zero, r2_zero, rO, r1, r2
     real, dimension(500,3) :: rO_old, r1_old, r2_old, shiftO, shift1, shift2
     real, dimension(500,3) :: eO1, eO2, eO1_zero, eO2_zero
-    real, dimension(0:5000,3) :: msd
-    real, dimension(0:5000) :: c1, c2
+    real, dimension(0:20000,3) :: msd
+    real, dimension(0:20000) :: c1, c2
 
     real, dimension(5000) :: ener, dener
 
