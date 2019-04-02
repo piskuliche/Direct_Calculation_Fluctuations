@@ -16,7 +16,7 @@ Program visc_calc
 
       real, dimension(3) :: L
       real, dimension(6) :: press
-      real, dimension(5000) :: P_av
+      real, dimension(30000) :: P_av
 
       character(len=10) nfile, mol_name
 

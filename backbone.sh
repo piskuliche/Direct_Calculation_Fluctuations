@@ -255,7 +255,14 @@ else
     for (( i=$start_config; i<=$end_config; i+=$sep_config ))
         {
             if [ $program = 'LAMMPS' ]; then
+                if [ $(($i%1000000)) == 0 ]; then
+                    echo "$i has been checked"
+                fi
                 tail -n1 $i/log.lammps | grep -q Total || echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
+                if [ ! -f "$i/msd_$i""_water.dat" ]; then
+                    echo "$i does not exist"
+                    echo "mkdir $i; cp ../in.nve $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
+                fi
             elif [ $program = 'CP2K' ]; then
                 tail -n1 $i/array_*.o | grep -q Ending || echo "mkdir $i; cp ../in.nve.cp2k $i; cp ../nve.sh $i; cd $i; sed -i -e "s@AAA@$i@g" nve.sh; sbatch nve.sh; cd ../" >> rerun
             fi
