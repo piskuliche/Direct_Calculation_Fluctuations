@@ -17,6 +17,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	@echo "prepend_path('PATH', '$(HOMEPATH)/bin/')" >> module/path.include
 	cat module/direct_calc_header module/path.include > module/Dir_Calc_Fluct.lua
 	$(FC) $(FCFLAGS) -o src/exec/msd_rot_calc src/fortran/msd_rot_calc.f90
+	$(FC) $(FCFLAGS) -o src/exec/matom_msd_rot_calc src/fortran/multi-atom_msd_rot_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/visc_calc    src/fortran/visc_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/flux_side    src/fortran/flux_side.f90
 	mkdir -p bin/

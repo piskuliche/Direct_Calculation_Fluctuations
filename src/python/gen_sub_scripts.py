@@ -99,7 +99,10 @@ if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         dcn.write("    echo %s > mol.info\n" % inputparam.molec[i])
         dcn.write("    set_msd_calcs.py\n")
-        dcn.write("    msd_rot_calc < corr_calc.in\n")
+        if inputparam.molec[i] == "water":
+            dcn.write("    msd_rot_calc < corr_calc.in\n")
+        else:
+            dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
     dcn.write("    \n")
     if inputparam.prog == "LAMMPS":
         dcn.write("    grab_press.py\n")
@@ -160,7 +163,10 @@ if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])
         nve.write('set_msd_calcs.py\n')
-        nve.write('msd_rot_calc < corr_calc.in\n\n')
+        if inputparam.molec[i] == "water":
+            nve.write('msd_rot_calc < corr_calc.in\n\n')
+        else:
+            nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
     if inputparam.prog == "LAMMPS":
         nve.write('grab_press.py\n\n')
         nve.write('visc_calc\n')
