@@ -92,6 +92,9 @@ def step_nve():
     if not os.path.isfile('in.nve') and not os.path.isfile('in.nve.cp2k'):
         print("Need to put an in.nve or in.nve.cp2k file into directory")
         sys.exit()
+    for i in range(inputparam.num_molecs):
+        if inputparam.molec[i] != "water" and not os.path.isfile(str(inputparam.molec[i])+'.txt'):
+            print("Need to create %s.txt" % inputparam.molec[i])
     flag='.flag_nve'
     flag_exists = os.path.isfile(flag)
     if flag_exists:
