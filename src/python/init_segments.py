@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 import numpy as np
 import sys
-from read_input import input
+from read_input import user_input
 
 def BLOCK_ENERGY(energy,start,end,itemindex):
     eav = 0
@@ -10,7 +11,7 @@ def BLOCK_ENERGY(energy,start,end,itemindex):
     return eav
 
 # Read the input file
-inputparam = input("input_file")
+inputparam = user_input("input_file")
 
 # Set the number of segments
 sep = int(inputparam.segsplit)
@@ -67,9 +68,9 @@ else:
     item1count = 0
     for i in range(sep):
         tcab.append(np.genfromtxt(fcab[i],usecols=1,unpack=True))
-    print len(tcab)
+    print(len(tcab))
     for item1 in inp_n:
-        print item1
+        print(item1)
         item2count=0
         for item2 in inp_n:
             # Calculate Average Energy

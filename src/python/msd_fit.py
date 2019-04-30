@@ -14,7 +14,7 @@ def Corr_Fit(t,m, b):
     return m*t+b
 
 def Error(value):
-    err_value = np.array(value).std(0) * t_val
+    err_value = np.array(value).std(0,ddof=1) * t_val
     return err_value
 
 def E_Mult_Prop(a,ea,b,eb):
@@ -56,8 +56,8 @@ kb=0.0019872041
 conv_d=(1.0E12)/(1.0E16)*(1.0E5)
 # Read in input file
 inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True)
-print inp_names
-print inp_cols
+print(inp_names)
+print(inp_cols)
 
 # Calculate important quantities
 t_val=stats.t.ppf(0.95,nblocks-1)/np.sqrt(nblocks)
@@ -158,10 +158,10 @@ for item1 in inp_names:
             err_d3b = Error(d3b_bl)
             err_d4b = Error(d4b_bl)
             
-            order1prederr=np.array(order1pred_bl).std(0)
-            order2prederr=np.array(order2pred_bl).std(0)
-            order3prederr=np.array(order3pred_bl).std(0)
-            order4prederr=np.array(order4pred_bl).std(0)
+            order1prederr=np.array(order1pred_bl).std(0,ddof=1)
+            order2prederr=np.array(order2pred_bl).std(0,ddof=1)
+            order3prederr=np.array(order3pred_bl).std(0,ddof=1)
+            order4prederr=np.array(order4pred_bl).std(0,ddof=1)
             order1prederr=[x * t_val for x in order1prederr]
             order2prederr=[x * t_val for x in order2prederr]
             order3prederr=[x * t_val for x in order3prederr]
@@ -248,7 +248,7 @@ for item1 in inp_names:
             d2cabfit=Corr_Fit(time, *popt_d2cab)
             d3cabfit=Corr_Fit(time, *popt_d3cab)
             d4cabfit=Corr_Fit(time, *popt_d4cab)
-            print len(order2prederr)
+            print(len(order2prederr))
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(mol_name)+'_msd.dat', np.c_[time,cabfit, dcabfit,d2cabfit], fmt='%s')
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(mol_name)+'_msd.dat', np.c_[time, d3cabfit], fmt='%s')
             np.savetxt('total_fit_'+str(item1)+'_'+str(item2)+'_'+str(item3)+'_'+str(item4)+'_'+str(mol_name)+'_msd.dat', np.c_[time, d4cabfit], fmt='%s')

@@ -1,8 +1,8 @@
 import numpy as np
-from read_input import input
+from src.python.read_input import user_input
 
 # Call input file class.
-inputparam = input('input_file')
+inputparam = user_input('input_file')
 
 pstofs = 1000.0
 

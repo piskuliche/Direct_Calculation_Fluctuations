@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #This is a code aimed at reselecting the velcoties from the appropriate temperature distribution.
 """
 This is used in the Ion Pairing code calculation. This takes the current velocities and then creates a 
