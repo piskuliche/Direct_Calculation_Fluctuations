@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+"""
+This is a code that pulls the pressures from the log file
+"""
 import numpy as np
 
 it=0

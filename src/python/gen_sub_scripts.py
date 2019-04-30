@@ -8,18 +8,28 @@ This produces the following output:
     init_segments.sh
     combine_segments.sh
 """
+
+
+def read_machine():
+    f = open('machine.name','r')
+    machine = str(f.readline().strip())
+    path = str(f.readline().strip())
+    return machine,path
+
+
 import numpy as np
 import sys
-from read_input import input
+from src.python.read_input import user_input
 
-machine = str(sys.argv[1])
+machine, homepath = read_machine()
+
 lines=[]
-with open("Direct_Calculation_Fluctuations/src/dependencies/"+machine+"_header.dat",'r') as mfile:
+with open(homepath+"/src/dependencies/"+machine+"_header.dat",'r') as mfile:
     for line in mfile:
         lines.append(line)
 
 # Calls the read_input class
-inputparam = input("input_file")
+inputparam = user_input("input_file")
 
 njobs = int(np.ceil(inputparam.num_files/float(inputparam.num_rpj)))
 # Generates a single job array that runs 50 jobs each.
@@ -29,6 +39,7 @@ for item in lines:
     dcn.write(item)
 dcn.write("#SBATCH --array 0-%s\n" % (njobs-1))
 dcn.write("\n")
+dcn.write("module load Dir_Calc_Fluct\n")
 dcn.write("cd $SLURM_SUBMIT_DIR\n")
 if machine == "CRC":
     if inputparam.prog == "LAMMPS":
@@ -74,7 +85,7 @@ if inputparam.prog == "LAMMPS":
     dcn.write("    mpirun lmp_mpi < in.nve -screen none\n")
 elif inputparam.prog == "CP2K":
     if inputparam.cab == "IONPAIRING":
-        dcn.write("    python ../../vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
+        dcn.write("    vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
         dcn.write("    sed -i -e 's@vel.file@vel_'$CUR'_%s.vxyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     dcn.write("    sed -i -e 's@restart.file@RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
     dcn.write("    sed -i -e 's@traj.file0@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
@@ -87,17 +98,20 @@ dcn.write("    \n\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         dcn.write("    echo %s > mol.info\n" % inputparam.molec[i])
-        dcn.write("    python ../../set_msd_calcs.py\n")
-        dcn.write("    ../../msd_rot_calc < corr_calc.in\n")
+        dcn.write("    set_msd_calcs.py\n")
+        if inputparam.molec[i] == "water":
+            dcn.write("    msd_rot_calc < corr_calc.in\n")
+        else:
+            dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
     dcn.write("    \n")
     if inputparam.prog == "LAMMPS":
-        dcn.write("    python ../../grab_press.py\n")
-        dcn.write("    ../../visc_calc\n")
+        dcn.write("    grab_press.py\n")
+        dcn.write("    visc_calc\n")
         dcn.write("    \n")
 elif inputparam.cab == "IONPAIRING":
     dcn.write('    echo %s > mol.info\n' % inputparam.molec[0])
-    dcn.write('    python ../../set_msd_calcs.py \n')
-    dcn.write('    ../../flux_side\n\n')
+    dcn.write('    set_msd_calcs.py \n')
+    dcn.write('    flux_side\n\n')
 dcn.write('    touch corr_complete\n')
 dcn.write("    echo Ending Time is `date` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    rm mol.info\n")
@@ -117,6 +131,7 @@ nve=open(nve_file, 'w')
 
 for item in lines:
     nve.write(item)
+nve.write("module load Dir_Calc_Fluct\n")
 if machine == "CRC":
     if inputparam.prog == "LAMMPS":
         nve.write('module load lammps/22Aug2018\n\n')
@@ -136,7 +151,7 @@ if inputparam.prog == "LAMMPS":
     nve.write('mpirun lmp_mpi < in.nve -screen none\n\n\n')
 elif inputparam.prog == "CP2K":
     if inputparam.cab == "IONPAIRING":
-        nve.write("python ../../vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
+        nve.write("vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
     nve.write("sed -i -e 's@restart.file@../../RESTART/restart.AAA@g' in.nve.cp2k\n")
     nve.write("sed -i -e 's@traj.file0@traj_AAA_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     if machine == "CRC":
@@ -147,15 +162,18 @@ elif inputparam.prog == "CP2K":
 if inputparam.cab == "TRANSPORT":
     for i in range(0,inputparam.num_molecs):
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])
-        nve.write('python ../../set_msd_calcs.py\n')
-        nve.write('../../msd_rot_calc < corr_calc.in\n\n')
+        nve.write('set_msd_calcs.py\n')
+        if inputparam.molec[i] == "water":
+            nve.write('msd_rot_calc < corr_calc.in\n\n')
+        else:
+            nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
     if inputparam.prog == "LAMMPS":
-        nve.write('python ../../grab_press.py\n\n')
-        nve.write('../../visc_calc\n')
+        nve.write('grab_press.py\n\n')
+        nve.write('visc_calc\n')
 elif inputparam.cab == "IONPAIRING":
     nve.write('echo %s > mol.info\n' % inputparam.molec[0])
-    nve.write('python ../../set_msd_calcs.py \n')
-    nve.write('../../flux_side\n\n')
+    nve.write('set_msd_calcs.py \n')
+    nve.write('flux_side\n\n')
 
 nve.write('touch corr_complete\n')
 nve.write('echo Ending Time is `date` >> array.o\n')
@@ -181,19 +199,20 @@ iarr.write("#SBATCH --mem=30G\n")
 iarr.write("#SBATCH --time=06:00:00\n")
 iarr.write("#SBATCH --array=0-%s\n" % (sep-1))
 
+iarr.write("module load Dir_Calc_Fluct\n")
 
 iarr.write("cd $SLURM_SUBMIT_DIR\n")
 
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp msd %s\n" % inputparam.molec[i])
-        iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp c2 %s\n" % inputparam.molec[i])
+        iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp msd %s\n" % inputparam.molec[i])
+        iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp c2 %s\n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
-    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_f water\n")
-    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_b water\n")
+    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_f water\n")
+    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_b water\n")
 
 if inputparam.prog == "LAMMPS":
-    iarr.write("python init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp shear water\n")
+    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp shear water\n")
 
 iarr.close()
 
@@ -211,14 +230,15 @@ darr.write("#SBATCH --ntasks-per-node=20\n")
 darr.write("#SBATCH --constraint=intel\n")
 darr.write("#SBATCH --mem=100G\n")
 darr.write("#SBATCH --time=06:00:00\n")
+darr.write("module load Dir_Calc_Fluct\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        darr.write("python combine_segments.py flucts.inp msd %s\n" % (inputparam.molec[i]))
-        darr.write("python combine_segments.py flucts.inp c2 %s\n" % (inputparam.molec[i]))
+        darr.write("combine_segments.py flucts.inp msd %s\n" % (inputparam.molec[i]))
+        darr.write("combine_segments.py flucts.inp c2 %s\n" % (inputparam.molec[i]))
 elif inputparam.cab == "IONPAIRING":
-    darr.write("python combine_segments.py flucts.inp fsc_f %s\n" % (inputparam.molec[0]))
-    darr.write("python combine_segments.py flucts.inp fsc_b %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py flucts.inp fsc_f %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py flucts.inp fsc_b %s\n" % (inputparam.molec[0]))
 
 if inputparam.prog == "LAMMPS":
-    darr.write("python combine_segments.py flucts.inp shear %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py flucts.inp shear %s\n" % (inputparam.molec[0]))
 darr.close()

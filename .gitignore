@@ -1,3 +1,8 @@
 src/exec/
 .flag_*
 mol_names
+*.pyc
+module/*.lua
+module/*.include
+bin/*
+src/python/path.py

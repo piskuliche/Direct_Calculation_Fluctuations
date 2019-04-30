@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 #grab_flucts.py is the program that parses each log file and grabs each of the energies/volumes/whatever thermodynamic data you want to weight the correlation fucntions. 
 #   required input: either log.lammps or flucts.ener
 #   produced output: *_init.out
 
 import numpy as np
 import sys
-from read_input import input
+from read_input import user_input
 
 input_file = str(sys.argv[1])
 value = int(sys.argv[2])
 
-inputparam = input('input_file')
+inputparam = user_input('input_file')
 
 filenames='file_names'
 

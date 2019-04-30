@@ -4,42 +4,42 @@ This is the program to create the:
     "flucts.inp"
 """
 
-def int_input(paramname,desc):
+def i_input(paramname,desc):
     try:
         print("%s" % desc)
-        param = int(raw_input('Please enter an integer for %s\n' % paramname))
+        param = int(input('Please enter an integer for %s\n' % paramname))
     except ValueError:
         print("Entry is not an integer")
         sys.exit(1)
     return param
 
-def float_input(paramname,desc):
+def f_input(paramname,desc):
     try: 
         print("%s" % desc)
-        param = float(raw_input('Please enter a float for %s\n' % paramname))
+        param = float(input('Please enter a float for %s\n' % paramname))
     except ValueError:
         print("Entry is not a float")
         sys.exit(1)
     return param
 
-def str_input(paramname,desc):
+def s_input(paramname,desc):
     try:
         print("%s" % desc)
-        param = str(raw_input('Please enter a string for %s\n' % paramname))
+        param = str(input('Please enter a string for %s\n' % paramname))
     except ValueError:
         print("Entry is not a string")
         sys.exit(1)
     return param
 
-def par_input(type, paramname,desc):
+def par_input(type, paramname, desc):
     if type == "int":
-        param = int_input(paramname,desc)
+        param = i_input(paramname,desc)
         return param
     elif type == "float":
-        param = float_input(paramname,desc)
+        param = f_input(paramname,desc)
         return param
     elif type == "str":
-        param = str_input(paramname,desc)
+        param = s_input(paramname,desc)
         return param
     else:
         print("Incorrect type error - Cannot generate input")

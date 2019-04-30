@@ -119,7 +119,7 @@ def Order3_Prediction(x,T,itau,idc2,id2c2,id3c2):
     return invtau*(1.0 + invtau*(idc2)*(x-bzero) + 0.5*invtau*(2.0*invtau*(idc2)**2.0 - id2c2)*(x-bzero)**2.0 - (1.0/6.0)*invtau*(6.0*invtau**2*(idc2)**3.0 - 6.0*invtau*idc2*id2c2 + id3c2)*(x-bzero)**3)
 
 def Error(value):
-    err_value = np.array(value).std(0) * t_val
+    err_value = np.array(value).std(0,ddof=1) * t_val
     return err_value
 
 def E_Mult_Prop(a,ea,b,eb):
@@ -153,14 +153,14 @@ kb=0.0019872041
 
 # Read in input file
 inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True)
-print inp_names
-print inp_cols
+print(inp_names)
+print(inp_cols)
 
 # Calculate important quantities
 t_val=stats.t.ppf(0.975,nblocks-1)/np.sqrt(nblocks)
 
 sig_arr=np.genfromtxt('real_time.dat', usecols=1, unpack=True)
-print len(sig_arr)
+print(len(sig_arr))
 # Initialize Block Arrays
 A1_bl=[[] for x in range(0,nblocks)]
 A2_bl=[[] for x in range(0,nblocks)]
@@ -329,8 +329,8 @@ for item1 in inp_names:
                 popt_d2cab, pcov_d2cab = curve_fit(d2Corr_Fit, time, d2cab, p0=(-1,0.9,3.0,3.3,-20.0,-100.))
                 d2A=popt_d2cab[:3]
                 d2k=popt_d2cab[3:]
-                print d2A
-                print d2k
+                print(d2A)
+                print(d2k)
                 d2A1=d2A[0]
                 d2A2=d2A[1]
                 d2A3=d2A[2]
@@ -475,17 +475,17 @@ for item1 in inp_names:
             err_comp_sum = Error(comp_sum_bl)
             err_Ea_str = Error(Ea_str_bl)
 
-            int_order2prederr=np.array(int_order2pred_bl).std(0)
+            int_order2prederr=np.array(int_order2pred_bl).std(0,ddof=1)
             int_order2prederr=[x * t_val for x in int_order2prederr]
-            int_order3prederr=np.array(int_order3pred_bl).std(0)
+            int_order3prederr=np.array(int_order3pred_bl).std(0,ddof=1)
             int_order3prederr=[x * t_val for x in int_order3prederr]
-            int_order4prederr=np.array(int_order3pred_bl).std(0)
+            int_order4prederr=np.array(int_order3pred_bl).std(0,ddof=1)
             int_order4prederr=[x * t_val for x in int_order4prederr]
-            k1_order2prederr=np.array(k1_order2pred_bl).std(0)
+            k1_order2prederr=np.array(k1_order2pred_bl).std(0,ddof=1)
             k1_order2prederr=[x * t_val for x in k1_order2prederr]
-            k2_order3prederr=np.array(k2_order3pred_bl).std(0)
+            k2_order3prederr=np.array(k2_order3pred_bl).std(0,ddof=1)
             k2_order3prederr=[x * t_val for x in k2_order3prederr]
-            k3_order4prederr=np.array(k3_order3pred_bl).std(0)
+            k3_order4prederr=np.array(k3_order3pred_bl).std(0,ddof=1)
             k3_order4prederr=[x * t_val for x in int_order4prederr]
 
             np.savetxt('fiterr_'+item1+'_'+str(mol_name)+'_c2.dat', np.c_[err_A1, err_A2, err_A3, err_k1, err_k2, err_k3, err_dA1, err_dA2, err_dA3, err_dk1, err_dk2, err_dk3, err_Ea_str], fmt='%s')
@@ -497,7 +497,7 @@ for item1 in inp_names:
         jindex+=1
     iindex+=1
 
-print "Beginning total calculation"
+print("Beginning total calculation")
 # Begin total Calculation
 iindex=0
 jindex=0

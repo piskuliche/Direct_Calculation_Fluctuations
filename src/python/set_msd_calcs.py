@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #set_msd_calcs.py
 """ 
 This file creates the corr_calc.in file that is needed by the correlation function calculations to run them.
@@ -10,10 +11,10 @@ import numpy as np
 import os
 import argparse
 from argparse import RawTextHelpFormatter
-from read_input import input
+from read_input import user_input
 
 # Reads the input file
-inputparam = input('../../input_file')
+inputparam = user_input('../../input_file')
 fluctval = int(os.path.split(os.getcwd())[1])
 
 
@@ -48,7 +49,7 @@ elif inputparam.prog == "CP2K":
             if ln.strip().startswith("ABC"):
                 id=ln.strip().split()[-1]
         vol = float(id)**3
-        print vol
+        print(vol)
 
 
 # Writes the new msd calc input file with the right molecule name and volume

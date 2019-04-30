@@ -1,45 +1,43 @@
-class input:
+class user_input:
 
     def __init__(self,inputfile):
         ip = open(inputfile)
 
         self.molec=[]
+        count = 0
+        molshift=0
         for i, line in enumerate(ip):
             if i == 6:
                 self.prog=str(line.strip())
             if i == 10:
                 # 11th line
                 self.num_molecs=int(line)
-            if i == 12:
+                molshift=int(line)
+            if i >= 12 and count < molshift:
+                count += 1
                 self.molec.append(str(line.strip()))
-            if i == 13 and self.num_molecs > 1:
-                self.molec.append(str(line.strip()))
-            if i == 14 and self.num_molecs > 2:
-                self.molec.append(str(line.strip()))
-            if i == 15 and self.num_molecs > 3:
-                self.molec.append(str(line.strip()))
-            if i == 17:
+            if i == 12+molshift+1:
                 self.start_config=int(line.strip())
-            if i == 19:
+            if i == 12+molshift+3:
                 self.end_config=int(line.strip())
-            if i == 21:
+            if i == 12+molshift+5:
                 self.sep_config=int(line.strip())
-            if i == 23:
+            if i == 12+molshift+7:
                 self.timestep=float(line.strip())
-            if i == 25:
+            if i == 12+molshift+9:
                 self.num_times=int(line.strip())
-            if i == 27:
+            if i == 12+molshift+11:
                 self.nblocks=int(line.strip())
-            if i == 29:
+            if i == 12+molshift+13:
                 self.segsplit=int(line.strip())
-            if i == 31:
+            if i == 12+molshift+15:
                 self.num_files=int(line.strip())
-            if i == 33:
+            if i == 12+molshift+17:
                 self.nve_length=int(line.strip())
-            if i == 35:
+            if i == 12+molshift+19:
                 self.num_rpj=int(line.strip())
-            if i == 37:
+            if i == 12+molshift+21:
                 self.cab=str(line.strip())
-            if i == 39:
+            if i == 12+molshift+23:
                 self.constraint=float(line.strip())
         ip.close()
