@@ -4,8 +4,6 @@ import numpy as np
 import os,sys,subprocess
 import src.python.path
 
-homepath ="/panfs/pfs.local/scratch/thompson/e924p726/edit_direct_calc/Direct_Calculation_Fluctuations"
-
 def step_machinename():
     exists = os.path.isfile('machine.name')
     if exists:

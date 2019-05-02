@@ -21,7 +21,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	$(FC) $(FCFLAGS) -o src/exec/visc_calc    src/fortran/visc_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/flux_side    src/fortran/flux_side.f90
 	mkdir -p bin/
-	touch bin/.test
+	touch bin/test
 	rm bin/*
 	ln -s $(HOMEPATH)/src/python/vel_reselect.py bin/
 	ln -s $(HOMEPATH)/src/python/grab_press.py bin/
@@ -31,6 +31,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	ln -s $(HOMEPATH)/src/python/reor_fit.py bin/
 	ln -s $(HOMEPATH)/src/python/set_msd_calcs.py bin/
 	ln -s $(HOMEPATH)/src/python/grab_flucts.py bin/
+	ln -s $(HOMEPATH)/src/python/jump_rot.py bin/
 	chmod 777 backbone.py
 	chmod 777 bin/*
 	chmod 777 src/exec
