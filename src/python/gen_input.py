@@ -7,7 +7,7 @@ This is the program to create the:
 def i_input(paramname,desc):
     try:
         print("%s" % desc)
-        param = int(input('Please enter an integer for %s\n' % paramname))
+        param = input('Please enter an integer for %s\n' % paramname)
     except ValueError:
         print("Entry is not an integer")
         sys.exit(1)
@@ -16,7 +16,7 @@ def i_input(paramname,desc):
 def f_input(paramname,desc):
     try: 
         print("%s" % desc)
-        param = float(input('Please enter a float for %s\n' % paramname))
+        param = input('Please enter a float for %s\n' % paramname)
     except ValueError:
         print("Entry is not a float")
         sys.exit(1)
@@ -25,7 +25,7 @@ def f_input(paramname,desc):
 def s_input(paramname,desc):
     try:
         print("%s" % desc)
-        param = str(input('Please enter a string for %s\n' % paramname))
+        param = input('Please enter a string for %s\n' % paramname)
     except ValueError:
         print("Entry is not a string")
         sys.exit(1)
@@ -33,21 +33,21 @@ def s_input(paramname,desc):
 
 def par_input(type, paramname, desc):
     if type == "int":
-        param = i_input(paramname,desc)
+        param = int(i_input(paramname,desc))
         return param
     elif type == "float":
-        param = f_input(paramname,desc)
+        param = float(f_input(paramname,desc))
         return param
     elif type == "str":
-        param = s_input(paramname,desc)
+        param = str(s_input(paramname,desc))
         return param
     else:
         print("Incorrect type error - Cannot generate input")
         sys.exit(1)
 
 
-input = 'input_file'
-inp = open(input, 'w')
+inputname = 'input_file'
+inp = open(inputname, 'w')
 
 #define input types
 typei = "int"
