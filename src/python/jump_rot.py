@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ 
 I realize this isn't a fortran program - but it was much simpler to write.
 """
