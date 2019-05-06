@@ -85,8 +85,8 @@ for mol1 in range(nmols):
         if mol1 != mol2:
             dOO = min_dist(rO[mol1],rO[mol2])
             if dOO < rOO_max:
-                dHO1 = min_dist(rO[mol1], r1[mol2])
-                dHO2 = min_dist(rO[mol1], r2[mol2])
+                dHO1 = min_dist(r1[mol1], rO[mol2])
+                dHO2 = min_dist(r2[mol1], rO[mol2])
                 if dHO1 < rHO_max:
                     dHOO1 = np.degrees(calc_ang(dOO, dHO1))
                     if dHOO1 < ang_max:
@@ -111,8 +111,8 @@ for n in range(1,ntimes):
                 dOO = min_dist(rO[mol1+timeindex],rO[mol2+timeindex])
                 assert dOO != 0, "dOO = 0... NO!"
                 if dOO < rOO_max:
-                    dHO1 = min_dist(rO[mol1+timeindex], r1[mol2+timeindex])
-                    dHO2 = min_dist(rO[mol1+timeindex], r2[mol2+timeindex])
+                    dHO1 = min_dist(r1[mol1+timeindex], rO[mol2+timeindex])
+                    dHO2 = min_dist(r2[mol1+timeindex], rO[mol2+timeindex])
                     if dHO1 < rHO_max and OHs[OH][2] == 1:
                         dHOO1 = np.degrees(calc_ang(dOO, dHO1))
                         if dHOO1 < ang_max:

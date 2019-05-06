@@ -101,6 +101,7 @@ if inputparam.cab == "TRANSPORT":
         dcn.write("    set_msd_calcs.py\n")
         if inputparam.molec[i] == "water":
             dcn.write("    msd_rot_calc < corr_calc.in\n")
+            dcn.write("    jump_rot.py\n")
         else:
             dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
     dcn.write("    \n")
@@ -165,6 +166,7 @@ if inputparam.cab == "TRANSPORT":
         nve.write('set_msd_calcs.py\n')
         if inputparam.molec[i] == "water":
             nve.write('msd_rot_calc < corr_calc.in\n\n')
+            nve.write('jump_rot.py\n')
         else:
             nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
     if inputparam.prog == "LAMMPS":
