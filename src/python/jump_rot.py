@@ -61,11 +61,11 @@ inp = open(inpfile, 'r')
 lines = []
 for line in inp:
     lines.append(line)
-nfile  = lines[1]
+nfile  = str(lines[1]).strip()
 ntimes = int(lines[3].split()[0])
 dt     = float(lines[3].split()[1])
 volume = float(lines[5])
-mol_name = lines[7]
+mol_name = str(lines[7]).strip()
 inp.close()
 
 L = volume**(1/3.)
@@ -73,14 +73,16 @@ rOO_max = 3.1
 rHO_max = 2.0
 ang_max = 20.
 
-filename = 'traj.xyz'
+filename = 'traj_'+str(nfile)+'_'+str(mol_name)+'.xyz'
 
 # Read the frames
+print('Reading frames')
 nmols, rO, r1, r2 = read_frames(filename)
 
 # Determine initial HBONDS
 
 OHs =[]
+print('calculating initial hbonds')
 for mol1 in range(nmols):
     for mol2 in range(nmols):
         if mol1 != mol2:
@@ -99,9 +101,13 @@ for mol1 in range(nmols):
 
 print("There are %s OHs" % len(OHs))
 
+nval = int(ntimes/10.)
+
 crp = np.zeros(ntimes)
 steps = [0]
 for n in range(1,ntimes):
+    if n%nval == 0:
+        print("reached %d" % n)
     crp[n] = crp[n-1]
     steps.append(n)
     timeindex = n*nmols
@@ -131,7 +137,7 @@ for n in range(1,ntimes):
                                 crp[n]+=1
                                 OHs[OH][2]=0
 
-np.savetxt('test.out', np.c_[steps, crp/float(len(OHs))], fmt="%2.5f")
+np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, crp/float(len(OHs))], fmt="%2.5f")
 
 
 
