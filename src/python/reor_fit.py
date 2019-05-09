@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This code is used to calculate the activation energies of diffusion and reorientation based on the fluctuations method.
 # It should run for either the NVT or NPT ensembles.
 

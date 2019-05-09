@@ -30,7 +30,7 @@ time = [0] + time
 time = time[:inputparam.num_times]
 
 # Read In Fluctuations
-inp_n, inp_c=np.genfromtxt(fname, usecols=(0,1), dtype=(str,int),unpack=True)
+inp_n =np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
 
 # Initialize Arrays
 d1=[sep]
@@ -47,12 +47,12 @@ if val == '-h':
     exit()
 else:
     itmp=int(val)
-    print itmp
+    print(itmp)
     fstart = itmp*sep
     fend = (itmp+1)*sep
     print("Starting Trajectory: %s\nEnding Trajectory: %s" % (fstart,fend))
     # Read in Correlation Functions
-    fnames = np.genfromtxt('file_names', dtype='string', unpack=True)
+    fnames = np.genfromtxt('file_names', dtype=str, unpack=True)
     print("Choosing %s of %s files" % (sep, len(fnames)))
     # Chooses where to pull from in cases when there are a lot of files.
     if itmp < 500:
