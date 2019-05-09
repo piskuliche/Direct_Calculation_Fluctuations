@@ -25,7 +25,7 @@ def BLOCK_DENERGY(energy,start,end,itemindex,eav,n):
 def BLOCK_ARRAY_ERR(barray, noblocks):
     sigma = []
     for i in range(len(barray)):
-        sigma.append(np.std(barray[i])*t_val,ddof=1)
+        sigma.append(np.std(barray[i])*t_val)
     return sigma
 
 def NORM(array, n):
@@ -248,25 +248,25 @@ for item1 in inp_n:
             np.savetxt(bl_d3name, np.c_[time, bl_d3corr[block],bl_w3corr[block]], fmt='%s')
             np.savetxt(bl_d4name, np.c_[time, bl_d4corr[block],bl_w4corr[block]], fmt='%s')
         # Calculate Uncertainties
-        err_corr    =   np.array(bl_corr).std(0,ddof=1)
+        err_corr    =   np.array(bl_corr).std(0)
         err_corr    =   [x * t_val for x in err_corr]
-        err_w1corr  =   np.array(bl_w1corr).std(0,ddof=1)
+        err_w1corr  =   np.array(bl_w1corr).std(0)
         err_w1corr  =   [x * t_val for x in err_w1corr]
-        err_w2corr  =   np.array(bl_w2corr).std(0,ddof=1)
+        err_w2corr  =   np.array(bl_w2corr).std(0)
         err_w2corr  =   [x * t_val for x in err_w2corr]
-        err_w3corr  =   np.array(bl_w3corr).std(0,ddof=1)
+        err_w3corr  =   np.array(bl_w3corr).std(0)
         err_w3corr  =   [x * t_val for x in err_w3corr]
-        err_w4corr  =   np.array(bl_w4corr).std(0,ddof=1)
+        err_w4corr  =   np.array(bl_w4corr).std(0)
         err_w4corr  =   [x * t_val for x in err_w4corr]
-        err_d1corr  =   np.array(bl_d1corr).std(0,ddof=1)
+        err_d1corr  =   np.array(bl_d1corr).std(0)
         err_d1corr  =   [x * t_val for x in err_d1corr]
-        err_d2corr  =   np.array(bl_d2corr).std(0,ddof=1)
+        err_d2corr  =   np.array(bl_d2corr).std(0)
         err_d2corr  =   [x * t_val for x in err_d2corr]
-        err_d3corr  =   np.array(bl_d3corr).std(0,ddof=1)
+        err_d3corr  =   np.array(bl_d3corr).std(0)
         err_d3corr  =   [x * t_val for x in err_d3corr]
-        err_d4corr  =   np.array(bl_d4corr).std(0,ddof=1)
+        err_d4corr  =   np.array(bl_d4corr).std(0)
         err_d4corr  =   [x * t_val for x in err_d4corr]
-        err_ea      =   np.array(bl_ea).std(0,ddof=1)
+        err_ea      =   np.array(bl_ea).std(0)
         err_ea      =   [x * t_val for x in err_corr]
         # Calculate Averages
         seg_start = 0

@@ -15,7 +15,7 @@ def Corr_Fit(t,m, b):
     return m*t+b
 
 def Error(value):
-    err_value = np.array(value).std(0,ddof=1) * t_val
+    err_value = np.array(value).std(0) * t_val
     return err_value
 
 def E_Mult_Prop(a,ea,b,eb):
@@ -159,10 +159,10 @@ for item1 in inp_names:
             err_d3b = Error(d3b_bl)
             err_d4b = Error(d4b_bl)
             
-            order1prederr=np.array(order1pred_bl).std(0,ddof=1)
-            order2prederr=np.array(order2pred_bl).std(0,ddof=1)
-            order3prederr=np.array(order3pred_bl).std(0,ddof=1)
-            order4prederr=np.array(order4pred_bl).std(0,ddof=1)
+            order1prederr=np.array(order1pred_bl).std(0)
+            order2prederr=np.array(order2pred_bl).std(0)
+            order3prederr=np.array(order3pred_bl).std(0)
+            order4prederr=np.array(order4pred_bl).std(0)
             order1prederr=[x * t_val for x in order1prederr]
             order2prederr=[x * t_val for x in order2prederr]
             order3prederr=[x * t_val for x in order3prederr]
