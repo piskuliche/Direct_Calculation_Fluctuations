@@ -1,198 +1,46 @@
-# Direct Calculation Method of Fluctuations
+This code is copyright April 2019 by Ezekiel Piskulich, Univerisity of Kansas. Users are free to share/modify this code as desired; however, this code shall not be incorporated into proprietary software without prior permission from the author of this code. All rights reserved.
 
-This code is the code that I have developed to calculate derivatives of correlation functions from LAMMPS and CP2K Molecular Dynamics simulations. So far - the code has support for msd, c2, shear viscosity, and the flux side correlation functions. Adding new correlation functions is relatively simple (just need to add them using fortran and call them in the submission script).
+### Fluctuation Theory for Dynamics (DCM)
+
+This code is a general use code developed to calcualte derivatives (T,P) of time correlation functions (TCFs) from Molecular Dynamics simulations. The code thus far includes support for:
+    - Mean-Squared Displacement
+    - Reorientation (C1, C2, Jump)
+    - Viscosity (Shear)
+    - Reactive Flux (Flux-Side)
+
+Adding new correlation functions is relatively simple, you just need to add a fortran code and then the subsequent calls to the submission script generation python code (gen\_sub\_scripts.py).
+
+## Installation Instructions
+Upon first installation it is necessary to make the program, which is a two step process. 
+
+1) Step One: Make Program
+    - Here you need to set information about your machine and your compiler as well as any compilation flags you want to include.
+    - Edit the makefile in the main directory.
+    -Then type:
+    '''
+    make
+    '''
+    - By default this adds a modulefile for loading on a cluster that loads by the cluster and adds an appropriate line to your bash\_profile. If your cluster does not use modules, delete this line and instead add the bin/ folder to your PATH environment.
+2) Step Two: Update Header File:
+    - Whatever option you chose for MACHINE in your MAKEFILE needs to have a $MACHINEi\_header.dat in src/dependencies. Example header files are included in this directory for the KU Community Cluster and the NERSC Cori Computer.
+ 
 
 ## How to Use the Program
-
-Type the following in the Direct Calculation Fluctuations code.
-```
-bash backbone.sh
-``` 
-
-### Prerequisites
-Currently: python 2.7 with scipy and numpy support, as well as the bash shell.
-           Furthermore - this program assumes that you are running on a cluster environment with access to the Torque Q-engine
-
-## Code Components
-
-I will give a rundown of code components
-
-### backbone.sh
-
-This is the key backbone of the entire automation script. It functions by checking the completed tasks, and then performing the next task in the series of tasks. This means that you will primarily inteface with this software by rerunning the backbone.sh script repeatedly until it tells you to stop. 
-
-The key backbone steps:  
-0) MachineName Step:
-    -This is what defines specific machine behaviors
-    -so you might need to do some modifying if you want to add a new machine
-    -This would be a good place to eventually add support for other queue engines
-    -This is key to automation
-1) Instructions Step (.flag_instruct)  
-    -Tells you to create input_file and flucts.inp  
-    -Lets you choose to create input_file through gen_input.py if you want.  
-    -After this - the script will always read the input file with read_input.sh
-2) Compilation Step (.flag_compile)  
-    -Compiles the fortran programs that matter (msd_rot_calc, visc_calc, flux_side)  
-    -Creates the file mol_names (molecule names listed one after another on new lines)
-    -Compiled programs go to the exec directory. 
-3) Trajectory Step (.flag_traj)  
-    -Checks if the LONG trajectory has been run   
-        -LAMMPS looks for log.lammps  
-        -CP2K looks for cp2k.log  
-    -CP2K ONLY: Creates RESTART directory, copies restart files into that directory and renames them.  
-4) NVE Input Step (.flag_innve)  
-    -Checks if you have created an input file for your nve simulation.  
-        -LAMMPS looks for in.nve  
-        -CP2K looks for in.nve.cp2k  
-5) Run NVE Step (.flag_nve)  
-    -USER: Asks whether you want to run NVE trajectories.  
-    -Creates the file_names file (names of all file folders)  
-    -Creates FILES directory  
-    -Copies python scripts to top directory  
-        -vel_reselect.py
-        -read_input.py  
-        -set_msd_calcs.py  
-        -gen_sub_scripts.py  
-        -grab_press.py  
-        -[non-]unif-sample.py  
-    -Copies executables to top directory  
-        -msd_rot_calc  
-        -visc_calc  
-        -flux_side  
-    -Creates timestep file through [non-]unif-sample.py  
-    -Tells you that you can run the code with sbatch run_array.sh 
-6) NVE Completion Step (.flag_nvecomplete)  
-    -Checks for whether the last NVE run has completed.
-    -It does this by checking ../.flag_nvecomplete
-    -YOU have to create this flag by the command touch ../.flag_nvecomplete   
-7) Checkup Step (.flag_checkup)  
-    -LAMMPS: Checks to see if all subjobs have completed and reruns any missed jobs (if under 200)  
-    -CP2K: Wishes you best of luck and hopes that all have completed.  
-    -Moves all job array logs to a new directory logs.
-    -It does this by looking for a log file and a correlation function file.
-8) Grab Energies Step (.flag_grabflucts)  
-    -Copies relevant grab_flucts.py to top directory  
-    -Copies grabfluctsub.sh to top directory  
-    -Submits grabfluctsub.sh  
-9) Initialize Segments Step (.flag_segarray)  
-    -Copies relevant python files to top directory  
-        -init_segments.py  
-        -combine_segments.py  
-    -Makes SEG directory  
-    -Submits init_segments.sh (generated by gen_sub_scripts.py in previous step)
-10) Fluctation Calculation Step (.flag_combineseg)  
-    -Submits combine_segments.sh (generated by gen_sub_scripts.py )
-11) Fit Function Step (.flag_corrfit)
-    -copies reor_fit.py and msd_fit.py to main directory
-    -Optional - in case you want to fit.
-    -more information python reor_fit.py -h or python msd_fit.py -h
-12) Cleanup (.flag_cleanup)
-    -Makes an Analysis Directory  
-    -Moves all output files to this directory.  
-    -Outputs a program complete message.  
-
-### src:python:gen_input.py
-
-This is a python code to generate input_file which is called in step 1).
-
-It takes you line by line through each input_file command and generates the file.
-
-### src:python:read_input.py
-
-This is the python class file that reads and stores all the data in the input file. It is called by nearly every python program in the suite.
-
-### src:python:gen_sub_scripts.py
-
-This code generates almost all of the miscellanious job scripts/submit scripts. This has been keyed specifically to our cluster environment so it would likely need to be updated to match the particular environment.
-
-Creates:    
-    -run_array#.sh (job array file for nve runs)  
-    -run_array (script that submits job arrays)  
-    -nve.sh (nve file in case job fails)  
-    -init_array.sh (file to submit init_flucts.py - for step 9)  
-    -do_flucts (file to submit step 10)  
-
-### src:python:grab_press.py
-
-Python program that grabs pressure from the lammps log file for the shear viscosity calculation.
-
-### src:python:checkup.py
-
-Python program that checks whether all the runs have completed or not. 
-
-### src:python:grab_flucts.py
-
-Python program that takes the input of flucts.inp and grabs the energy components from that portion of the energy file.
-
-LAMMPS: grabs directly from log.lammps  
-CP2K: grabs from free-1.ener
-
-Known Bugs: The energy file MUST be named free-1.ener. Future support incoming.
-
-### src:python:init_flucts.py
-
-Creates trajectory segment files of calculations of 1st, 2nd, 3rd, 4th derivatives.
-
-### src:python:combine_segments.py
-
-Pulls in the trajectory segment files and finishes the block averaging based on input_file.  
-Reports uncertainties and produces a significant number of output files.  
-Consider item1, item2 as two different energy components (ke and pe), mol as the molecule name, and corr as the correlation function. Then  
-    -mol_corr.dat is the regular correlation function   
-    -item1_mol_corr.dat is the 1st derivative, and the ratio of the two  
-    -item1_item1_mol_corr.dat is the 2nd derivative correlation function  
-    -item1_item2_mol_corr.dat is the cross derivative of the correlation function  
-    -item1_item1_item1_mol_corr.dat is the 3rd derivative of the correlation function  
-    -item1_item1_item1_item1_mol_corr.dat is the 4th derivative of the correlation function  
-If considering particular blocks, the naming scheme works the same with the prefix [bl_#_]  
-
-### src:python:set_msd_calcs.py
-
-Creates input file for correlation functions.
-
-### src:python:[non-]unif-sample.py
-
-Creates time.dat used to plot the correlation functions.
-
-### src:python:reor_fit.py and src:python:msd_fit.py
-
-Fits the mean-squared displacements and the reorientation correlation functions.
-
-### src:fortran:msd_rot_calc.f90
-
-Calculates the mean squared displacement and the reorientation correlation function.
-
-### src:fortran:flux_side.f90
-
-Calculates the flux-side correlation functions.
-
-### src:fortran:visc_calc.f90
-
-Calculates the shear viscosity from the pressure tensor.
+On the simplest level, running the program is just repeatedly typing:
+'''
+backbone.py
+'''
+This script runs each step of the code and checks for completion, and then spits out what you should do next.
+This script is split up into steps that are each their own python function.
+These steps are:
+1) MACHINENAME: reads the machine name and the DCM path
+2) INSTRUCT: Gives initial instructions and lets you generate input file
+3) TRAJ: Checks that the long trajectory has been completed
+4) NVE: Prepares the short trajectories
+5) NVECOMPLETE: Makes sure you don't move on until trajectories are complete
+6) CHECKUP: Checks that no runs failed prematurely
+7) GRABFLUCTS: Grabs fluctuation info from the log files of each nve run.
+8) SEGARRAY: Splits NVE runs into chunks and averages chunks together (saves time on large batches)
+9) COMBINESEG: Combines the segments into block averages and total averages.
 
 
-## Input File Generation
-
-To generate input you need two files:
-
-### flucts.inp
-
-Two column file with energy component name in first column and number of the column in the log file.
-
-i.e. 
-
-e 3  
-ke 4   
-pe 6  
-...  
-etc  
-
-### input_file
-
-Easily generated by gen_input.py during step 1)
-
-### Useful Commands
-
-Get a comma separated list of every job that lasts too long and is killed.
-sed -e 's/.*-\(.*\):=>>.*/\1/g' out > missedjobs
-awk -vORS=, '{ print $1 }' missedjobs | sed 's/,$/\n/'
