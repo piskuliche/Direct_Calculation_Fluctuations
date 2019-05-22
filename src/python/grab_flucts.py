@@ -14,7 +14,7 @@ inputparam = user_input('input_file')
 
 filenames='file_names'
 
-ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), dtype=(str,int), unpack=True)
+ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), dtype=(str,str), unpack=True)
 ival_list = np.array([])
 fileout=str(ivalname[value])+"_init.out"
 outputfile=open(fileout,'w')

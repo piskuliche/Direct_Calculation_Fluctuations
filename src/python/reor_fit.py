@@ -153,9 +153,8 @@ cut=int(args.c2cut)
 kb=0.0019872041
 
 # Read in input file
-inp_names, inp_cols=np.genfromtxt(inputfile, usecols=(0,1), dtype=(str,int),unpack=True)
+inp_names=np.genfromtxt(inputfile, usecols=(0), dtype=(str),unpack=True)
 print(inp_names)
-print(inp_cols)
 
 # Calculate important quantities
 t_val=stats.t.ppf(0.975,nblocks-1)/np.sqrt(nblocks)
