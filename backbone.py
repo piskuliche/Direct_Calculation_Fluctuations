@@ -147,7 +147,7 @@ def step_checkup():
         for i in range(inputparam.start_config, inputparam.end_config+inputparam.sep_config, inputparam.sep_config):
             if (i%1000000) == 0:
                 print("-->%d has been checked" % i)
-            if os.path.isfile("msd_%d_%s.dat" % (i,inputparam.molec[0])):
+            if not os.path.isfile("FILES/%d/msd_%d_%s.dat" % (i,i,inputparam.molec[0])):
                 print("%d does not exist" % i)
                 if inputparam.prog == "LAMMPS":
                     f.write("mkdir FILES/%d; cp in.nve FILES/%d; cd FILES/%d; sed -i -e 's@/panfs/pfs.local/scratch/thompson/e924p726/edit_direct_calc/Direct_Calculation_Fluctuations@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i))
