@@ -150,12 +150,12 @@ def step_checkup():
             if not os.path.isfile("FILES/%d/msd_%d_%s.dat" % (i,i,inputparam.molec[0])):
                 print("%d does not exist" % i)
                 if inputparam.prog == "LAMMPS":
-                    f.write("mkdir FILES/%d; cp in.nve FILES/%d; cd FILES/%d; sed -i -e 's@/panfs/pfs.local/scratch/thompson/e924p726/edit_direct_calc/Direct_Calculation_Fluctuations@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i))
+                    f.write("mkdir FILES/%d; cp in.nve FILES/%d; cp nve.sh FILES/%d; cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))
                 elif inputparam.prog == "CP2K":
-                    f.write("mkdir FILES/%d; cp in.nve.cp2k FILES/%d; cd FILES/%d; sed -i -e 's@/panfs/pfs.local/scratch/thompson/e924p726/edit_direct_calc/Direct_Calculation_Fluctuations@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i))
+                    f.write("mkdir FILES/%d; cp in.nve.cp2k FILES/%d; cp nve.sh FILES/%d;  cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))
         f.close()
         if os.path.isfile('rerun') and os.path.getsize('rerun'):
-            f.open('rerun','r')
+            f = open('rerun','r')
             count = 0
             for line in f:
                 count += 1
