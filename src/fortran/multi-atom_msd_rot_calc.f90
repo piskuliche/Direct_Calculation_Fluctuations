@@ -16,7 +16,7 @@ Program msd_rot_calc
     real    :: MASS, cm_tmpmsd, norm
    
     integer    :: ioerr
-    logical    :: needblock
+    logical    :: needblock, confined
 
     real, dimension(3) :: L
     real, dimension(3) :: etmp
@@ -52,9 +52,10 @@ Program msd_rot_calc
 
     M = 0.0
     MASS = 0.0
+    confined=0
     open(11,file='../../'//trim(mol_name)//'.txt',status='old')
     read(11,*) atms_per_mol
-    read(11,*) nmol
+    read(11,*) nmol, confined
     read(11,*) startskip, endskip
     read(11,*) c2index1, c2index2
     do i = 1, atms_per_mol
@@ -123,10 +124,15 @@ Program msd_rot_calc
                 ! Calculate the shift if it occurs.
                 shift(j,k,:) = shift(j,k,:) - L(:)*anint((r(it,j,k,:) - &
                     r(it-1,j,k,:) )/L(:))
-                ! Calculate the square displacements
-                dsq = ( r(it,j,k,1) + shift(j,k,1) - r(i,j,k,1) ) ** 2. &
-                     +( r(it,j,k,2) + shift(j,k,2) - r(i,j,k,2) ) ** 2. &
-                     +( r(it,j,k,3) + shift(j,k,3) - r(i,j,k,3) ) ** 2.
+                    ! Calculate the square displacements ( with dsq appropriate
+                    ! if confined )
+                if (confined == 0) then
+                    dsq = ( r(it,j,k,1) + shift(j,k,1) - r(i,j,k,1) ) ** 2. &
+                         +( r(it,j,k,2) + shift(j,k,2) - r(i,j,k,2) ) ** 2. &
+                         +( r(it,j,k,3) + shift(j,k,3) - r(i,j,k,3) ) ** 2.
+                else
+                    dsq = ( r(it,j,k,3) + shift(j,k,3) - r(i,j,k,3) ) ** 2.
+                endif
                 msd(it-1, k) = msd(it-1, k) + dsq
                 ! Calculate the contribution to the c1,c2
             enddo ! End Atoms Loop (k)
@@ -134,9 +140,13 @@ Program msd_rot_calc
             shift_cm(j,:) = shift_cm(j,:) - L(:)*anint((r_cm(it,j,:) - &
                             r_cm(it-1,j,:) )/L(:))
             ! Calculate the square displacements
+            if (confined == 0) then
             dsq = ( r_cm(it,j,1) + shift_cm(j,1) - r_cm(i,j,1) ) ** 2. &
                 +( r_cm(it,j,2) + shift_cm(j,2) - r_cm(i,j,2) ) ** 2. &
                 +( r_cm(it,j,3) + shift_cm(j,3) - r_cm(i,j,3) ) ** 2.
+            else
+                dsq =( r_cm(it,j,3) + shift_cm(j,3) - r_cm(i,j,3) ) ** 2.
+            endif
             msd_cm(it-1) = msd_cm(it-1) + dsq
             dp  = e(it,j,1)*e(i,j,1) + e(it,j,2)*e(i,j,2) + e(it,j,3)*e(i,j,3)
             c1(it-1) = c1(it-1) + dp
