@@ -18,17 +18,17 @@ Program msd_rot_calc
     integer    :: ioerr
     logical    :: needblock, confined
 
-    real, dimension(3) :: L
-    real, dimension(3) :: etmp
-    real, dimension(10) :: M, tmpmsd
-    real, dimension(5000,1000,10,3) :: r
-    real, dimension(5000,1000,3) :: r_cm
-    real, dimension(1000,10,3) :: r_old, shift
-    real, dimension(1000,3) :: r_cm_old, shift_cm
-    real, dimension(5000,1000,3) :: e
-    real, dimension(0:5000,10) :: msd
-    real, dimension(0:5000) :: c1, c2
-    real, dimension(0:5000) :: msd_cm
+    real, dimension(3) :: L                         ! Box Dimensions
+    real, dimension(3) :: etmp                      ! temporary orientation
+    real, allocatable :: M(:), tmpmsd(:)            ! Mass, temp msd    
+    real, allocatable :: r(:,:,:,:)                 ! atomic positions vector(time,mol,atom,xyz)
+    real, allocatable :: r_cm(:,:,:)                ! com positions vector
+    real, allocatable :: r_old(:,:,:), shift(:,:,:) ! old coord vector, shift
+    real, allocatable :: r_cm_old(:,:), shift_cm(:,:) ! old cm coord vector,shift
+    real, allocatable :: e(:,:,:)                     ! orientation vector
+    real, allocatable :: msd(:,:)                   ! msd vector (atomistic)
+    real, allocatable :: c1(:), c2(:)               ! c1, c2 corr funcs
+    real, allocatable :: msd_cm(:)                  ! center of mass msd
     
 
     character(len=10) nfile, mol_name
@@ -50,6 +50,7 @@ Program msd_rot_calc
     ! mol_type = 2 for co2
     close(10)
 
+
     M = 0.0
     MASS = 0.0
     confined=0
@@ -68,7 +69,16 @@ Program msd_rot_calc
     L(1) = volume ** (1.0/3.0)
     L(2) = L(1)
     L(3) = L(1)
-
+    ! Allocations
+    allocate(e(ntimes,nmol,3))
+    allocate(r_cm_old(nmol,3), shift_cm(nmol,3))
+    allocate(r_old(nmol,atms_per_mol,3), shift(nmol,atms_per_mol,3))
+    allocate(r_cm(ntimes,nmol,3))
+    allocate(r(ntimes,nmol,atms_per_mol,3))
+    allocate(M(atms_per_mol), tmpmsd(atms_per_mol))
+    allocate(msd(0:ntimes,atms_per_mol))
+    allocate(c1(0:ntimes), c2(0:ntimes))
+    allocate(msd_cm(0:ntimes))
 
     ! Read the trajectory file
     open(12,file='traj_'//trim(nfile)//'_'//trim(mol_name)//'.xyz',status='old') ! Open trajecotry file
