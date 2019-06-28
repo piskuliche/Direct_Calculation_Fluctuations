@@ -44,12 +44,21 @@ def lb_mix(e1,e2,s1,s2):
 
 def calc_LJ(dr, epsilon, sigma):
     dsr6 = (sigma/dr)**6.
-    dsr12 = dsr6**12
+    dsr12 = dsr6**2
     return 4*epsilon*(dsr12-dsr6)
 
 def calc_COUL(dr, q1, q2):
     C = 332.0739
     return C*q1*q2/dr
+
+def read_frame():
+    return
+
+def calc_totE():
+    return
+
+def write_E():
+    return
 
 
 
