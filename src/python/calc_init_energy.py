@@ -32,7 +32,8 @@ def read_paircoeffs(file):
 
 def read_data(file):
     count = 0
-    row = 0
+    l_row = 0
+    a_row = 0
     with open(file,'r') as f:
         lines = f.readlines()
         for line in lines:
@@ -49,7 +50,7 @@ def read_data(file):
     llow,lhigh = np.genfromtxt(file,skip_header=l_start,max_rows=l_row,usecols=(0,1),unpack=True)
     tmpatom,tmpmol,tmptype,tmpq = np.genfromtxt(file,skip_header=a_start,max_rows=a_row,usecols=(0,1,2,3),unpack=True)
     mol = []
-    type = []
+    typ = []
     Q = []
     L = []
     mol_count = int(tmpmol[-1])
@@ -59,12 +60,12 @@ def read_data(file):
         m = int(tmpmol[a] - 1)
         mol[m].append(int(tmpatom[a] - 1))
     for t in range(len(tmptype)):
-        type.append(int(tmptype[t]))
+        typ.append(int(tmptype[t]))
     for q in range(len(tmpq)):
         Q.append(tmpq[q])
     for l in range(len(llow)):
         L.append(lhigh[l]-llow[l])
-    return mol, type, Q, L
+    return mol, typ, Q, L
 
 def read_frame(file):
     count = 0
@@ -110,7 +111,7 @@ def calc_COUL(dr, q1, q2):
     C = 332.0739
     return C*q1*q2/dr
 
-def calc_totE(mol,type,Q,r,L,eps,sig,cutoff):
+def calc_totE(mol,typ,Q,r,L,eps,sig,cutoff):
     e_LJ = 0.0
     e_COUL = 0.0
     for mol1 in range(len(mol)-1):
@@ -122,8 +123,8 @@ def calc_totE(mol,type,Q,r,L,eps,sig,cutoff):
                     n2 = mol[mol2][a_m2]
                     q2 = Q[n2]
                     dr = pbc_dist(np.asarray(r[n1]),np.asarray(r[n2]),np.asarray(L))
-                    e,s = lb_mix(eps[type[n1]-1],eps[type[n2]-1],
-                                 sig[type[n1]-1],sig[type[n2]-1])
+                    e,s = lb_mix(eps[typ[n1]-1],eps[typ[n2]-1],
+                                 sig[typ[n1]-1],sig[typ[n2]-1])
                     if dr < cutoff:
                         LJ = calc_LJ(dr,e,s)
                         e_LJ = e_LJ + LJ
@@ -145,8 +146,8 @@ if __name__ == "__main__":
     trajfile = str(sys.argv[3])    
 
     eps, sig = read_paircoeffs(inpfile)
-    mol, type, Q, L = read_data(datafile)
+    mol, typ, Q, L = read_data(datafile)
     r = read_frame(trajfile)
     cutoff = 2.5
-    e_LJ, e_COUL = calc_totE(mol,type,Q,r,L,eps,sig,cutoff)
+    e_LJ, e_COUL = calc_totE(mol,typ,Q,r,L,eps,sig,cutoff)
     print(e_LJ, e_COUL)
