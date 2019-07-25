@@ -125,16 +125,15 @@ Program flux_side
     vs = -vr
     ! Calculates the distance from the transition state
     eval = dr - constraint
-    eval = constraint - dr
     write(*,*) dr, constraint
     write(*,*) eval
     write(*,*) vr, vs
-    if (eval .ge. 0.0) then
-        fsc_f(0) = 0.0
-        fsc_b(0) = 1.0
-    else
+    if (eval .ge. 1.0) then
         fsc_f(0) = 1.0
         fsc_b(0) = 0.0
+    else
+        fsc_f(0) = 0.0
+        fsc_b(0) = 1.0
     end if
 
     
@@ -163,11 +162,11 @@ Program flux_side
         r(it) = dr
         eval = dr - constraint
         if (eval .ge. 0) then
-            fsc_f(it) = 0.0
-            fsc_b(it) = 1.0
-        else
-            fsc_f(it) = 1.0 
+            fsc_f(it) = 1.0
             fsc_b(it) = 0.0
+        else
+            fsc_f(it) = 0.0 
+            fsc_b(it) = 1.0
         end if
     enddo ! end loop over timesteps
     close(11)
