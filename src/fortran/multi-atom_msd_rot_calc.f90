@@ -46,14 +46,13 @@ Program msd_rot_calc
     read(10,*) volume
     read(10,*)
     read(10,*) mol_name
-    ! mol_type = 1 for water, acn
-    ! mol_type = 2 for co2
     close(10)
 
-
+    ! Zeroing out stuff
     M = 0.0
     MASS = 0.0
     confined=0
+    ! Read file
     open(11,file='../../'//trim(mol_name)//'.txt',status='old')
     read(11,*) atms_per_mol
     read(11,*) nmol, confined

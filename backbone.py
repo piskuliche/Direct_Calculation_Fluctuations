@@ -5,6 +5,13 @@ import os,sys,subprocess
 import src.python.path
 
 def step_machinename():
+    """
+    This step checks if the machine.name file exists in the directory in which you are running.
+    This file specifies the machine that you are running on, in a single line.
+    This machine should match the information you provide in the makefile.
+
+    This is set by the import statement up above, and works only if the code has been made using the supplied makefile.
+    """
     exists = os.path.isfile('machine.name')
     if exists:
         f = open('machine.name', 'r')
@@ -17,6 +24,11 @@ def step_machinename():
     return mach_name, homepath
 
 def step_instruct():
+    """
+    This step gives the basic instructions for completing a run. It makes sure you provide the 
+    two needed files, input_file, and flucts.inp
+    It also lets you call the input generation code.
+    """
     flag='.flag_instruct'
     flag_exists = os.path.isfile(flag)
     if flag_exists:
@@ -37,6 +49,11 @@ def step_instruct():
 
 
 def step_traj():
+    """
+    This is the code that checks that an NVT or NPT trajectory has been completed.
+
+    This can work with a lammps run (log.lammps) or a cp2k run (cp2k.log).
+    """
     flag='.flag_traj'
     flag_exists = os.path.isfile(flag)
     if flag_exists:
@@ -243,18 +260,6 @@ def step_combineseg():
         sys.exit()
     return
 
-
-def step_corrfit():
-    flag='.flag_compile'
-    flag_exists = os.path.isfile(flag)
-    if flag_exists:
-        print("Exists.")
-    else:
-        print("Missing.")
-
-
-    open(flag, 'a').close()
-    return
 
 if __name__ == "__main__":
     mach_name, homepath = step_machinename()

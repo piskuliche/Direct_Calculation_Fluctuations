@@ -4,7 +4,8 @@ This code is copyright April 2019 by Ezekiel Piskulich, Univerisity of Kansas. U
 
 This code is a general use code developed to calcualte derivatives (T,P) of time correlation functions (TCFs) from Molecular Dynamics simulations. The code thus far includes support for:
     - Mean-Squared Displacement
-    - Reorientation (C1, C2, Jump)
+    - Reorientation (C1, C2)
+    - Jump Reorientation (Currently a beta feature, not completed)
     - Viscosity (Shear)
     - Reactive Flux (Flux-Side)
 
@@ -22,8 +23,12 @@ Upon first installation it is necessary to make the program, which is a two step
     '''
     - By default this adds a modulefile for loading on a cluster that loads by the cluster and adds an appropriate line to your bash\_profile. If your cluster does not use modules, delete this line and instead add the bin/ folder to your PATH environment.
 2) Step Two: Update Header File:
-    - Whatever option you chose for MACHINE in your MAKEFILE needs to have a $MACHINEi\_header.dat in src/dependencies. Example header files are included in this directory for the KU Community Cluster and the NERSC Cori Computer.
- 
+    - Whatever option you chose for MACHINE in your MAKEFILE needs to have a $MACHINE\_header.dat in src/dependencies. Example header files are included in this directory for the KU Community Cluster and the NERSC Cori Computer.
+3) Step Three: If not running on the CRC at KU, minor code modifications need to occur.
+    - In src/python/gen_sub_scripts.py need to change all SBATCH directives to appropriate ones for your cluster.
+    - You must change src/shell/grabfluctssub.sh to match your system settings.
+    - You must change the header of src/gen_sub_scripts.py to match your system settings. 
+    - This code depends primarily on slurm commands, if you aren't using slurm, significant modifications may be necessary.
 
 ## How to Use the Program
 On the simplest level, running the program is just repeatedly typing:
