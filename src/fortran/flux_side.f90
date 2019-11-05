@@ -122,13 +122,13 @@ Program flux_side
     dvy = viro(1,2) - viro(2,2)
     dvz = viro(1,3) - viro(2,3)
     vr = dvx*dx/dr + dvy*dy/dr + dvz*dz/dr
-    vs = -vr
+    vs = vr
     ! Calculates the distance from the transition state
     eval = dr - constraint
     write(*,*) dr, constraint
     write(*,*) eval
     write(*,*) vr, vs
-    if (eval .ge. 1.0) then
+    if (eval .ge. 0.0) then
         fsc_f(0) = 1.0
         fsc_b(0) = 0.0
     else

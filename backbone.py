@@ -64,8 +64,8 @@ def step_traj():
                     os.makedirs("RESTART")
                 subprocess.call("mv *.restart RESTART", shell=True)
                 print("->What is the identifier for your restart files?")
-                identifier=str(input("-->i.e. anything before the # in the .restart files"))
-                if os.path.isfile(identifier+str(inputparam.start_config)+".restart"):
+                identifier=str(input("-->i.e. anything before the # in the .restart files\n"))
+                if os.path.isfile('RESTART/'+identifier+str(inputparam.start_config)+".restart"):
                     print("->Renaming restart files")
                     for i in range(inputparam.start_config,inputparam.end_config,inputparam.sep_config):
                         os.rename('RESTART/'+identifier+str(i)+'.restart','RESTART/restart.'+str(i))
@@ -147,7 +147,13 @@ def step_checkup():
         for i in range(inputparam.start_config, inputparam.end_config+inputparam.sep_config, inputparam.sep_config):
             if (i%1000000) == 0:
                 print("-->%d has been checked" % i)
-            if not os.path.isfile("FILES/%d/msd_%d_%s.dat" % (i,i,inputparam.molec[0])):
+            if inputparam.cab == "TRANSPORT" and not os.path.isfile("FILES/%d/msd_%d_%s.dat" % (i,i,inputparam.molec[0])):
+                print("%d does not exist" % i)
+                if inputparam.prog == "LAMMPS":
+                    f.write("mkdir FILES/%d; cp in.nve FILES/%d; cp nve.sh FILES/%d; cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))
+                elif inputparam.prog == "CP2K":
+                    f.write("mkdir FILES/%d; cp in.nve.cp2k FILES/%d; cp nve.sh FILES/%d;  cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))
+            elif inputparam.cab == "IONPAIRING" and not os.path.isfile("FILES/%d/fsc_f_%d_%s.dat" % (i,i,inputparam.molec[0])):
                 print("%d does not exist" % i)
                 if inputparam.prog == "LAMMPS":
                     f.write("mkdir FILES/%d; cp in.nve FILES/%d; cp nve.sh FILES/%d; cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))

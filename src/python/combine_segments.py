@@ -4,6 +4,7 @@ import sys
 from scipy import stats
 from read_input import user_input
 
+
 """
 This is a python program to take the weighted correlation functions calculated in init_segments.py and turn them into the derivative correlation functions.
 """
@@ -105,6 +106,7 @@ fname = str(sys.argv[1])
 corr_name = str(sys.argv[2])
 mol_name = str(sys.argv[3])
 
+        
 # Pull t-value from Student's T-Table
 t_val = stats.t.ppf(0.975,inputparam.nblocks-1)/np.sqrt(inputparam.nblocks)
 
@@ -153,6 +155,10 @@ for item1 in inp_n:
     energy.append(np.genfromtxt(item1+'_init.out'))
 item1count = 0
 for item1 in inp_n:
+    # This overrides the average calc and reads it from file
+    if inputparam.cab=="IONPAIRING":
+        with open(corr_name+'_react_'+str(item1)+'.dat','r') as f:
+            reav=float(f.readline())
     print("Starting loop for %s" % item1)
     item2count = 0
     for item2 in inp_n:
@@ -203,7 +209,13 @@ for item1 in inp_n:
             bend   = int((block+1)*segs_per_block)
             bdist  = bend - bstart
             # Calculate Average Flucts
-            e1_av  =   BLOCK_ENERGY(energy, bstart, bend, item1count)
+            if inputparam.cab=="TRANSPORT":
+                e1_av  =   BLOCK_ENERGY(energy, bstart, bend, item1count)
+            elif inputparam.cab=="IONPAIRING":
+                e1_av = reav
+            else:
+                print("Error: Type not TRANSPORT or IONPAIRING")
+                exit()
             d1_av  =  BLOCK_DENERGY(energy, bstart, bend, item1count,e1_av,1)
             d2_av  =  BLOCK_DENERGY(energy, bstart, bend, item1count,e1_av,2)
             d3_av  =  BLOCK_DENERGY(energy, bstart, bend, item1count,e1_av,3)
@@ -272,6 +284,13 @@ for item1 in inp_n:
         seg_start = 0
         seg_end   = num_segs
         seg_dist  = seg_end - seg_start
+        if inputparam.cab=="TRANSPORT":
+            e1_av  =   BLOCK_ENERGY(energy, seg_start, seg_end, item1count)
+        elif inputparam.cab=="IONPAIRING":
+            e1_av = reav
+        else:
+            print("Error: Type not TRANSPORT or IONPAIRING")
+            exit()
         e1_av = BLOCK_ENERGY(energy, seg_start, seg_end, item1count)
         d1_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 1)
         d2_av = BLOCK_DENERGY(energy, seg_start, seg_end, item1count,e1_av, 2)
