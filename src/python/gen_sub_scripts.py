@@ -56,7 +56,8 @@ elif inputparam.prog == "CP2K":
 else:
     dcn.write("Error: Incorrect program in input_file\n")
     exit(1)
-elif machine == "CORI":
+
+if machine == "CORI":
     dcn.write("export OMP_NUM_THREADS=8\n")
     dcn.write("export OMP_PLACES=threads\n")
     dcn.write("export OMP_PROC_BIND=spread\n")
@@ -140,8 +141,8 @@ nve.write("module load Dir_Calc_Fluct\n")
 if inputparam.prog == "LAMMPS":
     nve.write('%s\n\n' % lammpsload)
 elif inputparam.prog == "CP2K":
-    nve.write('%s\n\n' cp2kload)
-elif machine == "CORI":
+    nve.write('%s\n\n' % cp2kload)
+if machine == "CORI":
     nve.write("export OMP_NUM_THREADS=8\n")
     nve.write("export OMP_PLACES=threads\n")
     nve.write("export OMP_PROC_BIND=spread\n")
