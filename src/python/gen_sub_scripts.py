@@ -10,10 +10,10 @@ This produces the following output:
 """
 
 # These set global variables and should be changed based on your system
-lammpsload="module load lammps/12Dec2018"
+lammpsload="module load lammps/7Aug2019"
 lammpsruncmd="mpirun lmp_mpi < in.nve -screen none"
 cp2kload="module load cp2k/6.0/popt"
-cp2kruncmd="    mpirun cp2k.popt in.nve.cp2k"
+cp2kruncmd="mpirun cp2k.popt in.nve.cp2k"
 partition="sixhour"
 #cp2kruncmd="    srun -n 128 -c 8 --cpu_bind=cores  /global/homes/c/cjmundy/SOURCEFORGE_CP2K/cp2k-5.1/cp2k/exe/CRAY-cori-Haswell-gnu/cp2k.psmp in.nve.cp2k > cp2k.out"
 
@@ -73,7 +73,7 @@ dcn.write("for (( N = $START_JOBS; N <= $NUM_RPJ; N++ ))\n")
 dcn.write("do\n")
 dcn.write("    CUR=$(( START + N*SEP + SEP*NUM_RPJ*SLURM_ARRAY_TASK_ID - SEP))\n")
 dcn.write("    echo $CUR\n")
-dcn.write("    mkdir FILES/$CUR\n")
+dcn.write("    mkdir -p FILES/$CUR\n")
 if inputparam.prog == "LAMMPS":
     dcn.write("    cp in.nve nve.sh FILES/$CUR/\n")
 elif inputparam.prog == "CP2K":
@@ -90,14 +90,14 @@ if inputparam.prog == "LAMMPS":
     dcn.write("    sed -i -e 's@restart.file@../../RESTART/restart.'$CUR'@g' in.nve\n")
     for j in range(0,inputparam.num_molecs):
         dcn.write("    sed -i -e 's@traj.file%s@traj_'$CUR'_%s.xyz@g' in.nve\n" % (str(j),inputparam.molec[j]))
-    dcn.write("%s\n" % lammpsruncmd)
+    dcn.write("    %s\n" % lammpsruncmd)
 elif inputparam.prog == "CP2K":
     if inputparam.cab == "IONPAIRING":
         dcn.write("    vel_reselect.py 6.94 18.998 298.15 restart.$CUR\n")
         dcn.write("    sed -i -e 's@vel.file@vel_'$CUR'_%s.vxyz@g' in.nve.cp2k\n" % inputparam.molec[0])
     dcn.write("    sed -i -e 's@restart.file@RESTART/restart.'$CUR'@g' in.nve.cp2k\n")
     dcn.write("    sed -i -e 's@traj.file0@traj_'$CUR'_%s.xyz@g' in.nve.cp2k\n" % inputparam.molec[0])
-    dcn.write("%s\n" % runcmd)
+    dcn.write("    %s\n" % runcmd)
 
 dcn.write("    \n\n")
 if inputparam.cab == "TRANSPORT":

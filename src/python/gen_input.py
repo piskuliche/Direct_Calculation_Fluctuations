@@ -64,6 +64,9 @@ desc = "Program (LAMMPS or CP2K):"
 inp.write("# %s \n" % desc)
 paramname = "progname"
 progname = par_input(types,paramname,desc)
+if (progname not in ["LAMMPS","CP2K"]): 
+    print("%s is not an appropriate Program Name" % progname)
+    exit()
 inp.write("%s\n" % progname)
 
 desc = "Run Style (NVT or NPT):"
@@ -80,9 +83,10 @@ inp.write("%s\n" % nummoltype)
 
 desc = "Identifier of Molecules(LEAVE 4 LINES SPACE):"
 inp.write("# %s\n" % desc)
-for i in range(4):
+for i in range(nummoltype):
     if i <= nummoltype-1:
         desc = "Molecule name"
+        paramname= "molec"
         molname = par_input(types, paramname, desc)
         inp.write("%s\n" % molname)
     else:

@@ -5,6 +5,10 @@ I realize this isn't a fortran program - but it was much simpler to write.
 import numpy as np
 
 def min_dist(a, b):
+    """
+    This calculates the minimum image distance between two 3D coordinates, stored 
+    in a and b. This outputs the overall final distance as a float.
+    """
     dr      = []
     shift   = []
     dsq     = 0.0
@@ -16,10 +20,16 @@ def min_dist(a, b):
     return drfinal
 
 def calc_ang(dOO,dHO):
+    """
+    Calculates the hbond jump angle.
+    """
     dHOO = np.arccos(np.around((0.9572**2. + dOO**2. - dHO**2.)/(2.*0.9572*dOO),4))
     return dHOO
     
 def read_frames(filename):
+    """
+    Reads the frames within filename.
+    """
     rO = []
     r1 = []
     r2 = []

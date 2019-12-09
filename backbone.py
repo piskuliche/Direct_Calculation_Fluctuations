@@ -45,6 +45,8 @@ def step_instruct():
         elif 'Y' in inpresponse:
             import src.python.gen_input
         open(flag, 'a').close()
+        print("Instructions step complete, please run backbone.py again.")
+        sys.exit()
     return
 
 
