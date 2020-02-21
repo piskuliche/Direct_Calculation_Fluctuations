@@ -30,7 +30,7 @@ time = [0] + time
 time = time[:inputparam.num_times]
 
 # Read In Fluctuations
-inp_n =np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
+inp_n = np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
 
 # Initialize Arrays
 d1=[sep]

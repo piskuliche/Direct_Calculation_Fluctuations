@@ -118,8 +118,8 @@ print("There are %s total segments" % num_segs)
 print("There are %s blocks" % inputparam.nblocks)
 print("There are %s segs_per_block" % segs_per_block)
 
-# Read in corr-names
-inp_n = np.genfromtxt(fname, usecols=(0), dtype=(str), unpack=True)
+# Read In Fluctuations
+inp_n = np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
 
 # Initialize Arrays
 time   = np.zeros(inputparam.num_times)

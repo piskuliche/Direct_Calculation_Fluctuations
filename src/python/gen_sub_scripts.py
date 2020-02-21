@@ -10,7 +10,7 @@ This produces the following output:
 """
 
 # These set global variables and should be changed based on your system
-lammpsload="module load lammps/7Aug2019"
+lammpsload="module load compiler/intel/18 intel-mpi/18\nmodule load lammps/7Aug2019"
 lammpsruncmd="mpirun lmp_mpi < in.nve -screen none"
 cp2kload="module load cp2k/6.0/popt"
 cp2kruncmd="mpirun cp2k.popt in.nve.cp2k"
@@ -245,3 +245,63 @@ elif inputparam.cab == "IONPAIRING":
 if inputparam.prog == "LAMMPS":
     darr.write("combine_segments.py flucts.inp shear %s\n" % (inputparam.molec[0]))
 darr.close()
+
+# Generate Flucts Script
+
+import os
+
+ival,icol=np.genfromtxt("flucts.inp", usecols=(0,1),dtype=(str,int), unpack=True)
+count = 0
+for item in ival:
+    if "D" not in item and "A" not in item:
+        count+=1
+
+
+flc=open('grabfluctsub.sh','w')
+flc.write("#!/bin/bash\n")
+flc.write("#SBATCH --job-name=grabflucts_array\n")
+flc.write("#SBATCH --partition=sixhour\n")
+flc.write("#SBATCH --output=grabflucts_array%A_%a.out\n")
+flc.write("#SBATCH --nodes=1\n")
+flc.write("#SBATCH --ntasks-per-node=2\n")
+flc.write("#SBATCH --constraint=intel\n")
+flc.write("#SBATCH --mem=30G\n")
+flc.write("#SBATCH --time=06:00:00\n")
+flc.write("#SBATCH --array=0-%d\n" % int(count-1))
+
+flc.write("module load Dir_Calc_Fluct\n")
+
+flc.write("cd $SLURM_SUBMIT_DIR\n")
+
+flc.write("echo Time is `date` > array_$SLURM_ARRAY_TASK_ID.o\n")
+flc.write("echo Directory is `pwd` >> array_$SLURM_ARRAY_TASK_ID.o\n")
+
+flc.write("grab_flucts.py flucts.inp $SLURM_ARRAY_TASK_ID\n")
+
+flc.close()
+
+pwt=open('comboflucts.sh', 'w')
+pwt.write("#!/bin/bash\n")
+pwt.write("#SBATCH --job-name=preweighted\n")
+pwt.write("#SBATCH --partition=sixhour\n")
+pwt.write("#SBATCH --output=preweighted_%A.out\n")
+pwt.write("#SBATCH --nodes=1\n")
+pwt.write("#SBATCH --ntasks-per-node=2\n")
+pwt.write("#SBATCH --constraint=intel\n")
+pwt.write("#SBATCH --mem=30G\n")
+pwt.write("#SBATCH --time=06:00:00\n")
+pwt.write("module load Dir_Calc_Fluct\n")
+
+pwt.write("cd $SLURM_SUBMIT_DIR\n")
+
+pwt.write("rm LJD_init.out LJAnew_init.out LJAold_init.out\n")
+pwt.write("rm CD_init.out CAnew_init.out CAold_init.out\n")
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/LJAold_init.out >> LJAold_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/LJAnew_init.out >> LJAnew_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/LJD_init.out >> LJD_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CAold_init.out >> CAold_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CAnew_init.out >> CAnew_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CD_init.out >> CD_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
+pwt.write("combine_weighted.py -etype flucts.special.inp -corr_name crp -dcorr_name dcrp -mol_name water\n")
+pwt.write("touch .flag_comboflucts\n")
+pwt.close()
