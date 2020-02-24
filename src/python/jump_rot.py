@@ -298,16 +298,16 @@ for OH in range(len(OHs)):
 
 avcrp = {}
 for key in UCRP:
-    avcrp[key]=np.average(UCRP[key],axis=0)
+    avcrp[key]=np.sum(UCRP[key],axis=0)
     np.savetxt(key+'dcrp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,avcrp[key]],fmt="%2.5f")
 
 
 np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
-np.savetxt('LJAold_init.out', np.c_[np.average(Ulj["Aold"])])
-np.savetxt('LJAnew_init.out', np.c_[np.average(Ulj["Anew"])])
-np.savetxt('LJD_init.out', np.c_[np.average(Ulj["D"])])
-np.savetxt('CAold_init.out', np.c_[np.average(UCoul["Aold"])])
-np.savetxt('CAnew_init.out', np.c_[np.average(UCoul["Anew"])])
-np.savetxt('CD_init.out', np.c_[np.average(UCoul["D"])])
+np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
+np.savetxt('LJAnew_init.out', np.c_[np.sum(Ulj["Anew"])])
+np.savetxt('LJD_init.out', np.c_[np.sum(Ulj["D"])])
+np.savetxt('CAold_init.out', np.c_[np.sum(UCoul["Aold"])])
+np.savetxt('CAnew_init.out', np.c_[np.sum(UCoul["Anew"])])
+np.savetxt('CD_init.out', np.c_[np.sum(UCoul["D"])])
 
                 

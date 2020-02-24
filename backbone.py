@@ -203,6 +203,28 @@ def step_checkup():
         sys.exit()
     return
 
+def step_comboflucts():
+    flag='.flag_comboflucts'
+    flag_exists = os.path.isfile(flag)
+    sp_exists = os.path.isfile("flucts.special.inp")
+    if flag_exists:
+        print("Combo Flucts Flag Exists.")
+    else:
+        print("Combo Flucts Flag Missing")
+        if "water" not in inputparam.molec:
+            open(flag, 'a').close()
+        else:
+            if not sp_exists:
+                print("flucts.special.inp doesn't exist")
+                sys.exit()
+            else:
+                os.system('sbatch comboflucts.sh')
+                print("-> Wait until comboflucts has finished before running the next step!")
+                print("-> This step will write the appropriate flag upon completion.")
+                sys.exit()
+    return
+
+
 def step_grabflucts():
     flag='.flag_grabflucts'
     flag_exists = os.path.isfile(flag)
@@ -214,7 +236,7 @@ def step_grabflucts():
             print("flucts.inp missing")
             print("Please generate.")
 
-        subprocess.call("cp %s/src/shell/grabfluctsub.sh ./" % homepath, shell=True)
+        #subprocess.call("cp %s/src/shell/grabfluctsub.sh ./" % homepath, shell=True)
         os.system("sbatch grabfluctsub.sh")
         print("->Grab flucts is running as a job")
         print("->Please be patient - and check that grab_flucts.py is completed before continuing")
@@ -273,6 +295,7 @@ if __name__ == "__main__":
     step_nvecomplete()
     step_checkup()
     step_grabflucts()
+    step_comboflucts()
     step_segarray()
     step_combineseg()
 
