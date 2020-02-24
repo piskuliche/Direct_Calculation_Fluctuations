@@ -303,5 +303,6 @@ pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CAold_init.out >> CAold_init.o
 pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CAnew_init.out >> CAnew_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
 pwt.write("for i in {%d..%d..%d}; do cat FILES/$i/CD_init.out >> CD_init.out; done\n" % (inputparam.start_config, inputparam.end_config, inputparam.sep_config))
 pwt.write("combine_weighted.py -etype flucts.special.inp -corr_name crp -dcorr_name dcrp -mol_name water\n")
+pwt.write("combine_weighted.py -etype flucts.special.inp -corr_name frame -dcorr_name dframe -mol_name water\n")
 pwt.write("touch .flag_comboflucts\n")
 pwt.close()

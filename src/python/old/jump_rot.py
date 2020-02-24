@@ -35,7 +35,7 @@ def calc_lj(mol1,mol2,eps,sig):
     """
     This calls the calc lj script
     """
-    dr = min_dist(rO[mol1],rO[mol2])[0]
+    dr = min_dist(rO[mol1],rO[mol2])
     return LJ(dr,eps,sig)
 
 def calc_coul(mol1,mol2,qo,qh):
@@ -46,20 +46,24 @@ def calc_coul(mol1,mol2,qo,qh):
     # Note - there are more terms because there are many sites which have interactions! 
     # 2 water molecules, 3 atoms each - 9 total terms
     # The donor and acceptor are tagged                 D  A
-    terms.append([min_dist(rO[mol1],rO[mol2])[0],qo,qo]) # Ox Ox
-    terms.append([min_dist(rO[mol1],r1[mol2])[0],qo,qh]) # Ox H1
-    terms.append([min_dist(rO[mol1],r2[mol2])[0],qo,qh]) # Ox H2
-    terms.append([min_dist(r1[mol1],rO[mol2])[0],qh,qo]) # H1 Ox
-    terms.append([min_dist(r2[mol1],rO[mol2])[0],qh,qo]) # H2 Ox
-    terms.append([min_dist(r1[mol1],r1[mol2])[0],qh,qh]) # H1 H1
-    terms.append([min_dist(r2[mol1],r1[mol2])[0],qh,qh]) # H2 H1
-    terms.append([min_dist(r1[mol1],r2[mol2])[0],qh,qh]) # H1 H2
-    terms.append([min_dist(r2[mol1],r2[mol2])[0],qh,qh]) # H2 H2
+    terms.append([min_dist(rO[mol1],rO[mol2]),qo,qo]) # Ox Ox
+    terms.append([min_dist(rO[mol1],r1[mol2]),qo,qh]) # Ox H1
+    terms.append([min_dist(rO[mol1],r2[mol2]),qo,qh]) # Ox H2
+    terms.append([min_dist(r1[mol1],rO[mol2]),qh,qo]) # H1 Ox
+    terms.append([min_dist(r2[mol1],rO[mol2]),qh,qo]) # H2 Ox
+    terms.append([min_dist(r1[mol1],r1[mol2]),qh,qh]) # H1 H1
+    terms.append([min_dist(r2[mol1],r1[mol2]),qh,qh]) # H2 H1
+    terms.append([min_dist(r1[mol1],r2[mol2]),qh,qh]) # H1 H2
+    terms.append([min_dist(r2[mol1],r2[mol2]),qh,qh]) # H2 H2
     Ucoul=0
     # Sums up the terms
     for term in terms:
         Ucoul += Coul(term[0],term[1],term[2])
     return Ucoul
+        
+
+
+
 
 
 def min_dist(a, b):
@@ -75,7 +79,7 @@ def min_dist(a, b):
         dr.append(a[i]-b[i]-shift[i])
         dsq += dr[i]**2.
     drfinal = np.sqrt(dsq)
-    return drfinal, dr
+    return drfinal
 
 def calc_ang(dOO,dHO):
     """
@@ -124,40 +128,6 @@ def read_frames(filename):
                     print("Incorrect count during read")
                 count += 1
     return nmols, rO, r1, r2
-
-def is_it_hbonded(mol1, mol2, rO, r1, r2, t, orig):
-    """
-    Outputs whether it is hbonded or not.
-    """
-    hbonded = 0 # default not hbonded
-    ehat = [0.0, 0.0, 0.0] # default not hbonded
-    # Calculates OO Distance
-    dOO, droo = min_dist(rO[mol1+t],rO[mol2+t])
-    if dOO == 0.0: print(dOO,mol1,mol2)
-    if dOO < rOO_max:
-        # Calculates the distance of each OH on molecule 1 from the Oxygen
-        dHO1 = min_dist(r1[mol1+t], rO[mol2+t])[0]
-        dHO2 = min_dist(r2[mol1+t], rO[mol2+t])[0]
-        if orig == 1 or orig == -1:
-            if dHO1 < rHO_max:
-                # Calculates the Angle of HOO from the donor and acceptor (first OH)
-                dHOO1 = np.degrees(calc_ang(dOO, dHO1))
-                if dHOO1 < ang_max:
-                    hbonded = 1
-        if orig == 2 or orig == -1:
-            if dHO2 < rHO_max:
-                # Calculates the Angle of HOO from the donor and acceptor (second OH)
-                dHOO2 = np.degrees(calc_ang(dOO, dHO2))
-                if dHOO2 < ang_max:
-                    hbonded = 2
-    ehat = np.divide(droo,dOO)
-    return hbonded, ehat
-
-def calc_c2(e_o, e_t):
-    edote = np.dot(e_o, e_t)
-    return 0.5*(3*edote**2. - 1)
-
-
 # Read Corr Calc Input File
 inpfile='corr_calc.in'
 inp = open(inpfile, 'r')
@@ -194,22 +164,33 @@ Form of the OHs vector:
     The second index provides the column of interest which is separated into a few different parts
     moloh mola,old on? moldonor1 moldonor2 mola,new
 """
-OHs,ehat_init = [],[]
+OHs =[]
 
-print('Calculating initial hbonds')
+print('calculating initial hbonds')
 for mol1 in range(nmols):
     for mol2 in range(nmols):
         if mol1 != mol2:
-            hbnd, ehat = is_it_hbonded(mol1, mol2, rO, r1, r2,0,-1) # hbnd has options 0 (not hbonded) 1 (first oh hbonded) and 2 (second oh hbonded)
-            if hbnd != 0:
-                OHs.append([mol1,mol2,hbnd])
-                ehat_init.append(ehat)
-
+            # Calculates OO Distance
+            dOO = min_dist(rO[mol1],rO[mol2])
+            if dOO < rOO_max:
+                # Calculates the distance of each OH on molecule 1 from the Oxygen
+                dHO1 = min_dist(r1[mol1], rO[mol2])
+                dHO2 = min_dist(r2[mol1], rO[mol2])
+                if dHO1 < rHO_max:
+                    # Calculates the Angle of HOO from the donor and acceptor (first OH)
+                    dHOO1 = np.degrees(calc_ang(dOO, dHO1))
+                    if dHOO1 < ang_max:
+                        OHs.append([mol1,mol2,1])
+                if dHO2 < rHO_max:
+                    # Calculates the Angle of HOO from the donor and acceptor (second OH)
+                    dHOO2 = np.degrees(calc_ang(dOO, dHO2))
+                    if dHOO2 < ang_max:
+                        OHs.append([mol1,mol2,2])
 
 # This section checks for donors (up to a maximum of 3)
 for OH1 in range(len(OHs)):
     count = 0
-    if count < 2: # Maximum of 3 donors planned
+    if count < 2:
         for OH2 in range(len(OHs)):
             if OHs[OH2][0] == OHs[OH1][1]:
                 OHs[OH2].append(OHs[OH1][0])
@@ -234,56 +215,55 @@ print("There are %s OHs" % len(OHs))
 nval = int(ntimes/10.)
 
 crp = np.zeros((len(OHs),ntimes))
-c2  = np.zeros((len(OHs), ntimes))
-norm_t = np.zeros(ntimes)
 steps = [0]
 
 # Loop over time, checks if hbonded still
 for n in range(1,ntimes):
     if n%nval == 0:
-        print("Step Reached: %d" % n)
+        print("reached %d" % n)
     steps.append(n)
     timeindex = n*nmols
     for OH in range(len(OHs)):
         crp[OH][n] = crp[OH][n-1]
         mol1 = OHs[OH][0]
         for mol2 in range(nmols):
-            hbnd = 0
-            if mol1 != mol2 and OHs[OH][2] != 0:
-                hbnd, ehat = is_it_hbonded(mol1, mol2, rO, r1, r2, timeindex,OHs[OH][2])
-                if hbnd != 0:
-                    if OHs[OH][1] == mol2: # Same Acceptor
-                        crp[OH][n]+=0
-                        # Calculates the oo c2
-                        c2[OH][n]=calc_c2(ehat_init[OH],ehat)
-                        # Time dependent normalization
-                        norm_t[n] += 1.0
-                    else: # New Acceptor
-                        crp[OH][n]+=1
-                        c2[mol1][n]=0.0
-                        OHs[OH][2]=0
-                        OHs[OH].append(mol2)
-                if hbnd == 0 and mol2 == OHs[OH][1]:
-                    c2[OH][n]=calc_c2(ehat_init[OH],ehat)
-                    norm_t[n] += 1.0 
+            if OHs[OH][0] != mol2 and OHs[OH][2] != 0:
+                # Calculates the dOO distance at time t.
+                dOO = min_dist(rO[mol1+timeindex],rO[mol2+timeindex])
+                assert dOO != 0, "dOO = 0... NO!"
+                if dOO < rOO_max:
+                    # Calculates the dHO distances at time t.
+                    dHO1 = min_dist(r1[mol1+timeindex], rO[mol2+timeindex])
+                    dHO2 = min_dist(r2[mol1+timeindex], rO[mol2+timeindex])
+                    if dHO1 < rHO_max and OHs[OH][2] == 1:
+                        # Calculates the dHOO1 distance at time t.
+                        dHOO1 = np.degrees(calc_ang(dOO, dHO1))
+                        if dHOO1 < ang_max:
+                            if OHs[OH][1] == mol2:
+                                crp[OH][n]+=0
+                            else:
+                                crp[OH][n]+=1
+                                OHs[OH][2]=0
+                                OHs[OH].append(mol2)
+                    if dHO2 < rHO_max and OHs[OH][2] == 2:
+                        # Calculates the dHOO2 distance at time t.
+                        dHOO2 = np.degrees(calc_ang(dOO, dHO2))
+                        if dHOO2 < ang_max:
+                            if OHs[OH][1] == mol2:
+                                crp[OH][n]+=0
+                            else:
+                                crp[OH][n]+=1
+                                OHs[OH][2]=0
+                                OHs[OH].append(mol2)
 
-# This handles the case where there is no new acceptor 
 for OH in range(len(OHs)):
     if len(OHs[OH]) != 7:
         OHs[OH].append(-1) 
 
 
-print("Jiggying up final calculations")
-
-
-C2 = np.divide(np.sum(c2,axis=0),norm_t,out=np.zeros_like(np.sum(c2,axis=0)),where=norm_t!=0)
-C2[0]=1.0
-
 CRP = np.average(crp,axis=0)
 
 UCRP={"LJAold":np.zeros((len(OHs),ntimes)), "LJAnew":np.zeros((len(OHs),ntimes)), "LJD":np.zeros((len(OHs),ntimes)),"CAold":np.zeros((len(OHs),ntimes)),"CAnew":np.zeros((len(OHs),ntimes)), "CD":np.zeros((len(OHs),ntimes))}
-UC2={"LJAold":np.zeros((len(OHs),ntimes)), "LJAnew":np.zeros((len(OHs),ntimes)), "LJD":np.zeros((len(OHs),ntimes)),"CAold":np.zeros((len(OHs),ntimes)),"CAnew":np.zeros((len(OHs),ntimes)), "CD":np.zeros((len(OHs),ntimes))}
-
 Ulj={"Aold":[],"Anew":[], "D":[]}
 UCoul={"Aold":[],"Anew":[], "D":[]}
 
@@ -293,10 +273,8 @@ for OH in range(len(OHs)):
     # Old Acceptor
     Ulj["Aold"].append(calc_lj(target,oldaccept,eps,sig))
     UCRP["LJAold"][OH]=np.multiply(Ulj["Aold"][OH],crp[OH])
-    UC2["LJAold"][OH]=np.multiply(Ulj["Aold"][OH],c2[OH])
     UCoul["Aold"].append(calc_coul(target,oldaccept,qo,qh))
     UCRP["CAold"][OH]=np.multiply(UCoul["Aold"][OH],crp[OH])
-    UC2["CAold"][OH]=np.multiply(UCoul["Aold"][OH],c2[OH])
     # New Acceptor
     if newaccept != -1:
         Ulj["Anew"].append(calc_lj(target,newaccept,eps,sig))
@@ -306,8 +284,6 @@ for OH in range(len(OHs)):
         UCoul["Anew"].append(0.0)
     UCRP["CAnew"][OH]=np.multiply(UCoul["Anew"][OH],crp[OH])
     UCRP["LJAnew"][OH]=np.multiply(Ulj["Anew"][OH],crp[OH])
-    UC2["CAnew"][OH]=np.multiply(UCoul["Anew"][OH],c2[OH])
-    UC2["LJAnew"][OH]=np.multiply(Ulj["Anew"][OH],c2[OH])
 
     tmpljd=0.0
     # Donors
@@ -319,21 +295,14 @@ for OH in range(len(OHs)):
             UCoul["D"][OH] += calc_coul(target,donor1,qo,qh)
     UCRP["LJD"][OH]=np.multiply(Ulj["D"][OH],crp[OH])
     UCRP["CD"][OH]=np.multiply(UCoul["D"][OH],crp[OH])
-    UC2["LJD"][OH]=np.multiply(Ulj["D"][OH],c2[OH])
-    UC2["CD"][OH]=np.multiply(UCoul["D"][OH],c2[OH])
 
-avcrp,avc2 = {},{}
+avcrp = {}
 for key in UCRP:
     avcrp[key]=np.sum(UCRP[key],axis=0)
     np.savetxt(key+'dcrp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,avcrp[key]],fmt="%2.5f")
 
-for key in UC2:
-    avc2[key]=np.divide(np.sum(UC2[key],axis=0),norm_t,out=np.zeros_like(np.sum(UC2[key],axis=0)),where=norm_t!=0)
-    np.savetxt(key+'dframe_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,avc2[key]],fmt="%2.5f")
-
 
 np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
-np.savetxt('frame_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
 np.savetxt('LJAnew_init.out', np.c_[np.sum(Ulj["Anew"])])
 np.savetxt('LJD_init.out', np.c_[np.sum(Ulj["D"])])
