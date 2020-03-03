@@ -208,14 +208,19 @@ iarr.write("cd $SLURM_SUBMIT_DIR\n")
 
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp msd %s\n" % inputparam.molec[i])
-        iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp c2 %s\n" % inputparam.molec[i])
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr msd -mol %s\n" % inputparam.molec[i])
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
-    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_f water\n")
-    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp fsc_b water\n")
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_f -mol water\n")
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_b -mol water\n")
 
 if inputparam.prog == "LAMMPS":
-    iarr.write("init_segments.py $SLURM_ARRAY_TASK_ID flucts.inp shear water\n")
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water\n")
+
+if "water" in inputparam.molec:
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water\n")
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr frame -mol water\n")
+    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 
 iarr.close()
 
@@ -236,14 +241,19 @@ darr.write("#SBATCH --time=06:00:00\n")
 darr.write("module load Dir_Calc_Fluct\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        darr.write("combine_segments.py flucts.inp msd %s\n" % (inputparam.molec[i]))
-        darr.write("combine_segments.py flucts.inp c2 %s\n" % (inputparam.molec[i]))
+        darr.write("combine_segments.py -fname flucts.inp -corr msd -mol %s\n" % (inputparam.molec[i]))
+        darr.write("combine_segments.py -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
 elif inputparam.cab == "IONPAIRING":
-    darr.write("combine_segments.py flucts.inp fsc_f %s\n" % (inputparam.molec[0]))
-    darr.write("combine_segments.py flucts.inp fsc_b %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py -fname flucts.inp -corr fsc_f -mol %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py -fname flucts.inp -corr fsc_b -mol %s\n" % (inputparam.molec[0]))
 
 if inputparam.prog == "LAMMPS":
-    darr.write("combine_segments.py flucts.inp shear %s\n" % (inputparam.molec[0]))
+    darr.write("combine_segments.py -fname flucts.inp -corr shear -mol %s\n" % (inputparam.molec[0]))
+
+if "water" in inputparam.molec:
+    darr.write("combine_segments.py -fname flucts.inp -corr crp -mol water\n")
+    darr.write("combine_segments.py -fname flucts.inp -corr frame -mol water\n")
+    darr.write("combine_segments.py -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 darr.close()
 
 # Generate Flucts Script

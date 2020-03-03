@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import sys
+import argparse
 from scipy import stats
 from read_input import user_input
 
@@ -98,15 +99,28 @@ def RATIO(corr, d1corr):
 # Import Input File Parameters
 inputparam = user_input('input_file')
 
-# Read in command line args
-if len(sys.argv) != 4:
-    print("Usage: python do_flucts.py fname corr_name mol_name")
-    exit(1)
-fname = str(sys.argv[1])
-corr_name = str(sys.argv[2])
-mol_name = str(sys.argv[3])
+# Override Parameters
+parser = argparse.ArgumentParser()
+parser.add_argument('-fname', default="flucts.inp", type=str, help='This sets the fluctuations file name')
+parser.add_argument('-corr', default="c2", type=str, help='This is the correlation function name')
+parser.add_argument('-mol', default="water", type=str, help='This is the molecule name')
+parser.add_argument('-timeoverride', default=0, type=int, help='This overrides the time to be something other than the time')
+parser.add_argument('-foverride', default="time.override", type=str, help='This is the file the time override is read from')
+args = parser.parse_args()
+usetime = args.timeoverride
+foverride = args.foverride
+fname = args.fname
+corr_name = args.corr
+mol_name = args.mol
 
-        
+
+corrlength=0
+if usetime == 0:
+    corrlength = inputparam.num_times
+else:
+    t = np.genfromtxt(foverride, usecols=0)
+    corrlength = len(t)
+
 # Pull t-value from Student's T-Table
 t_val = stats.t.ppf(0.975,inputparam.nblocks-1)/np.sqrt(inputparam.nblocks)
 
@@ -122,17 +136,17 @@ print("There are %s segs_per_block" % segs_per_block)
 inp_n = np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
 
 # Initialize Arrays
-time   = np.zeros(inputparam.num_times)
-blcorr   = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-blw1corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-blw2corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-blw3corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-blw4corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-corr   = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-w1corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-w2corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-w3corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
-w4corr = np.zeros((len(inp_n),len(inp_n), num_segs, inputparam.num_times))
+time   = np.zeros(corrlength)
+blcorr   = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, corrlength))
+blw1corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, corrlength))
+blw2corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, corrlength))
+blw3corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, corrlength))
+blw4corr = np.zeros((inputparam.nblocks,len(inp_n),len(inp_n), num_segs, corrlength))
+corr   = np.zeros((len(inp_n),len(inp_n), num_segs, corrlength))
+w1corr = np.zeros((len(inp_n),len(inp_n), num_segs, corrlength))
+w2corr = np.zeros((len(inp_n),len(inp_n), num_segs, corrlength))
+w3corr = np.zeros((len(inp_n),len(inp_n), num_segs, corrlength))
+w4corr = np.zeros((len(inp_n),len(inp_n), num_segs, corrlength))
 
 energy = []
 
@@ -166,41 +180,41 @@ for item1 in inp_n:
         item3 = item2
         item4 = item2
         # Zero Block Weighted Arrays
-        bl_w1corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_w2corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_w3corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_w4corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
+        bl_w1corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_w2corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_w3corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_w4corr  = np.zeros((inputparam.nblocks, corrlength))
         # Zero Block Derivative Arrays 
-        bl_corr    = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_d1corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_d2corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_d3corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_d4corr  = np.zeros((inputparam.nblocks, inputparam.num_times))
-        bl_ea      = np.zeros((inputparam.nblocks, inputparam.num_times))
+        bl_corr    = np.zeros((inputparam.nblocks, corrlength))
+        bl_d1corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_d2corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_d3corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_d4corr  = np.zeros((inputparam.nblocks, corrlength))
+        bl_ea      = np.zeros((inputparam.nblocks, corrlength))
         # Zero Tot Weighted Arrays
-        tot_w1corr = np.zeros(inputparam.num_times)
-        tot_w2corr = np.zeros(inputparam.num_times)
-        tot_w3corr = np.zeros(inputparam.num_times)
-        tot_w4corr = np.zeros(inputparam.num_times)
+        tot_w1corr = np.zeros(corrlength)
+        tot_w2corr = np.zeros(corrlength)
+        tot_w3corr = np.zeros(corrlength)
+        tot_w4corr = np.zeros(corrlength)
         # Zero Tot Derivative Arrays
-        tot_corr   = np.zeros(inputparam.num_times)
-        tot_d1corr = np.zeros(inputparam.num_times)
-        tot_d2corr = np.zeros(inputparam.num_times)
-        tot_d3corr = np.zeros(inputparam.num_times)
-        tot_d4corr = np.zeros(inputparam.num_times)
-        tot_ea     = np.zeros(inputparam.num_times)
+        tot_corr   = np.zeros(corrlength)
+        tot_d1corr = np.zeros(corrlength)
+        tot_d2corr = np.zeros(corrlength)
+        tot_d3corr = np.zeros(corrlength)
+        tot_d4corr = np.zeros(corrlength)
+        tot_ea     = np.zeros(corrlength)
         # Zero Err Weighted Arrays
-        err_w1corr = np.zeros(inputparam.num_times)
-        err_w2corr = np.zeros(inputparam.num_times)
-        err_w3corr = np.zeros(inputparam.num_times)
-        err_w4corr = np.zeros(inputparam.num_times)
+        err_w1corr = np.zeros(corrlength)
+        err_w2corr = np.zeros(corrlength)
+        err_w3corr = np.zeros(corrlength)
+        err_w4corr = np.zeros(corrlength)
         # Zero Err Derivative Arrays
-        err_corr   = np.zeros(inputparam.num_times)
-        err_d1corr = np.zeros(inputparam.num_times)
-        err_d2corr = np.zeros(inputparam.num_times)
-        err_d3corr = np.zeros(inputparam.num_times)
-        err_d4corr = np.zeros(inputparam.num_times)
-        err_ea     = np.zeros(inputparam.num_times)
+        err_corr   = np.zeros(corrlength)
+        err_d1corr = np.zeros(corrlength)
+        err_d2corr = np.zeros(corrlength)
+        err_d3corr = np.zeros(corrlength)
+        err_d4corr = np.zeros(corrlength)
+        err_ea     = np.zeros(corrlength)
         # Sum Segments into blocks
         for block in range(inputparam.nblocks):
             print("     BLOCK %s" % block)
@@ -226,7 +240,7 @@ for item1 in inp_n:
             print("d2av = %s" % d2_av)
             print("d3av = %s" % d3_av)
             print("d4av = %s" % d4_av)
-            for i in range(inputparam.num_times):
+            for i in range(corrlength):
                 for seg in range(bstart,bend):
                     # Need to normalize.
                     bl_corr[block][i]   +=   corr[item1count][item2count][seg][i]
@@ -302,7 +316,7 @@ for item1 in inp_n:
         print("d3_av = %s" % d3_av)
         print("d4_av = %s" % d4_av)
         # Loop over number of times
-        for i in range(inputparam.num_times):
+        for i in range(corrlength):
             for seg in range(num_segs):
                 tot_corr[i]   += corr[item1count][item2count][seg][i]
                 tot_w1corr[i] += FRST_SUB_AV(corr[item1count][item2count][seg][i], w1corr[item1count][item2count][seg][i],e1_av)

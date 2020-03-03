@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import sys
+import argparse
 from read_input import user_input
 
 def BLOCK_ENERGY(energy,start,end,itemindex):
@@ -10,6 +11,22 @@ def BLOCK_ENERGY(energy,start,end,itemindex):
     eav = eav/(end*sep-start*sep)
     return eav
 
+# Override Parameters
+parser = argparse.ArgumentParser()
+parser.add_argument('-val', default=0, type=int, help='This is the number of the segment')
+parser.add_argument('-fname', default="flucts.inp", type=str, help='This sets the fluctuations file name')
+parser.add_argument('-corr', default="c2", type=str, help='This is the correlation function name')
+parser.add_argument('-mol', default="water", type=str, help='This is the molecule name')
+parser.add_argument('-timeoverride', default=0, type=int, help='This overrides the time to be something other than the time')
+parser.add_argument('-foverride', default="time.override", type=str, help='This is the file the time override is read from')
+args = parser.parse_args()
+usetime = args.timeoverride
+foverride = args.foverride
+val = args.val
+fname=args.fname
+corr_name=args.corr
+mol_name = args.mol
+
 # Read the input file
 inputparam = user_input("input_file")
 
@@ -18,16 +35,18 @@ sep = int(inputparam.segsplit)
 num_segs = int(inputparam.num_files/float(sep))
 segs_per_block = np.floor(num_segs/float(inputparam.nblocks))
 
-# Read command line arguments
-val = sys.argv[1]
-fname = str(sys.argv[2])
-corr_name = str(sys.argv[3])
-mol_name = str(sys.argv[4])
 
 # Read In Time
-time = np.genfromtxt('real_time.dat', usecols=0)
-time = [0] + time
-time = time[:inputparam.num_times]
+time = []
+corrlength = 0
+if usetime == 0:
+    time = np.genfromtxt('real_time.dat', usecols=0)
+    time = [0] + time
+    time = time[:inputparam.num_times]
+    corrlength = inputparam.num_times
+else:
+    time = np.genfromtxt(foverride, usecols=0)
+    corrlength = len(time)
 
 # Read In Fluctuations
 inp_n = np.genfromtxt(fname, usecols=0, dtype=str,unpack=True)
@@ -78,11 +97,11 @@ else:
             seg_end = num_segs
             seg_dist = seg_end - seg_start
             # Initialize correlation functions
-            corr=np.zeros((inputparam.num_times))
-            w1corr=np.zeros((inputparam.num_times))
-            w2corr=np.zeros((inputparam.num_times))
-            w3corr=np.zeros((inputparam.num_times))
-            w4corr=np.zeros((inputparam.num_times))
+            corr=np.zeros((corrlength))
+            w1corr=np.zeros((corrlength))
+            w2corr=np.zeros((corrlength))
+            w3corr=np.zeros((corrlength))
+            w4corr=np.zeros((corrlength))
             # Loop over files in segment
             for i in range(sep):
                 enum=fstart+i

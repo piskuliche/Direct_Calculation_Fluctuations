@@ -157,6 +157,18 @@ def calc_c2(e_o, e_t):
     edote = np.dot(e_o, e_t)
     return 0.5*(3*edote**2. - 1)
 
+def calc_jumpang(OH,rO,r1,r2,timeindex):
+    """
+    Calculates the jump angle after a switch
+    """
+    mol1, molo, mol2 = OH[0],OH[1],OH[6]
+    dro_old, oldvec = min_dist(rO[mol1+timeindex],rO[molo+timeindex])
+    dro_new, newvec = min_dist(rO[mol1+timeindex],rO[mol2+timeindex])
+    e_old = np.divide(oldvec, dro_old)
+    e_new = np.divide(newvec, dro_new)
+    theta = np.arccos(np.dot(e_old, e_new))
+    return theta
+
 
 # Read Corr Calc Input File
 inpfile='corr_calc.in'
@@ -236,6 +248,7 @@ nval = int(ntimes/10.)
 crp = np.zeros((len(OHs),ntimes))
 c2  = np.zeros((len(OHs), ntimes))
 norm_t = np.zeros(ntimes)
+theta = []
 steps = [0]
 
 # Loop over time, checks if hbonded still
@@ -263,6 +276,7 @@ for n in range(1,ntimes):
                         c2[mol1][n]=0.0
                         OHs[OH][2]=0
                         OHs[OH].append(mol2)
+                        theta.append(calc_jumpang(OHs[OH],rO,r1,r2,timeindex))
                 if hbnd == 0 and mol2 == OHs[OH][1]:
                     c2[OH][n]=calc_c2(ehat_init[OH],ehat)
                     norm_t[n] += 1.0 
@@ -332,6 +346,14 @@ for key in UC2:
     np.savetxt(key+'dframe_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,avc2[key]],fmt="%2.5f")
 
 
+tht,bedge = np.histogram(theta, bins=50,range=(0,3))
+split=3/50.0
+bins=[]
+print(len(tht),len(bins))
+for b in range(50):
+    bins.append(b*split+split/2)
+
+np.savetxt('theta_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[bins,tht], fmt="%2.5f")
 np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
 np.savetxt('frame_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])

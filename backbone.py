@@ -39,11 +39,13 @@ def step_instruct():
         print("->Please create flucts.inp")
         print("->Alternatively, you can run the input_generator to create input_file")
         inpresponse = str(input("Would you like to do so? y/n\n"))
-        print(inpresponse)
+        print("You have selected: %s" % inpresponse)
         if 'y' in inpresponse:
             import src.python.gen_input
         elif 'Y' in inpresponse:
             import src.python.gen_input
+        if not os.path.isfile("input_file"): sys.exit("Error: the file input_file missing")
+        if not os.path.isfile("flucts.inp"): sys.exit("Error: the file flucts.inp missing") 
         open(flag, 'a').close()
         print("Instructions step complete, please run backbone.py again.")
         sys.exit()
