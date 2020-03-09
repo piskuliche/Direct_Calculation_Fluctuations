@@ -16,7 +16,7 @@ Program msd_rot_calc
     real, dimension(500,3) :: rO_old, r1_old, r2_old, shiftO, shift1, shift2
     real, dimension(500,3) :: eO1, eO2, eO1_zero, eO2_zero
     real, dimension(0:30000,3) :: msd
-    real, dimension(0:30000) :: c1, c2
+    real, dimension(0:30000) :: c1, c2,c3
 
     real, dimension(5000) :: ener, dener
 
@@ -47,7 +47,7 @@ Program msd_rot_calc
     open(11,file='traj_'//trim(nfile)//'_'//trim(mol_name)//'.xyz',status='old')  !open traj file
      
     ! Zero the results for NVE trajectory
-    msd = 0.0; c1 = 0.0; c2 = 0.0
+    msd = 0.0; c1 = 0.0; c2 = 0.0; c3 = 0.0
 
     ! Read in the first configuration and set it as the zero.
     read(11,*) natms
@@ -65,6 +65,7 @@ Program msd_rot_calc
         call bond_vec(nmol, rO_zero, r2_zero, eO2_zero)
         c1(0) = c1(0) + 2.0
         c2(0) = c2(0) + 2.0
+        c3(0) = c3(0) + 2.0
     enddo
 
     ! Set the "old" coordinates for unwrapping to the initial ones
@@ -114,6 +115,7 @@ Program msd_rot_calc
             dp_O2 = eO2(j,1)*eO2_zero(j,1) + eO2(j,2)*eO2_zero(j,2) + eO2(j,3)*eO2_zero(j,3)
             c1(it-1) = c1(it-1) + dp_O1 + dp_O2
             c2(it-1) = c2(it-1) + 0.5*(3.0*dp_O1**2 + 3.0*dp_O2**2 - 2.0)
+            c3(it-1) = c3(it-1) + 0.5*(5.0*dp_O1**3 + 5.0*dp_O2**3 - 3.0*dp_O1 - 3.0*dp_O2)
             
         enddo ! End configuration read in
 
@@ -126,11 +128,13 @@ Program msd_rot_calc
     ! Write out the MSD, C1, C2
     open(21,file='c1_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C1(t) file for this trajectory
     open(22,file='c2_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C2(t) file for this trajectory
+    open(24,file='c3_'//trim(nfile)//'_'//trim(mol_name)//'.dat')  !open C3(t) file for this trajectory
     open(23,file='msd_'//trim(nfile)//'_'//trim(mol_name)//'.dat') !open MSD(t) file for this trajectory
 
     do it = 0, ntimes - 1
         write(21,'(2F12.5)') real(it), c1(it)/real(2*nmol)
         write(22,'(2F12.5)') real(it), c2(it)/real(2*nmol)
+        write(24,'(2F12.5)') real(it), c3(it)/real(2*nmol)
         write(23,'(5F12.5)') real(it), (msd(it,k)/real(nmol), k=1,3)
     enddo
     close(21)

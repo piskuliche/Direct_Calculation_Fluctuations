@@ -3,7 +3,8 @@
 I realize this isn't a fortran program - but it was much simpler to write.
 """
 import numpy as np
-import time
+import time,sys
+from scipy.spatial.distance import pdist, squareform,cdist
 
 
 # Input Parameters
@@ -36,7 +37,8 @@ def calc_lj(mol1,mol2,eps,sig):
     """
     This calls the calc lj script
     """
-    dr = min_dist(rO[mol1],rO[mol2])[0]
+    #dr = min_dist(rO[mol1],rO[mol2])[0]
+    dr =1.0
     return LJ(dr,eps,sig)
 
 def calc_coul(mol1,mol2,qo,qh):
@@ -46,7 +48,8 @@ def calc_coul(mol1,mol2,qo,qh):
     terms = []
     # Note - there are more terms because there are many sites which have interactions! 
     # 2 water molecules, 3 atoms each - 9 total terms
-    # The donor and acceptor are tagged                 D  A
+    # The donor and acceptor are tagged     
+    """D  A
     terms.append([min_dist(rO[mol1],rO[mol2])[0],qo,qo]) # Ox Ox
     terms.append([min_dist(rO[mol1],r1[mol2])[0],qo,qh]) # Ox H1
     terms.append([min_dist(rO[mol1],r2[mol2])[0],qo,qh]) # Ox H2
@@ -55,11 +58,13 @@ def calc_coul(mol1,mol2,qo,qh):
     terms.append([min_dist(r1[mol1],r1[mol2])[0],qh,qh]) # H1 H1
     terms.append([min_dist(r2[mol1],r1[mol2])[0],qh,qh]) # H2 H1
     terms.append([min_dist(r1[mol1],r2[mol2])[0],qh,qh]) # H1 H2
-    terms.append([min_dist(r2[mol1],r2[mol2])[0],qh,qh]) # H2 H2
+    terms.append([min_dist(r2[mol1],r2[mol2])[0],qh,qh]) # H2 H2"""
     Ucoul=0
+    """
     # Sums up the terms
     for term in terms:
         Ucoul += Coul(term[0],term[1],term[2])
+    """
     return Ucoul
 
 
@@ -85,7 +90,7 @@ def calc_ang(dOO,dHO):
     """
     dHOO = np.arccos(np.around((doh**2. + dOO**2. - dHO**2.)/(2.*doh*dOO),4))
     return dHOO
-    
+
 def read_frames(filename):
     """
     Reads the frames within filename.
@@ -93,87 +98,103 @@ def read_frames(filename):
     rO = []
     r1 = []
     r2 = []
-    
+    eOO,dOO,dHO1,dHO2=[],[],[],[]
     with open(filename) as f:
         count = 0
         nmols = 0
         index = 0
+        frame = 0
         for line in f:
-            if len(line.split()) == 1:
+            if len(line.split()) == 1 and count > 0:
+                rO,r1,r2 = np.array(rO),np.array(r1),np.array(r2)
+                print(frame)
+                tmpx,tmpy,tmpz = cdist(rO[:,0],rO[:,0], lambda u, v: (v-u)),cdist(rO[:,1],rO[:,1], lambda u, v: (v-u)),cdist(rO[:,2],rO[:,2], lambda u, v: (v-u))
+                rOOx,rOOy,rOOz=tmpx-L*np.round(tmpx/L),tmpy-L*np.round(tmpy/L),tmpz-L*np.round(tmpz/L)
+                r1Ox,r1Oy,r1Oz=cdist(r1[:,0],rO[:,0])-L*np.round(cdist(r1[:,0],rO[:,0])/L),cdist(r1[:,1],rO[:,1])-L*np.round(cdist(r1[:,1],rO[:,1])/L),cdist(r1[:,2],rO[:,2])-L*np.round(cdist(r1[:,2],rO[:,2])/L)
+                r2Ox,r2Oy,r2Oz=cdist(r2[:,0],rO[:,0])-L*np.round(cdist(r2[:,0],rO[:,0])/L),cdist(r2[:,1],rO[:,1])-L*np.round(cdist(r2[:,1],rO[:,1])/L),cdist(r2[:,2],rO[:,2])-L*np.round(cdist(r2[:,2],rO[:,2])/L)
+                # These arrays take the shape of (time,mol1,mol2)
+                dOO.append(np.sqrt(rOOx**2. + rOOy**2. + rOOz**2.))
+                dHO1.append(np.sqrt(r1Ox**2. + r1Oy**2. + r1Oz**2.))
+                dHO2.append(np.sqrt(r2Ox**2. + r2Oy**2. + r2Oz**2.))
+                eOOx = np.divide(rOOx,dOO[frame],where=dOO[frame]!=0,out=np.zeros_like(rOOx))
+                eOOy = np.divide(rOOy,dOO[frame],where=dOO[frame]!=0,out=np.zeros_like(rOOy))
+                eOOz = np.divide(rOOz,dOO[frame],where=dOO[frame]!=0,out=np.zeros_like(rOOz))
+                eOO.append([eOOx,eOOy,eOOz])
                 count = 0
                 nmols = 0
+                index = 0
+                frame += 1
+                rO = []
+                r1 = []
+                r2 = []
             if len(line.split()) == 4:
                 # Check if oxygen
                 if count % 3 == 0:
                     # Read oxygen atoms and wrap boundary conditions
-                    rO.append([float(line.split()[1]), float(line.split()[2]), float(line.split()[3])])
+                    rO.append([[float(line.split()[1])], [float(line.split()[2])], [float(line.split()[3])]])
                 elif count % 3 == 1:
                     # Read in hydrogens and wrap boundary conditions
-                    r1x = float(line.split()[1]) - L*round((rO[index][0]-float(line.split()[1]))/L)
-                    r1y = float(line.split()[2]) - L*round((rO[index][1]-float(line.split()[2]))/L)
-                    r1z = float(line.split()[3]) - L*round((rO[index][1]-float(line.split()[3]))/L)
-                    r1.append([r1x, r1y, r1z])
+                    r1x = float(line.split()[1])
+                    r1x = r1x - L*round((rO[index][0][0]-r1x)/L)
+                    r1y = float(line.split()[2])
+                    r1y = r1y - L*round((rO[index][1][0]-r1y)/L)
+                    r1z = float(line.split()[3])
+                    r1z = r1z - L*round((rO[index][2][0]-r1z)/L)
+                    r1.append([[r1x], [r1y], [r1z]])
                 elif count % 3 == 2:
                     # Read in hydrogens and wrap boundary conditions
-                    r2x = float(line.split()[1]) - L*round((rO[index][0]-float(line.split()[1]))/L)
-                    r2y = float(line.split()[2]) - L*round((rO[index][1]-float(line.split()[2]))/L)
-                    r2z = float(line.split()[3]) - L*round((rO[index][2]-float(line.split()[3]))/L)
-                    r2.append([r2x, r2y, r2z])
+                    r2x = float(line.split()[1])
+                    r2x = r2x - L*round((rO[index][0][0]-r2x)/L)
+                    r2y = float(line.split()[2])
+                    r2y = r2y - L*round((rO[index][1][0]-r2y)/L)
+                    r2z = float(line.split()[3])
+                    r2z = r2z - L*round((rO[index][2][0]-r2z)/L)
+                    r2.append([[r2x], [r2y], [r2z]])
                     index += 1
                     nmols += 1
                 else:
                     print("Incorrect count during read")
                 count += 1
-    return nmols, rO, r1, r2
+    return nmols, dOO, dHO1, dHO2, np.moveaxis(eOO,1,3)
 
-def is_it_hbonded(mol1, mol2, rO, r1, r2, t, orig):
+def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2, t, orig):
     """
     Outputs whether it is hbonded or not.
     """
     hbonded = 0 # default not hbonded
     ehat = [0.0, 0.0, 0.0] # default not hbonded
     # Calculates OO Distance
-    dOO, droo = min_dist(rO[mol1+t],rO[mol2+t])
-    if dOO == 0.0: print(dOO,mol1,mol2)
-    if dOO < rOO_max:
+    if dOO[t][mol1][mol2] == 0.0: print(dOO[mol1][mol2],mol1,mol2)
+    if dOO[t][mol1][mol2] < rOO_max:
         # Calculates the distance of each OH on molecule 1 from the Oxygen
-        dHO1 = min_dist(r1[mol1+t], rO[mol2+t])[0]
-        dHO2 = min_dist(r2[mol1+t], rO[mol2+t])[0]
         if orig == 1 or orig == -1:
-            if dHO1 < rHO_max:
+            if dHO1[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (first OH)
-                dHOO1 = np.degrees(calc_ang(dOO, dHO1))
+                dHOO1 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO1[t][mol1][mol2]))
                 if dHOO1 < ang_max:
                     hbonded = 1
         if orig == 2 or orig == -1:
-            if dHO2 < rHO_max:
+            if dHO2[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (second OH)
-                dHOO2 = np.degrees(calc_ang(dOO, dHO2))
+                dHOO2 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO2[t][mol1][mol2]))
                 if dHOO2 < ang_max:
                     hbonded = 2
-    ehat = np.divide(droo,dOO)
-    return hbonded, ehat
+    return hbonded
 
-def calc_cn(e_o, e_t):
+def calc_c2(e_o, e_t):
     edote = np.dot(e_o, e_t)
-    c1 = edote
-    c2 = 0.5*(3*edote**2. - 1)
-    c3 = 0.5*(5*edote**3-3*edote)
-    return c1, c2, c3
+    return 0.5*(3*edote**2. - 1)
 
-def calc_jumpang(OH,rO,r1,r2,timeindex):
+def calc_jumpang(OH,eOO,t):
     """
     Calculates the jump angle after a switch
     """
     mol1, molo, mol2 = OH[0],OH[1],OH[6]
-    dro_old, oldvec = min_dist(rO[mol1+timeindex],rO[molo+timeindex])
-    dro_new, newvec = min_dist(rO[mol1+timeindex],rO[mol2+timeindex])
-    e_old = np.divide(oldvec, dro_old)
-    e_new = np.divide(newvec, dro_new)
+    e_old=eOO[t][mol1][molo]
+    e_new=eOO[t][mol1][mol2]
     theta = np.arccos(np.dot(e_old, e_new))
     return theta
 
-tstart =time.time()
 
 # Read Corr Calc Input File
 inpfile='corr_calc.in'
@@ -200,7 +221,7 @@ filename = 'traj_'+str(nfile)+'_'+str(mol_name)+'.xyz'
 
 # Read the frames
 print('Reading frames')
-nmols, rO, r1, r2 = read_frames(filename)
+nmols, dOO, dHO1, dHO2, eOO= read_frames(filename)
 # Determine initial HBONDS (time 0)
 
 """
@@ -210,16 +231,15 @@ Form of the OHs vector:
     The second index provides the column of interest which is separated into a few different parts
     moloh mola,old on? moldonor1 moldonor2 mola,new
 """
-OHs,ehat_init = [],[]
+OHs = []
 
 print('Calculating initial hbonds')
 for mol1 in range(nmols):
     for mol2 in range(nmols):
         if mol1 != mol2:
-            hbnd, ehat = is_it_hbonded(mol1, mol2, rO, r1, r2,0,-1) # hbnd has options 0 (not hbonded) 1 (first oh hbonded) and 2 (second oh hbonded)
+            hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,0,-1) # hbnd has options 0 (not hbonded) 1 (first oh hbonded) and 2 (second oh hbonded)
             if hbnd != 0:
                 OHs.append([mol1,mol2,hbnd])
-                ehat_init.append(ehat)
 
 # This section checks for donors (up to a maximum of 3)
 for OH1 in range(len(OHs)):
@@ -249,15 +269,19 @@ print("There are %s OHs" % len(OHs))
 nval = int(ntimes/10.)
 
 crp = np.zeros((len(OHs),ntimes))
-c1,c2,c3  = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))
+c2  = np.zeros((len(OHs), ntimes))
 norm_t = np.zeros(ntimes)
 theta = []
 steps = [0]
-m = open('normoldcode.dat','w')
+
+m=open('normnew.dat','w')
 # Loop over time, checks if hbonded still
+t0=time.time()
 for n in range(1,ntimes):
     if n%nval == 0:
-        print("Step Reached: %d" % n)
+        t1 = time.time()
+        print("Step Reached: %d, Av Step Time %s seconds" % (n,(t1-t0)/float(nval)))
+        t0 = time.time()
     steps.append(n)
     timeindex = n*nmols
     for OH in range(len(OHs)):
@@ -266,24 +290,22 @@ for n in range(1,ntimes):
         for mol2 in range(nmols):
             hbnd = 0
             if mol1 != mol2 and OHs[OH][2] != 0:
-                hbnd, ehat = is_it_hbonded(mol1, mol2, rO, r1, r2, timeindex,OHs[OH][2])
+                hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2, n,OHs[OH][2])
                 if hbnd != 0:
                     if OHs[OH][1] == mol2: # Same Acceptor
                         crp[OH][n]+=0
-                        # Calculates the oo cn
-                        c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(ehat_init[OH],ehat)
+                        # Calculates the oo c2
+                        c2[OH][n]=calc_c2(eOO[0][mol1][mol2],eOO[n][mol1][mol2])
                         # Time dependent normalization
                         norm_t[n] += 1.0
                     else: # New Acceptor
                         crp[OH][n]+=1
-                        c1[mol1][n]=0.0
                         c2[mol1][n]=0.0
-                        c3[mol1][n]=0.0
                         OHs[OH][2]=0
                         OHs[OH].append(mol2)
-                        theta.append(calc_jumpang(OHs[OH],rO,r1,r2,timeindex))
+                        theta.append(calc_jumpang(OHs[OH],eOO,n))
                 if hbnd == 0 and mol2 == OHs[OH][1]:
-                    c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(ehat_init[OH],ehat)
+                    c2[OH][n]=calc_c2(eOO[0][mol1][mol2],eOO[n][mol1][mol2])
                     norm_t[n] += 1.0 
     m.write("%s %s\n" % (n,norm_t[n]))
 m.close()
@@ -295,10 +317,9 @@ for OH in range(len(OHs)):
 
 print("Jiggying up final calculations")
 
-C1 = np.divide(np.sum(c1,axis=0),norm_t,out=np.zeros_like(np.sum(c1,axis=0)),where=norm_t!=0)
+
 C2 = np.divide(np.sum(c2,axis=0),norm_t,out=np.zeros_like(np.sum(c2,axis=0)),where=norm_t!=0)
-C3 = np.divide(np.sum(c3,axis=0),norm_t,out=np.zeros_like(np.sum(c3,axis=0)),where=norm_t!=0)
-C1[0],C2[0],C3[0]=1.0,1.0,1.0
+C2[0]=1.0
 
 CRP = np.average(crp,axis=0)
 
@@ -362,9 +383,7 @@ for b in range(50):
 
 np.savetxt('theta_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[bins,tht], fmt="%2.5f")
 np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
-np.savetxt('framec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C1, norm_t], fmt="%2.5f")
-np.savetxt('framec2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
-np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm_t], fmt="%2.5f")
+np.savetxt('frame_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
 np.savetxt('LJAnew_init.out', np.c_[np.sum(Ulj["Anew"])])
 np.savetxt('LJD_init.out', np.c_[np.sum(Ulj["D"])])
@@ -372,4 +391,4 @@ np.savetxt('CAold_init.out', np.c_[np.sum(UCoul["Aold"])])
 np.savetxt('CAnew_init.out', np.c_[np.sum(UCoul["Anew"])])
 np.savetxt('CD_init.out', np.c_[np.sum(UCoul["D"])])
 
-print("time", time.time()-tstart)       
+                

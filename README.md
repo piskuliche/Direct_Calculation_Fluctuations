@@ -3,10 +3,15 @@ This code is copyright April 2019 by Ezekiel Piskulich, Univerisity of Kansas. U
 # Fluctuation Theory for Dynamics (DCM)
 
 This code is a general use code developed to calcualte derivatives (T,P) of time correlation functions (TCFs) from Molecular Dynamics simulations. The code thus far includes support for:
+
     - Mean-Squared Displacement
+
     - Reorientation (C1, C2)
+
     - Jump Reorientation (Currently a beta feature, not completed)
+
     - Viscosity (Shear)
+
     - Reactive Flux (Flux-Side)
 
 Adding new correlation functions is relatively simple, you just need to add a fortran code and then the subsequent calls to the submission script generation python code (gen\_sub\_scripts.py).

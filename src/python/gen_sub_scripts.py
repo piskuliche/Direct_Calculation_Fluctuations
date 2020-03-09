@@ -28,6 +28,13 @@ def read_machine():
 import numpy as np
 import sys
 from src.python.read_input import user_input
+import os
+
+corr_func=["crp","framec2","msd","c2"]
+if os.path.isfile("corr.funcs"):
+    corr_func=np.genfromtxt("corr.funcs",usecols=0,dtype=str)
+
+    
 
 machine, homepath = read_machine()
 
@@ -105,14 +112,14 @@ if inputparam.cab == "TRANSPORT":
         dcn.write("    echo %s > mol.info\n" % inputparam.molec[i])
         dcn.write("    set_msd_calcs.py\n")
         if inputparam.molec[i] == "water":
-            dcn.write("    msd_rot_calc < corr_calc.in\n")
-            dcn.write("    jump_rot.py\n")
+            if "msd" or "c2" in corr_func: dcn.write("    msd_rot_calc < corr_calc.in\n")
+            if "crp" or "frame" in corr_func: dcn.write("    jump_rot.py\n")
         else:
-            dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
+            if "msd" in corr_func: dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
     dcn.write("    \n")
     if inputparam.prog == "LAMMPS":
-        dcn.write("    grab_press.py\n")
-        dcn.write("    visc_calc\n")
+        if "shear" in corr_func: dcn.write("    grab_press.py\n")
+        if "shear" in corr_func: dcn.write("    visc_calc\n")
         dcn.write("    \n")
 elif inputparam.cab == "IONPAIRING":
     dcn.write('    echo %s > mol.info\n' % inputparam.molec[0])
@@ -166,13 +173,13 @@ if inputparam.cab == "TRANSPORT":
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])
         nve.write('set_msd_calcs.py\n')
         if inputparam.molec[i] == "water":
-            nve.write('msd_rot_calc < corr_calc.in\n\n')
-            nve.write('jump_rot.py\n')
+            if "msd" or "c2" in corr_func: nve.write('msd_rot_calc < corr_calc.in\n\n')
+            if "crp" or "frame" in corr_func: nve.write('jump_rot.py\n')
         else:
-            nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
+            if "msd" or "c2" in corr_func: nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
     if inputparam.prog == "LAMMPS":
-        nve.write('grab_press.py\n\n')
-        nve.write('visc_calc\n')
+        if "shear" in corr_func: nve.write('grab_press.py\n\n')
+        if "shear" in corr_func: nve.write('visc_calc\n')
 elif inputparam.cab == "IONPAIRING":
     nve.write('echo %s > mol.info\n' % inputparam.molec[0])
     nve.write('set_msd_calcs.py \n')
@@ -208,19 +215,32 @@ iarr.write("cd $SLURM_SUBMIT_DIR\n")
 
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr msd -mol %s\n" % inputparam.molec[i])
-        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
+        if "msd" in corr_func: 
+            iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr msd -mol %s\n" % inputparam.molec[i])
+        if "c1" in corr_func: iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s\n" % inputparam.molec[i])
+        if "c2" in corr_func: iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
+        if "c3" in corr_func: iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s\n" % inputparam.molec[i])
+        if "cn" in corr_func:
+            iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s\n" % inputparam.molec[i])
+            iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
+            iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s\n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
     iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_f -mol water\n")
     iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_b -mol water\n")
 
 if inputparam.prog == "LAMMPS":
-    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water\n")
+    if "shear" in corr_func: 
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water\n")
 
 if "water" in inputparam.molec:
-    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water\n")
-    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr frame -mol water\n")
-    iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
+    if "crp" in corr_func: 
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water\n")
+    if "frame" in corr_func:
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec1 -mol water\n")
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec2 -mol water\n")
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec3 -mol water\n")
+    if "theta" in corr_func:
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 
 iarr.close()
 
@@ -241,19 +261,34 @@ darr.write("#SBATCH --time=06:00:00\n")
 darr.write("module load Dir_Calc_Fluct\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
-        darr.write("combine_segments.py -fname flucts.inp -corr msd -mol %s\n" % (inputparam.molec[i]))
-        darr.write("combine_segments.py -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
+        if "msd" in corr_func:
+            darr.write("combine_segments.py -fname flucts.inp -corr msd -mol %s\n" % (inputparam.molec[i]))
+        if "c1" in corr_func:
+            darr.write("combine_segments.py -fname flucts.inp -corr c1 -mol %s\n" % (inputparam.molec[i])) 
+        if "c2" in corr_func:
+            darr.write("combine_segments.py -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
+        if "c3" in corr_func:
+            darr.write("combine_segments.py -fname flucts.inp -corr c3 -mol %s\n" % (inputparam.molec[i]))
+        if "cn" in corr_func:
+            darr.write("combine_segments.py -fname flucts.inp -corr c1 -mol %s\n" % (inputparam.molec[i]))
+            darr.write("combine_segments.py -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
+            darr.write("combine_segments.py -fname flucts.inp -corr c3 -mol %s\n" % (inputparam.molec[i]))
 elif inputparam.cab == "IONPAIRING":
     darr.write("combine_segments.py -fname flucts.inp -corr fsc_f -mol %s\n" % (inputparam.molec[0]))
     darr.write("combine_segments.py -fname flucts.inp -corr fsc_b -mol %s\n" % (inputparam.molec[0]))
 
 if inputparam.prog == "LAMMPS":
-    darr.write("combine_segments.py -fname flucts.inp -corr shear -mol %s\n" % (inputparam.molec[0]))
+    if "shear" in corr_func: darr.write("combine_segments.py -fname flucts.inp -corr shear -mol %s\n" % (inputparam.molec[0]))
 
 if "water" in inputparam.molec:
-    darr.write("combine_segments.py -fname flucts.inp -corr crp -mol water\n")
-    darr.write("combine_segments.py -fname flucts.inp -corr frame -mol water\n")
-    darr.write("combine_segments.py -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
+    if "crp" in corr_func:
+        darr.write("combine_segments.py -fname flucts.inp -corr crp -mol water\n")
+    if "frame" in corr_func:
+        darr.write("combine_segments.py -fname flucts.inp -corr framec1 -mol water\n")
+        darr.write("combine_segments.py -fname flucts.inp -corr framec2 -mol water\n")
+        darr.write("combine_segments.py -fname flucts.inp -corr framec3 -mol water\n")
+    if "theta" in corr_func:
+        darr.write("combine_segments.py -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 darr.close()
 
 # Generate Flucts Script

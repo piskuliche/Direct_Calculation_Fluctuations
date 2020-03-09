@@ -206,11 +206,16 @@ def step_checkup():
     return
 
 def step_comboflucts():
+    """
+    This step calls the enhanced decompositions
+    Eventually this flag will become depreciated.
+    By default, this step is skipped
+    """
     flag='.flag_comboflucts'
     flag_exists = os.path.isfile(flag)
     sp_exists = os.path.isfile("flucts.special.inp")
-    if flag_exists:
-        print("Combo Flucts Flag Exists.")
+    if not flag_exists:
+        print("Combo Flucts Flag Exists,skipping.")
     else:
         print("Combo Flucts Flag Missing")
         if "water" not in inputparam.molec:
@@ -228,6 +233,10 @@ def step_comboflucts():
 
 
 def step_grabflucts():
+    """
+    This step calculates the energy fluctuations in the TOTAL energies by looking at each directory
+    and combining them.
+    """
     flag='.flag_grabflucts'
     flag_exists = os.path.isfile(flag)
     if flag_exists:
@@ -254,6 +263,21 @@ def step_segarray():
     """
     flag='.flag_segarray'
     flag_exists = os.path.isfile(flag)
+    # Creates electrostatics
+    if os.path.isfile('ewald_init.out') and os.path.isfile('coul_init.out'):
+        ewald,coul = np.genfromtxt('ewald_init.out',usecols=0),np.genfromtxt('coul_init.out',usecols=0)
+        elec = np.add(ewald,coul)
+        np.savetxt('elec_init.out',np.c_[elec])
+        with open('flucts.inp','r') as f:
+            lines = f.readlines()
+            segflag=0
+            for line in lines:
+                if "elec" in line:
+                    segflag = 1
+        if segflag != 1:
+            f = open("flucts.inp",'a')
+            f.write("elec 0\n")
+            f.close()
     if flag_exists:
         print("Segment Creation Array Flag Exists.")
     else:
