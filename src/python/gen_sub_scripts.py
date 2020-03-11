@@ -239,6 +239,9 @@ if "water" in inputparam.molec:
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec1 -mol water\n")
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec2 -mol water\n")
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec3 -mol water\n")
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framech1 -mol water\n")
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framech2 -mol water\n")
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framech3 -mol water\n")
     if "theta" in corr_func:
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 
@@ -287,6 +290,9 @@ if "water" in inputparam.molec:
         darr.write("combine_segments.py -fname flucts.inp -corr framec1 -mol water\n")
         darr.write("combine_segments.py -fname flucts.inp -corr framec2 -mol water\n")
         darr.write("combine_segments.py -fname flucts.inp -corr framec3 -mol water\n")
+        darr.write("combine_segments.py -fname flucts.inp -corr framech1 -mol water\n")
+        darr.write("combine_segments.py -fname flucts.inp -corr framech2 -mol water\n")
+        darr.write("combine_segments.py -fname flucts.inp -corr framech3 -mol water\n")
     if "theta" in corr_func:
         darr.write("combine_segments.py -fname flucts.inp -corr theta -mol water -timeoverride 1 -foverride time.override\n")
 darr.close()

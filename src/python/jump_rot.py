@@ -83,12 +83,17 @@ def min_dist(a, b):
     drfinal = np.sqrt(dsq)
     return drfinal, dr
 
-def calc_ang(dOO,dHO):
+def calc_ang(dOO,dOH):
     """
     Calculates the hbond jump angle.
     Note - doh is described aboved
     """
-    dHOO = np.arccos(np.around((doh**2. + dOO**2. - dHO**2.)/(2.*doh*dOO),4))
+    dHOO = np.arccos(np.around((doh**2. + dOO**2. - dOH**2.)/(2.*doh*dOO),4))
+    return dHOO
+
+def calc_ang1(eOO,eOH,dOO,dOH):
+    edote = np.dot(eOO,eOH)
+    dHOO = np.arccos(edote)
     return dHOO
 
 
@@ -107,7 +112,7 @@ def read_frames(f,t):
     rO = []
     r1 = []
     r2 = []
-    eOO,dOO,dHO1,dHO2=[],[],[],[]
+    eOO,eO1,eO1,dOO,dHO1,dHO2=[],[],[],[],[],[]
     count = 0
     nmols = 0
     index = 0
@@ -122,8 +127,10 @@ def read_frames(f,t):
             dOO=tmprOO
             dHO1=tmpr1O
             dHO2=tmpr2O
-            eOO=tmpeOO
-            return nmols, dOO, dHO1, dHO2, eOO
+            eOO=-tmpeOO
+            eO1=tmpe1O
+            eO2=tmpe2O
+            return nmols, dOO, dHO1, dHO2, eOO,eO1,eO2
         if len(line.split()) == 4:
             # Check if oxygen
             if count % 3 == 0:
@@ -153,14 +160,13 @@ def read_frames(f,t):
                 print("Incorrect count during read")
             count += 1
     print("read complete")
-    return nmols, dOO, dHO1, dHO2, eOO
+    return nmols, dOO, dHO1, dHO2, eOO,eO1,eO2
 
-def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2, t, orig):
+def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,eOO,eO1,eO2, t, orig):
     """
     Outputs whether it is hbonded or not.
     """
     hbonded = 0 # default not hbonded
-    ehat = [0.0, 0.0, 0.0] # default not hbonded
     # Calculates OO Distance
     if dOO[t][mol1][mol2] == 0.0: print(dOO[mol1][mol2],mol1,mol2)
     if dOO[t][mol1][mol2] < rOO_max:
@@ -168,13 +174,15 @@ def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2, t, orig):
         if orig == 1 or orig == -1:
             if dHO1[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (first OH)
-                dHOO1 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO1[t][mol1][mol2]))
+                #dHOO1 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO1[t][mol1][mol2]))
+                dHOO1 = np.degrees(calc_ang1(eOO[t][mol1][mol2],eO1[t][mol1][mol1],dOO[t][mol1][mol2], dHO1[t][mol1][mol1]))
                 if dHOO1 < ang_max:
                     hbonded = 1
         if orig == 2 or orig == -1:
             if dHO2[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (second OH)
-                dHOO2 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO2[t][mol1][mol2]))
+                #dHOO2 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO2[t][mol1][mol2]))
+                dHOO2 = np.degrees(calc_ang1(eOO[t][mol1][mol2],eO2[t][mol1][mol1],dOO[t][mol1][mol2], dHO2[t][mol1][mol1]))
                 if dHOO2 < ang_max:
                     hbonded = 2
     return hbonded
@@ -224,11 +232,13 @@ filename = 'traj_'+str(nfile)+'_'+str(mol_name)+'.xyz'
 print('Reading frames')
 tread=time.time()
 f=open(filename,'r')
-nmols, dOOo, dHO1o, dHO2o, eOOo= read_frames(f,0)
+nmols, dOOo, dHO1o, dHO2o, eOOo,eO1o,eO2o= read_frames(f,0)
 dOO=np.array([dOOo,dOOo])
 dHO1=np.array([dHO1o,dHO1o])
 dHO2=np.array([dHO2o,dHO2o])
 eOO=np.array([eOOo,eOOo])
+eO1=np.array([eO1o,eO1o])
+eO2=np.array([eO2o,eO2o])
 print('Reading complete: %2.5f seconds' % (time.time()-tread))
 # Determine initial HBONDS (time 0)
 """
@@ -244,7 +254,7 @@ print('Calculating initial hbonds')
 for mol1 in range(nmols):
     for mol2 in range(nmols):
         if mol1 != mol2:
-            hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,0,-1) # hbnd has options 0 (not hbonded) 1 (first oh hbonded) and 2 (second oh hbonded)
+            hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1,dHO2,eOO,eO1,eO2,0,-1) # hbnd has options 0 (not hbonded) 1 (first oh hbonded) and 2 (second oh hbonded)
             if hbnd != 0:
                 OHs.append([mol1,mol2,hbnd])
 
@@ -283,6 +293,7 @@ nval = int(ntimes/10.)
 
 crp = np.zeros((len(OHs),ntimes))
 c1,c2,c3  = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))
+ch1,ch2,ch3 = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))
 norm_t = np.zeros(ntimes)
 theta = []
 
@@ -290,7 +301,7 @@ theta = []
 t0=time.time()
 end=0
 for n in range(1,ntimes):
-    nmols, dOO[1], dHO1[1], dHO2[1], eOO[1]= read_frames(f,0)
+    nmols, dOO[1], dHO1[1], dHO2[1], eOO[1],eO1[1],eO2[1]= read_frames(f,0)
     if n%nval == 0:
         t1 = time.time()
         print("Step Reached: %2.5f (ps), Av Step Time %s seconds" % (n*dt*1000,(t1-t0)/float(nval)))
@@ -303,22 +314,31 @@ for n in range(1,ntimes):
         for mol2 in range(nmols):
             hbnd = 0
             if mol1 != mol2 and OHs[OH][2] != 0:
-                hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2, 1,OHs[OH][2])
+                hbnd = is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,eOO,eO1,eO2, 1,OHs[OH][2])
                 if hbnd != 0:
                     if OHs[OH][1] == mol2: # Same Acceptor
                         crp[OH][n] += 0
                         # Calculates the oo c2
                         c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(eOO[0][mol1][mol2],eOO[1][mol1][mol2])
+                        if OHs[OH][2] == 1:
+                            ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO1[0][mol1][mol1],eO1[1][mol1][mol1])
+                        else:
+                            ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO2[0][mol1][mol1],eO2[1][mol1][mol1])
                         # Time dependent normalization
                         norm_t[n] += 1.0
                     else: # New Acceptor
                         crp[OH][n] += 1
                         c1[mol1][n],c2[mol1][n],c3[mol1][n]=0.0,0.0,0.0
+                        ch1[mol1][n],ch2[mol1][n],ch3[mol1][n]=0.0,0.0,0.0
                         OHs[OH][2]=0
                         OHs[OH][6]=mol2
                         theta.append(calc_jumpang(OHs[OH],eOO,1))
                 if hbnd == 0 and mol2 == OHs[OH][1]:
                     c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(eOO[0][mol1][mol2],eOO[1][mol1][mol2])
+                    if OHs[OH][2] == 1:
+                        ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO1[0][mol1][mol1],eO1[1][mol1][mol1])
+                    else:
+                        ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO2[0][mol1][mol1],eO2[1][mol1][mol1])
                     norm_t[n] += 1.0 
     if np.sum(np.array(OHs).T[2]>0) == 0:
         end = n+1
@@ -337,7 +357,11 @@ print("Jiggying up final calculations")
 C1 = np.divide(np.sum(c1,axis=0),norm_t,out=np.zeros_like(np.sum(c1,axis=0)),where=norm_t!=0)
 C2 = np.divide(np.sum(c2,axis=0),norm_t,out=np.zeros_like(np.sum(c2,axis=0)),where=norm_t!=0)
 C3 = np.divide(np.sum(c3,axis=0),norm_t,out=np.zeros_like(np.sum(c3,axis=0)),where=norm_t!=0)
+CH1 = np.divide(np.sum(ch1,axis=0),norm_t,out=np.zeros_like(np.sum(ch1,axis=0)),where=norm_t!=0)
+CH2 = np.divide(np.sum(ch2,axis=0),norm_t,out=np.zeros_like(np.sum(ch2,axis=0)),where=norm_t!=0)
+CH3 = np.divide(np.sum(ch3,axis=0),norm_t,out=np.zeros_like(np.sum(ch3,axis=0)),where=norm_t!=0)
 C1[0],C2[0],C3[0]=1.0,1.0,1.0
+CH1[0],CH2[0],CH3[0]=1.0,1.0,1.0
 CRP = np.average(crp,axis=0)
 
 UCRP={"LJAold":np.zeros((len(OHs),ntimes)), "LJAnew":np.zeros((len(OHs),ntimes)), "LJD":np.zeros((len(OHs),ntimes)),"CAold":np.zeros((len(OHs),ntimes)),"CAnew":np.zeros((len(OHs),ntimes)), "CD":np.zeros((len(OHs),ntimes))}
@@ -407,6 +431,10 @@ np.savetxt('hbnd_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, norm_t], fm
 np.savetxt('framec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C1, norm_t], fmt="%2.5f")
 np.savetxt('framec2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
 np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm_t], fmt="%2.5f")
+np.savetxt('framech1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH1, norm_t], fmt="%2.5f")
+np.savetxt('framech2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH2, norm_t], fmt="%2.5f")
+np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, norm_t], fmt="%2.5f")
+
 """
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
 np.savetxt('LJAnew_init.out', np.c_[np.sum(Ulj["Anew"])])
