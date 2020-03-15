@@ -4,10 +4,17 @@ I realize this isn't a fortran program - but it was much simpler to write.
 """
 import numpy as np
 import time,sys
+import argparse
 from scipy.spatial.distance import pdist, squareform,cdist
 
 
 # Input Parameters
+
+parser=argparse.ArgumentParser()
+parser.add_argument('-late_hbond', default=2000,type=int,help="At what timestep should jumps be split into early or late.")
+args = parser.parse_args()
+
+late_hbond = args.late_hbond
 
 # SPC/E Water Model
 
@@ -83,21 +90,26 @@ def min_dist(a, b):
     drfinal = np.sqrt(dsq)
     return drfinal, dr
 
-def calc_ang(dOO,dOH):
-    """
-    Calculates the hbond jump angle.
-    Note - doh is described aboved
-    """
-    dHOO = np.arccos(np.around((doh**2. + dOO**2. - dOH**2.)/(2.*doh*dOO),4))
-    return dHOO
 
-def calc_ang1(eOO,eOH,dOO,dOH):
+def calc_ang(eOO,eOH,dOO,dOH):
+    """
+    This calculates the angle between the Od->Oa vector and the Od->Hd vector
+    This gives the angle of the hydrogen bond
+    Note - output is in radians!
+    """
     edote = np.dot(eOO,eOH)
     dHOO = np.arccos(edote)
     return dHOO
 
 
 def dist_components(rA,rB):
+    """
+    This is a pretty complicated function to do a simple thing.
+    This code takes two vectors of size(m,3) and size(n,3)
+    Then it uses numpy broadcasting to calculate ALL the pairwise distances and outputs them in a matrix, sized (m,n,3)
+    Then I use it to calculate the distances, and the vectors.
+    (described here: https://stackoverflow.com/questions/60039982/numpy-python-vectorize-distance-function-to-calculate-pairwise-distance-of-2-ma/60040269#60040269)
+    """
     vecdr = rA[:,np.newaxis,:]-rB[np.newaxis,:,:]
     vecdr = vecdr - np.multiply(L,np.round(np.divide(vecdr,L)))
     dr = np.linalg.norm(vecdr,axis=-1)
@@ -109,13 +121,10 @@ def read_frames(f,t):
     """
     Reads the frames within filename.
     """
-    rO = []
-    r1 = []
-    r2 = []
+    # Defines output arrays
+    rO,r1,r2 = [],[],[]
     eOO,eO1,eO1,dOO,dHO1,dHO2=[],[],[],[],[],[]
-    count = 0
-    nmols = 0
-    index = 0
+    count,nmols,index = 0,0,0
     while True:
         line = f.readline()
         if len(line.split()) == 1 and count > 0:
@@ -124,13 +133,9 @@ def read_frames(f,t):
             tmpe1O,tmpr1O=dist_components(r1,rO)
             tmpe2O,tmpr2O=dist_components(r2,rO)
             # These arrays take the shape of (time,mol1,mol2)
-            dOO=tmprOO
-            dHO1=tmpr1O
-            dHO2=tmpr2O
-            eOO=-tmpeOO
-            eO1=tmpe1O
-            eO2=tmpe2O
-            return nmols, dOO, dHO1, dHO2, eOO,eO1,eO2
+            dOO,dHO1,dHO2 = tmprOO,tmpr1O,tmpr2O
+            eOO,eO1,eO2   = -tmpeOO, tmpe1O, tmpe2O # The minus sign is intentional - by default it gives the wrong direction - need to reverse it!
+            return nmols, dOO, dHO1, dHO2, eOO, eO1, eO2
         if len(line.split()) == 4:
             # Check if oxygen
             if count % 3 == 0:
@@ -165,6 +170,14 @@ def read_frames(f,t):
 def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,eOO,eO1,eO2, t, orig):
     """
     Outputs whether it is hbonded or not.
+
+    This works based on three criteria:
+    1) is the OO distance < rOO_max
+    2) is the HO distance < rOH_max
+    3) is the HOO angle   < ang_max
+
+    If yes to all three, outputs 1 or 2 depending on which hydrogen is involved in the hbond,
+    otherwise, outputs 0.
     """
     hbonded = 0 # default not hbonded
     # Calculates OO Distance
@@ -174,20 +187,27 @@ def is_it_hbonded(mol1, mol2, dOO, dHO1, dHO2,eOO,eO1,eO2, t, orig):
         if orig == 1 or orig == -1:
             if dHO1[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (first OH)
-                #dHOO1 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO1[t][mol1][mol2]))
-                dHOO1 = np.degrees(calc_ang1(eOO[t][mol1][mol2],eO1[t][mol1][mol1],dOO[t][mol1][mol2], dHO1[t][mol1][mol1]))
+                dHOO1 = np.degrees(calc_ang(eOO[t][mol1][mol2],eO1[t][mol1][mol1],dOO[t][mol1][mol2], dHO1[t][mol1][mol1]))
                 if dHOO1 < ang_max:
                     hbonded = 1
         if orig == 2 or orig == -1:
             if dHO2[t][mol1][mol2] < rHO_max:
                 # Calculates the Angle of HOO from the donor and acceptor (second OH)
-                #dHOO2 = np.degrees(calc_ang(dOO[t][mol1][mol2], dHO2[t][mol1][mol2]))
-                dHOO2 = np.degrees(calc_ang1(eOO[t][mol1][mol2],eO2[t][mol1][mol1],dOO[t][mol1][mol2], dHO2[t][mol1][mol1]))
+                dHOO2 = np.degrees(calc_ang(eOO[t][mol1][mol2],eO2[t][mol1][mol1],dOO[t][mol1][mol2], dHO2[t][mol1][mol1]))
                 if dHOO2 < ang_max:
                     hbonded = 2
     return hbonded
 
 def calc_cn(e_o, e_t):
+    """
+    This calculates the value of the reorientational correlation functions (orders = 1-3)
+    These are described in successive orders of the legendre polynomials
+    P1 = x
+    P2 = 0.5(3x^2 - 1)
+    P3 = 0.5(5x^3 - 3x)
+    
+    Output: A tuple of the results of all 3.
+    """
     edote = np.dot(e_o, e_t)
     c1 = edote
     c2 = 0.5*(3*edote**2. - 1)
@@ -197,6 +217,11 @@ def calc_cn(e_o, e_t):
 def calc_jumpang(OH,eOO,t):
     """
     Calculates the jump angle after a switch
+    
+    This is defined as the angle between the vectors
+    Od->Oa0 (original acceptor angle at time of jump)
+    Od->Oan (new acceptor angle at the time of the jump)
+    Output: the angle of the jump in radians.
     """
     mol1, molo, mol2 = OH[0],OH[1],OH[6]
     e_old=eOO[t][mol1][molo]
@@ -239,7 +264,7 @@ dHO2=np.array([dHO2o,dHO2o])
 eOO=np.array([eOOo,eOOo])
 eO1=np.array([eO1o,eO1o])
 eO2=np.array([eO2o,eO2o])
-print('Reading complete: %2.5f seconds' % (time.time()-tread))
+print('Initial Frame Reading Complete: %2.5f seconds' % (time.time()-tread))
 # Determine initial HBONDS (time 0)
 """
 Form of the OHs vector:
@@ -291,25 +316,37 @@ print("%d hydrogen bonds" % np.sum(np.array(OHs).T[2]>0))
 # Sets frequency to print progress.
 nval = int(ntimes/10.)
 
-crp = np.zeros((len(OHs),ntimes))
-c1,c2,c3  = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))
-ch1,ch2,ch3 = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))
-norm_t = np.zeros(ntimes)
-theta = []
+crp = np.zeros((len(OHs),ntimes))                                                                       # This is the jump correlation function (side-side TCF)
+c1,c2,c3  = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))      # These are the frame reorientation correlation functions Od-Oh
+ch1,ch2,ch3 = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))    # These are the frame reorientation correlation functions OHd
+norm_t = np.zeros(ntimes)                                                                               # This is the hydrogen bond extinction correlation function
+theta = []                                                                                              # This is the jump angle distribution - note NOT A TCF
 
-# Loop over time, checks if hbonded still
+# Setup Data Structure for Separating Frame Contributions
+is_hbond_late = np.zeros(len(OHs))  # fills with 1s or 0s, default is not
+
+
+
+
+# Loop over time, checks if hbonded at each time
+"""
+This section calls the loop over times.
+
+Note, the loop goes over times, then loops over OHs, and then loops over every other molecule.
+There are separate correlation functions calculated for the frame reorientation of the OO and the OH.
+"""
+
 t0=time.time()
 end=0
-for n in range(1,ntimes):
-    nmols, dOO[1], dHO1[1], dHO2[1], eOO[1],eO1[1],eO2[1]= read_frames(f,0)
-    if n%nval == 0:
+for n in range(1,ntimes): # Loop Over Times
+    nmols, dOO[1], dHO1[1], dHO2[1], eOO[1],eO1[1],eO2[1]= read_frames(f,0)   
+    if n%nval == 0: # Outputs information to the screen, what step is reached, how much time has elapsed, and the # of hbonds
         t1 = time.time()
-        print("Step Reached: %2.5f (ps), Av Step Time %s seconds" % (n*dt*1000,(t1-t0)/float(nval)))
+        print("Step Reached: %2.2f (ps), Av Step Time %s seconds" % (n*dt,(t1-t0)/float(nval)))
         print("%d hydrogen bonds" % np.sum(np.array(OHs).T[2]>0))
         t0 = time.time()
-    timeindex = n*nmols
-    for OH in range(len(OHs)):
-        crp[OH][n] = crp[OH][n-1]
+    for OH in range(len(OHs)): # Loop over OHs.
+        crp[OH][n] = crp[OH][n-1] # Sets the value of crp to the value at the previous step
         mol1 = OHs[OH][0]
         for mol2 in range(nmols):
             hbnd = 0
@@ -327,6 +364,7 @@ for n in range(1,ntimes):
                         # Time dependent normalization
                         norm_t[n] += 1.0
                     else: # New Acceptor
+                        if n >= late_hbond: is_hbond_late[OH] = 1.0   # This sets a boolean element to 1 if the hbond lasts a very long time.
                         crp[OH][n] += 1
                         c1[mol1][n],c2[mol1][n],c3[mol1][n]=0.0,0.0,0.0
                         ch1[mol1][n],ch2[mol1][n],ch3[mol1][n]=0.0,0.0,0.0
@@ -343,6 +381,11 @@ for n in range(1,ntimes):
     if np.sum(np.array(OHs).T[2]>0) == 0:
         end = n+1
         break
+f.close()
+# This ends the time loop
+
+# This is added to make sure that the correlations are calculated even past 
+# the point at which there are no longer hydrogen bonds (just sets the remaining elements to 1)
 for n in range(end,ntimes):
     for OH in range(len(OHs)):
         crp[OH][n] += 1
@@ -350,20 +393,38 @@ for n in range(end,ntimes):
 for OH in range(len(OHs)):
     if len(OHs[OH]) != 7:
         OHs[OH].append(-1) 
-f.close()
+
+# This calculates the jump correlations based on whether they are hydrogen bonded or not.
+c1_early,c1_late=c1[is_hbond_late==0.0],c1[is_hbond_late==1.0]
+num_early,num_late = np.shape(c1_early)[0],np.shape(c1_late)[0]
+early_norm = np.subtract(norm_t, num_late)
+print(num_early,num_late)
+EC1 = np.divide(np.sum(c1_early,axis=0),early_norm, where=early_norm!=0,out=np.zeros_like(np.sum(c1_early,axis=0)))
+LC1 = []
+late_norm = np.subtract(norm_t,num_early)
+if num_late != 0:
+    LC1 = np.divide(np.sum(c1_late,axis=0),late_norm, where=late_norm!=0, out=np.zeros_like(np.sum(c1_late,axis=0)))
+else:
+    LC1 = np.zeros(ntimes)
+
+EC1[0],LC1[0] = 0.0,0.0
 
 print("Jiggying up final calculations")
 
+# This section averages all the frame contributions by dividing by the time dependent normalization.
 C1 = np.divide(np.sum(c1,axis=0),norm_t,out=np.zeros_like(np.sum(c1,axis=0)),where=norm_t!=0)
 C2 = np.divide(np.sum(c2,axis=0),norm_t,out=np.zeros_like(np.sum(c2,axis=0)),where=norm_t!=0)
 C3 = np.divide(np.sum(c3,axis=0),norm_t,out=np.zeros_like(np.sum(c3,axis=0)),where=norm_t!=0)
 CH1 = np.divide(np.sum(ch1,axis=0),norm_t,out=np.zeros_like(np.sum(ch1,axis=0)),where=norm_t!=0)
 CH2 = np.divide(np.sum(ch2,axis=0),norm_t,out=np.zeros_like(np.sum(ch2,axis=0)),where=norm_t!=0)
 CH3 = np.divide(np.sum(ch3,axis=0),norm_t,out=np.zeros_like(np.sum(ch3,axis=0)),where=norm_t!=0)
+# Sets the first element (which isn't otherwise calculated) to the correct initial value
 C1[0],C2[0],C3[0]=1.0,1.0,1.0
 CH1[0],CH2[0],CH3[0]=1.0,1.0,1.0
 CRP = np.average(crp,axis=0)
 
+
+# This section is for the special decompositions, currently is disabled.
 UCRP={"LJAold":np.zeros((len(OHs),ntimes)), "LJAnew":np.zeros((len(OHs),ntimes)), "LJD":np.zeros((len(OHs),ntimes)),"CAold":np.zeros((len(OHs),ntimes)),"CAnew":np.zeros((len(OHs),ntimes)), "CD":np.zeros((len(OHs),ntimes))}
 UC2={"LJAold":np.zeros((len(OHs),ntimes)), "LJAnew":np.zeros((len(OHs),ntimes)), "LJD":np.zeros((len(OHs),ntimes)),"CAold":np.zeros((len(OHs),ntimes)),"CAnew":np.zeros((len(OHs),ntimes)), "CD":np.zeros((len(OHs),ntimes))}
 
@@ -415,6 +476,7 @@ for key in UC2:
     np.savetxt(key+'dframe_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,avc2[key]],fmt="%2.5f")
 """
 
+# This calulates the information for the jump angle and histograms it
 tht,bedge = np.histogram(theta, bins=50,range=(0,3))
 split=3/50.0
 bins=[]
@@ -422,12 +484,17 @@ print(len(tht),len(bins))
 for b in range(50):
     bins.append(b*split+split/2)
 
+# Defines the step size
 steps = np.linspace(0,ntimes-1,num=ntimes)
-
+# Defines the normalization at time 0
 norm_t[0]=len(OHs)
+
+# Outputs all the calculated correlation functions
+np.savetxt('ec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,EC1], fmt="%2.5f")
+np.savetxt('lc1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,LC1], fmt="%2.5f")
 np.savetxt('theta_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[bins,tht], fmt="%2.5f")
 np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
-np.savetxt('hbnd_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, norm_t], fmt="%2.5f")
+np.savetxt('hbnd_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, norm_t/norm_t[0]], fmt="%2.5f")
 np.savetxt('framec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C1, norm_t], fmt="%2.5f")
 np.savetxt('framec2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
 np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm_t], fmt="%2.5f")

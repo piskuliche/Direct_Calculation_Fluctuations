@@ -233,6 +233,8 @@ if inputparam.prog == "LAMMPS":
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water\n")
 
 if "water" in inputparam.molec:
+    if "hbnd" in corr_func:
+        iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr hbnd -mol water\n")
     if "crp" in corr_func: 
         iarr.write("init_segments.py -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water\n")
     if "frame" in corr_func:
@@ -284,6 +286,8 @@ if inputparam.prog == "LAMMPS":
     if "shear" in corr_func: darr.write("combine_segments.py -fname flucts.inp -corr shear -mol %s\n" % (inputparam.molec[0]))
 
 if "water" in inputparam.molec:
+    if "hbnd" in corr_func:
+        darr.write("combine_segments.py -fname flucts.inp -corr hbnd -mol water\n")
     if "crp" in corr_func:
         darr.write("combine_segments.py -fname flucts.inp -corr crp -mol water\n")
     if "frame" in corr_func:

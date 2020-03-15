@@ -11,7 +11,7 @@ parser.add_argument('-corr', default='crp',type=str,help="Correlation function t
 parser.add_argument('-blocks', default=5, type=int, help="Number of blocks - note must match actual number!")
 parser.add_argument('-cstart', default=0, type=int, help="Number of points to skip at start of fit")
 parser.add_argument('-cend', default=5000, type=int, help="Number of points to skip at the end of fit")
-parser.add_argument('-degree', default=1, type=int, help="Degree of the Legendre Polynomial (default = 2)")
+parser.add_argument('-degree', default=2, type=int, help="Degree of the Legendre Polynomial (default = 2)")
 parser.add_argument('-keyoverride', default='all', type=str, help="Set if you want only one component")
 parser.add_argument('-tidy', default=0, type=int, help="Set to 0 to skip, set to 1 to do post calculations")
 parser.add_argument('-supress_output', default=0, type=int, help="Set to 1 to show no output, 0 shows all output")
@@ -109,7 +109,8 @@ def triple_parse_dexp_popt(popt):
     return dA, dk
 
 def f_of_theta(x,nl):
-    val = (1-sin(5/float(nl))/(5*sin(x/float(nl))))
+    #val = (1-sin(5/float(nl))/(5*sin(x/float(nl))))
+    val = 1-(1/(2*nl+1))*sin((n+0.5)*x)/sin(x/2)
     return val
 
 def do_cn_fit(xval, data, edata,bl_data, bl_edata):
@@ -225,6 +226,7 @@ def norm_theta(xval, theta):
     return norm_theta, int_theta
 
 def do_theta_int(xval, data, edata,bl_data, bl_edata):
+    print("nl is %s" % nl)
     theta, int_theta = norm_theta(xval, data)
     avtheta = np.trapz(np.multiply(f_of_theta(xval,nl),theta),xval)
     bl_theta = np.divide(bl_data,int_theta)
