@@ -397,11 +397,10 @@ for OH in range(len(OHs)):
 # This calculates the jump correlations based on whether they are hydrogen bonded or not.
 c1_early,c1_late=c1[is_hbond_late==0.0],c1[is_hbond_late==1.0]
 num_early,num_late = np.shape(c1_early)[0],np.shape(c1_late)[0]
-early_norm = np.subtract(norm_t, num_late)
-print(num_early,num_late)
+early_norm = norm_t - num_late
 EC1 = np.divide(np.sum(c1_early,axis=0),early_norm, where=early_norm!=0,out=np.zeros_like(np.sum(c1_early,axis=0)))
 LC1 = []
-late_norm = np.subtract(norm_t,num_early)
+late_norm = norm_t - num_early
 if num_late != 0:
     LC1 = np.divide(np.sum(c1_late,axis=0),late_norm, where=late_norm!=0, out=np.zeros_like(np.sum(c1_late,axis=0)))
 else:

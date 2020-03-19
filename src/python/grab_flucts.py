@@ -16,6 +16,9 @@ filenames='file_names'
 
 ivalname, icolnum = np.genfromtxt(input_file, usecols=(0,1), dtype=(str,str), unpack=True)
 ival_list = np.array([])
+if "elec" in ivalname[value]:
+    sys.exit("Elec contribution calculated as the sum of the ewald and coul contributions later")
+
 fileout=str(ivalname[value])+"_init.out"
 outputfile=open(fileout,'w')
 if inputparam.prog == 'LAMMPS':
