@@ -366,8 +366,8 @@ for n in range(1,ntimes): # Loop Over Times
                     else: # New Acceptor
                         if n >= late_hbond: is_hbond_late[OH] = 1.0   # This sets a boolean element to 1 if the hbond lasts a very long time.
                         crp[OH][n] += 1
-                        c1[mol1][n],c2[mol1][n],c3[mol1][n]=0.0,0.0,0.0
-                        ch1[mol1][n],ch2[mol1][n],ch3[mol1][n]=0.0,0.0,0.0
+                        c1[OH][n],c2[OH][n],c3[OH][n]=0.0,0.0,0.0
+                        ch1[OH][n],ch2[OH][n],ch3[OH][n]=0.0,0.0,0.0
                         OHs[OH][2]=0
                         OHs[OH][6]=mol2
                         theta.append(calc_jumpang(OHs[OH],eOO,1))

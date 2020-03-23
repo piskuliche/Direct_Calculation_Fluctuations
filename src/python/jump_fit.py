@@ -11,6 +11,8 @@ parser.add_argument('-corr', default='crp',type=str,help="Correlation function t
 parser.add_argument('-blocks', default=5, type=int, help="Number of blocks - note must match actual number!")
 parser.add_argument('-cstart', default=0, type=int, help="Number of points to skip at start of fit")
 parser.add_argument('-cend', default=5000, type=int, help="Number of points to skip at the end of fit")
+parser.add_argument('-dcstart', default=0, type=int, help="Number of points to skip at start of fit")
+parser.add_argument('-dcend', default=5000, type=int, help="Number of points to skip at the end of fit")
 parser.add_argument('-degree', default=2, type=int, help="Degree of the Legendre Polynomial (default = 2)")
 parser.add_argument('-keyoverride', default='all', type=str, help="Set if you want only one component")
 parser.add_argument('-tidy', default=0, type=int, help="Set to 0 to skip, set to 1 to do post calculations")
@@ -21,6 +23,8 @@ corr_func = args.corr
 nblocks   = args.blocks
 cstart    = args.cstart
 cend      = args.cend
+dcstart    = args.dcstart
+dcend      = args.dcend
 nl        = args.degree
 setkey    = args.keyoverride
 tidy      = args.tidy
@@ -129,12 +133,12 @@ def do_cn_fit(xval, data, edata,bl_data, bl_edata):
     err["k"]=np.std(bl_k,axis=0)*t_val
     err["A"]=np.std(bl_A,axis=0)*t_val
     for key in edata:
-        dpopt,dpcov=curve_fit(lambda x, dA1,dA2, dk1, dk2,dk3: triple_deriv_exponential(x, A, k, dA1,dA2, dk1, dk2,dk3), xval[cstart:cend], edata[key][cstart:cend],p0=dte,xtol=1e-6,ftol=1e-6)
+        dpopt,dpcov=curve_fit(lambda x, dA1,dA2, dk1, dk2,dk3: triple_deriv_exponential(x, A, k, dA1,dA2, dk1, dk2,dk3), xval[dcstart:dcend], edata[key][dcstart:dcend],p0=dte,xtol=1e-6,ftol=1e-6)
         dA, dk = triple_parse_dexp_popt(dpopt)
         bl_dA,bl_dk,bl_ea = [],[],[]
         bl_efit = []
         for b in range(nblocks):
-            dpopt,dpcov=curve_fit(lambda x, dA1,dA2, dk1, dk2,dk3: triple_deriv_exponential(x, A, k, dA1,dA2, dk1, dk2,dk3), xval[cstart:cend], bl_edata[key][b][cstart:cend],p0=dte,xtol=1e-6,ftol=1e-6)
+            dpopt,dpcov=curve_fit(lambda x, dA1,dA2, dk1, dk2,dk3: triple_deriv_exponential(x, A, k, dA1,dA2, dk1, dk2,dk3), xval[dcstart:dcend], bl_edata[key][b][dcstart:dcend],p0=dte,xtol=1e-6,ftol=1e-6)
             tmpdA,tmpdk = triple_parse_dexp_popt(dpopt)
             bl_efit.append(triple_deriv_exponential(xval,A,k,tmpdA[0],tmpdA[1],tmpdk[0],tmpdk[1],tmpdk[2]))
             bl_dA.append(tmpdA)
@@ -163,12 +167,12 @@ def do_crp_fit(xval, data, edata,bl_data, bl_edata):
     err["k"]=np.std(bl_k,axis=0)*t_val
     err["A"]=np.std(bl_A,axis=0)*t_val 
     for key in edata:
-        dpopt,dpcov=curve_fit(lambda x, dA1, dk1, dk2: double_deriv_exponential(x, A, k, dA1, dk1, dk2), xval, -edata[key],p0=dde,xtol=1e-6,ftol=1e-6)
+        dpopt,dpcov=curve_fit(lambda x, dA1, dk1, dk2: double_deriv_exponential(x, A, k, dA1, dk1, dk2), xval[dcstart:dcend], -edata[key][dcstart:dcend],p0=dde,xtol=1e-6,ftol=1e-6)
         dA, dk = double_parse_dexp_popt(dpopt)
         bl_dA,bl_dk,bl_ea = [],[],[]
         bl_efit = []
         for b in range(nblocks):
-            dpopt,dpcov=curve_fit(lambda x, dA1, dk1, dk2: double_deriv_exponential(x, A, k, dA1, dk1, dk2), xval, -bl_edata[key][b],p0=dde,xtol=1e-6,ftol=1e-6)
+            dpopt,dpcov=curve_fit(lambda x, dA1, dk1, dk2: double_deriv_exponential(x, A, k, dA1, dk1, dk2), xval[dcstart:dcend], -bl_edata[key][b][dcstart:dcend],p0=dde,xtol=1e-6,ftol=1e-6)
             tmpdA,tmpdk = double_parse_dexp_popt(dpopt)
             bl_efit.append(double_deriv_exponential(xval,A,k,tmpdA[0],tmpdk[0],tmpdk[1]))
             bl_dA.append(tmpdA)
@@ -197,12 +201,12 @@ def do_frame_fit(xval, data, edata,bl_data, bl_edata):
     err["k"]=np.std(bl_k,axis=0)*t_val
     err["A"]=np.std(bl_A,axis=0)*t_val
     for key in edata:
-        dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval, edata[key],p0=dse,xtol=1e-6,ftol=1e-6)
+        dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval[dcstart:dcend], edata[key][dcstart:dcend],p0=dse,xtol=1e-6,ftol=1e-6)
         dA, dk = single_parse_dexp_popt(dpopt)
         bl_dA,bl_dk,bl_ea = [],[],[]
         bl_efit = []
         for b in range(nblocks):
-            dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval, bl_edata[key][b],p0=dse,xtol=1e-6,ftol=1e-6)
+            dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval[dcstart:dcend], bl_edata[key][b][dcstart:dcend],p0=dse,xtol=1e-6,ftol=1e-6)
             tmpdA,tmpdk = single_parse_dexp_popt(dpopt)
             bl_efit.append(single_deriv_exponential(xval,A,k,tmpdA[0],tmpdk[0]))
             bl_dA.append(tmpdA)
