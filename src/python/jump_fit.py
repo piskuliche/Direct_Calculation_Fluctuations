@@ -232,13 +232,19 @@ def norm_theta(xval, theta):
 def do_theta_int(xval, data, edata,bl_data, bl_edata):
     print("nl is %s" % nl)
     theta, int_theta = norm_theta(xval, data)
+    print("average angle: %s " % np.trapz(np.multiply(theta,xval)*57.2958, xval))
+
     avtheta = np.trapz(np.multiply(f_of_theta(xval,nl),theta),xval)
     bl_theta = np.divide(bl_data,int_theta)
     np.savetxt(corr_func+str(nl)+'_int_results.dat', np.c_[xval,theta,np.std(bl_theta,axis=0)*t_val])
     bl_avtheta = []
+    bltmp = []
     for b in range(nblocks):
         bl_avtheta.append(np.trapz(np.multiply(f_of_theta(xval,nl),bl_theta[b]),xval))
+        bltmp.append(np.trapz(np.multiply(bl_theta[b],xval)*57.2958, xval))
     err={}
+    tmperr = np.std(bltmp,axis=0)*t_val
+    print("average angle: %s +/- %s" % (np.trapz(np.multiply(theta,xval)*57.2958, xval),tmperr))
     err["avtheta"]=np.std(bl_avtheta,axis=0)*t_val
     for key in edata:
         avetheta = np.trapz(np.multiply(f_of_theta(xval,nl),edata[key]/int_theta),xval)

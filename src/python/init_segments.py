@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-val', default=0, type=int, help='This is the number of the segment')
 parser.add_argument('-fname', default="flucts.inp", type=str, help='This sets the fluctuations file name')
 parser.add_argument('-corr', default="c2", type=str, help='This is the correlation function name')
+parser.add_argument('-tnrm', default=-1, type=int, help='-1 if no timedependent norm, otherwise integer that sets the number of samples which should be in the third column after which to ignore the data')
 parser.add_argument('-mol', default="water", type=str, help='This is the molecule name')
 parser.add_argument('-timeoverride', default=0, type=int, help='This overrides the time to be something other than the time')
 parser.add_argument('-foverride', default="time.override", type=str, help='This is the file the time override is read from')
@@ -26,6 +27,7 @@ val = args.val
 fname=args.fname
 corr_name=args.corr
 mol_name = args.mol
+tnrm=args.tnrm
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -57,7 +59,8 @@ d2=[sep]
 d3=[sep]
 d4=[sep]
 energy=[]
-tcab=[]
+tcab,ncab=[],[]
+sep2 = sep
 
 print("The Argument Provided is %s:" % val)
 if val == '-h':
@@ -85,9 +88,22 @@ else:
         print("Average of %s is: %s" % (item1, np.average(energy[item1count])))
         item1count += 1
     item1count = 0
+    ecab = []
     for i in range(sep):
         tcab.append(np.genfromtxt(fcab[i],usecols=1,unpack=True))
+        if tnrm != -1: # This part defines what the normalization is. ncab counts if included
+            ncab.append((np.genfromtxt(fcab[i],usecols=2,unpack=True)>tnrm)*1)
+            tcab[i]=np.multiply(tcab[i],ncab[i])
+    energy = np.asarray(energy).astype(float)
+    ncab = np.asarray(ncab).astype(float)
+    if tnrm != -1:
+        sep2 = np.sum(ncab,axis=0)
+        for item1 in range(len(inp_n)): # Calcualates the av energy
+            tmp=np.multiply(ncab,energy[item1][fstart:fstart+sep][:,None])
+            tmpav = np.average(tmp,axis=0)
+            ecab.append(tmpav)
     print(len(tcab))
+    print(np.shape(np.array(ecab)))
     for item1 in inp_n:
         print(item1)
         item2count=0
@@ -113,12 +129,21 @@ else:
                 w3corr=w3corr+tcab[i]*d1*d2*d2
                 w4corr=w4corr+tcab[i]*d1*d2*d2*d2
             # Normalize
+            corr = np.divide(corr,sep2,out=np.zeros_like(w1corr),where=sep2!=0)
+            w1corr = np.divide(w1corr,sep2,out=np.zeros_like(w1corr),where=sep2!=0)
+            w2corr = np.divide(w2corr,sep2,out=np.zeros_like(w1corr),where=sep2!=0)
+            w3corr = np.divide(w3corr,sep2,out=np.zeros_like(w1corr),where=sep2!=0)
+            w4corr = np.divide(w4corr,sep2,out=np.zeros_like(w1corr),where=sep2!=0)
+            """
             corr[:] = [x / float(sep) for x in corr]
             w1corr[:] = [x / float(sep) for x in w1corr]
             w2corr[:] = [x / float(sep) for x in w2corr]
             w3corr[:] = [x / float(sep) for x in w3corr]
             w4corr[:] = [x / float(sep) for x in w4corr]
+            """
             # Print Out
+            if tnrm != -1:
+                np.savetxt('SEG/seg_'+str(int(val))+'_'+item1+'.dat',np.c_[time,ecab[item1count]])
             np.savetxt('SEG/seg_'+str(int(val))+'_'+item1+'_'+item2+'_'+mol_name+'_'+corr_name+'.dat', np.c_[time, corr, w1corr, w2corr, w3corr, w4corr])
             item2count+=1
         item1count+=1

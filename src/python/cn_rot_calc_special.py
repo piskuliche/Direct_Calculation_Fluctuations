@@ -8,7 +8,7 @@ parser.add_argument('-atom1', default=1,type=int,help="At what timestep should j
 parser.add_argument('-atom2', default=2,type=int,help="At what timestep should jumps be split into early or late.")
 args = parser.parse_args()
 
-atom1, atom2 = args.atom1 + 1, args.atom2 + 1
+atom1, atom2 = args.atom1, args.atom2
 
 atomselect=np.array([atom1,atom2])
 
@@ -92,7 +92,6 @@ def time_loop(params,filename,atomselect):
     r, e, eo = [],[],[]
     c1,c2,c3 = np.zeros(params["ntimes"]), np.zeros(params["ntimes"]), np.zeros(params["ntimes"])
     for t in range(params["ntimes"]):
-        print(t)
         r, e = read_frame(f, atomselect,params)
         if t == 0:
             eo = e[0][1]

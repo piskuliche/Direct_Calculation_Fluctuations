@@ -337,11 +337,12 @@ for item1 in inp_n:
         # Calculate ratio of correlation functions
         tot_ea = RATIO(tot_corr,tot_d1corr)
         # Name Correlation Functions
-        tot_name   = mol_name+"_"+corr_name+".dat"
-        tot_d1name = item1+"_"+mol_name+"_"+corr_name+".dat"
-        tot_d2name = item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat"
-        tot_d3name = item1+"_"+item2+"_"+item3+"_"+mol_name+"_"+corr_name+".dat"
-        tot_d4name = item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+"_"+corr_name+".dat"
+        subdir = "OUT/"
+        tot_name   = subdir+mol_name+"_"+corr_name+".dat"
+        tot_d1name = subdir+item1+"_"+mol_name+"_"+corr_name+".dat"
+        tot_d2name = subdir+item1+"_"+item2+"_"+mol_name+"_"+corr_name+".dat"
+        tot_d3name = subdir+item1+"_"+item2+"_"+item3+"_"+mol_name+"_"+corr_name+".dat"
+        tot_d4name = subdir+item1+"_"+item2+"_"+item3+"_"+item4+"_"+mol_name+"_"+corr_name+".dat"
         # Print Correlation Functions
         np.savetxt(tot_name,   np.c_[time, tot_corr, err_corr, tot_ea, err_ea], fmt='%s')
         np.savetxt(tot_d1name, np.c_[time, tot_d1corr, err_d1corr, tot_w1corr, err_w1corr], fmt='%s')

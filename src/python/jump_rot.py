@@ -322,6 +322,8 @@ ch1,ch2,ch3 = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros
 norm_t = np.zeros(ntimes)                                                                               # This is the hydrogen bond extinction correlation function
 theta = []                                                                                              # This is the jump angle distribution - note NOT A TCF
 
+c1_1, c1_2, c1_3, c1_4, c1_5 = np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes)
+
 # Setup Data Structure for Separating Frame Contributions
 is_hbond_late = np.zeros(len(OHs))  # fills with 1s or 0s, default is not
 
@@ -338,6 +340,10 @@ There are separate correlation functions calculated for the frame reorientation 
 
 t0=time.time()
 end=0
+
+# Defines the oo distance calculator
+oo_dist = []
+
 for n in range(1,ntimes): # Loop Over Times
     nmols, dOO[1], dHO1[1], dHO2[1], eOO[1],eO1[1],eO2[1]= read_frames(f,0)   
     if n%nval == 0: # Outputs information to the screen, what step is reached, how much time has elapsed, and the # of hbonds
@@ -370,6 +376,7 @@ for n in range(1,ntimes): # Loop Over Times
                         ch1[OH][n],ch2[OH][n],ch3[OH][n]=0.0,0.0,0.0
                         OHs[OH][2]=0
                         OHs[OH][6]=mol2
+                        oo_dist.append(dOO[1][mol1][OHs[OH][1]])
                         theta.append(calc_jumpang(OHs[OH],eOO,1))
                 if hbnd == 0 and mol2 == OHs[OH][1]:
                     c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(eOO[0][mol1][mol2],eOO[1][mol1][mol2])
@@ -476,17 +483,38 @@ for key in UC2:
 """
 
 # This calulates the information for the jump angle and histograms it
-tht,bedge = np.histogram(theta, bins=50,range=(0,3))
-split=3/50.0
+tht,bedge = np.histogram(theta, bins=100,range=(0,3))
+split=3/100.0
 bins=[]
 print(len(tht),len(bins))
-for b in range(50):
+for b in range(100):
     bins.append(b*split+split/2)
 
 # Defines the step size
 steps = np.linspace(0,ntimes-1,num=ntimes)
 # Defines the normalization at time 0
 norm_t[0]=len(OHs)
+
+# Sets the special c1s
+for i in range(len(norm_t)):
+    n_hb = norm_t[i]
+    if n_hb >= 5:
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = C1[i],C1[i],C1[i],C1[i],C1[i]
+    elif n_hb == 4:
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = C1[i],C1[i],C1[i],C1[i], 0.0
+    elif n_hb == 3:
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = C1[i],C1[i],C1[i],0.0, 0.0
+    elif n_hb == 2:
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = C1[i],C1[i],0.0,0.0,0.0
+    elif n_hb == 1:
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = C1[i], 0.0, 0.0, 0.0, 0.0
+    else: 
+        c1_1[i],c1_2[i],c1_3[i],c1_4[i],c1_5[i] = 0.0, 0.0, 0.0, 0.0, 0.0
+    
+
+
+# Outputs the oo distance
+np.savetxt('oo_dist.dat', np.c_[oo_dist])
 
 # Outputs all the calculated correlation functions
 np.savetxt('ec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,EC1], fmt="%2.5f")
@@ -500,6 +528,13 @@ np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm
 np.savetxt('framech1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH1, norm_t], fmt="%2.5f")
 np.savetxt('framech2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH2, norm_t], fmt="%2.5f")
 np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, norm_t], fmt="%2.5f")
+
+# Special Cutoff Frame C1
+np.savetxt('framec1_1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_1, norm_t], fmt="%2.5f")
+np.savetxt('framec1_2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_2, norm_t], fmt="%2.5f")
+np.savetxt('framec1_3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_3, norm_t], fmt="%2.5f")
+np.savetxt('framec1_4_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_4, norm_t], fmt="%2.5f")
+np.savetxt('framec1_5_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_5, norm_t], fmt="%2.5f")
 
 """
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
