@@ -186,8 +186,6 @@ if option == 1 and tnrm == -1:
         else: tmpcab = pickle.load(open(filename+".pckl",'rb'))
         # Appends the corr func    
         cab.append(tmpcab)
-        print(tmpcab[0])
-        if tmpcab[0] != 0: print("%s is wrong: %s" % (i,tmpcab[0]))
     if not os.path.exists("TEMP"):
         os.makedirs("TEMP")
     with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+'mol_name'+'.pckl','wb') as g:
