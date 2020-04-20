@@ -388,14 +388,16 @@ for n in range(1,ntimes): # Loop Over Times
     if np.sum(np.array(OHs).T[2]>0) == 0:
         end = n+1
         break
+    else: end = -1
 f.close()
 # This ends the time loop
 
 # This is added to make sure that the correlations are calculated even past 
 # the point at which there are no longer hydrogen bonds (just sets the remaining elements to 1)
-for n in range(end,ntimes):
-    for OH in range(len(OHs)):
-        crp[OH][n] += 1
+if end != -1:
+    for n in range(end,ntimes):
+        for OH in range(len(OHs)):
+            crp[OH][n] += 1
 # This handles the case where there is no new acceptor 
 for OH in range(len(OHs)):
     if len(OHs[OH]) != 7:
@@ -529,12 +531,14 @@ np.savetxt('framech1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH1, no
 np.savetxt('framech2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH2, norm_t], fmt="%2.5f")
 np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, norm_t], fmt="%2.5f")
 
-# Special Cutoff Frame C1
-np.savetxt('framec1_1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_1, norm_t], fmt="%2.5f")
-np.savetxt('framec1_2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_2, norm_t], fmt="%2.5f")
-np.savetxt('framec1_3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_3, norm_t], fmt="%2.5f")
-np.savetxt('framec1_4_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_4, norm_t], fmt="%2.5f")
-np.savetxt('framec1_5_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, c1_5, norm_t], fmt="%2.5f")
+import pickle
+
+pickle.dump(tht,open('theta_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
+pickle.dump(CRP,open('crp_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
+pickle.dump(C1,open('framec1_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
+pickle.dump(C2,open('framec2_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
+pickle.dump(C3,open('framec3_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
+pickle.dump(norm_t,open('norm_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 
 """
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])
