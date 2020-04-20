@@ -387,18 +387,18 @@ print("JUMP CALCULATIONS BEGIN")
 
 if corr_func not in ["framec1","framec2","framec3","crp","theta","c1","c2","c3"]:
     sys.exit("Error: That corr_func (%s) is as defined as 5/0" % corr_func)
-
-xval, data = np.genfromtxt("water_%s.dat" % corr_func,usecols=(0,1),unpack=True)
+subdir="OUT/"
+xval, data = np.genfromtxt(subdir+"water_%s.dat" % corr_func,usecols=(0,1),unpack=True)
 bl_data = []
 for b in range(nblocks):
-    bl_data.append(np.genfromtxt("bl_%d_water_%s.dat" % (b,corr_func),usecols=(1),unpack=True))
+    bl_data.append(np.genfromtxt(subdir+"bl_%d_water_%s.dat" % (b,corr_func),usecols=(1),unpack=True))
 
 edata,bl_edata={},{}
 for item in inp_n:
-    edata[item]=np.genfromtxt("%s_water_%s.dat" % (item,corr_func),usecols=(1),unpack=True)
+    edata[item]=np.genfromtxt(subdir+"%s_water_%s.dat" % (item,corr_func),usecols=(1),unpack=True)
     bl_edata[item]=[]
     for b in range(nblocks):
-        bl_edata[item].append(np.genfromtxt("bl_%d_%s_water_%s.dat" % (b,item,corr_func),usecols=(1),unpack=True))
+        bl_edata[item].append(np.genfromtxt(subdir+"bl_%d_%s_water_%s.dat" % (b,item,corr_func),usecols=(1),unpack=True))
 
 if corr_func == "crp":
     do_crp_fit(xval,data,edata,bl_data,bl_edata)

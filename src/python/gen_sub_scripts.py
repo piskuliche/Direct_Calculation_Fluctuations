@@ -30,7 +30,7 @@ import sys
 from src.python.read_input import user_input
 import os
 
-corr_func=["crp","framec2","msd","c2"]
+corr_func=["msd","c2"]
 if os.path.isfile("corr.funcs"):
     corr_func=np.genfromtxt("corr.funcs",usecols=0,dtype=str)
 
@@ -112,14 +112,25 @@ if inputparam.cab == "TRANSPORT":
         dcn.write("    echo %s > mol.info\n" % inputparam.molec[i])
         dcn.write("    set_msd_calcs.py\n")
         if inputparam.molec[i] == "water":
-            if "msd" or "c2" in corr_func: dcn.write("    msd_rot_calc < corr_calc.in\n")
+            if "msd" or "c2" in corr_func: 
+                dcn.write("    msd_rot_calc < corr_calc.in\n")
+                dcn.write("    dat_to_pickle.py -corr msd\n")
+                dcn.write("    dat_to_pickle.py -corr c1\n")
+                dcn.write("    dat_to_pickle.py -corr c2\n")
+                dcn.write("    dat_to_pickle.py -corr c3\n")
             if "crp" or "frame" in corr_func: dcn.write("    jump_rot.py\n")
         else:
-            if "msd" in corr_func: dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
+            if "msd" in corr_func: 
+                dcn.write("    matom_msd_rot_calc < corr_calc.in\n")
+                dcn.write("    dat_to_pickle.py -corr msd\n")
+                dcn.write("    dat_to_pickle.py -corr c2\n")
+
     dcn.write("    \n")
     if inputparam.prog == "LAMMPS":
-        if "shear" in corr_func: dcn.write("    grab_press.py\n")
-        if "shear" in corr_func: dcn.write("    visc_calc\n")
+        if "shear" in corr_func: 
+            dcn.write("    grab_press.py\n")
+            dcn.write("    visc_calc\n")
+            dcn.write("    dat_to_pickle.py -corr shear\n")
         dcn.write("    \n")
 elif inputparam.cab == "IONPAIRING":
     dcn.write('    echo %s > mol.info\n' % inputparam.molec[0])
@@ -173,13 +184,23 @@ if inputparam.cab == "TRANSPORT":
         nve.write('echo %s > mol.info\n' % inputparam.molec[i])
         nve.write('set_msd_calcs.py\n')
         if inputparam.molec[i] == "water":
-            if "msd" or "c2" in corr_func: nve.write('msd_rot_calc < corr_calc.in\n\n')
+            if "msd" or "c2" in corr_func: 
+                nve.write('msd_rot_calc < corr_calc.in\n\n')
+                nve.write("    dat_to_pickle.py -corr msd\n")
+                nve.write("    dat_to_pickle.py -corr c1\n")
+                nve.write("    dat_to_pickle.py -corr c2\n")
+                nve.write("    dat_to_pickle.py -corr c3\n")
             if "crp" or "frame" in corr_func: nve.write('jump_rot.py\n')
         else:
-            if "msd" or "c2" in corr_func: nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
+            if "msd" or "c2" in corr_func: 
+                nve.write('matom_msd_rot_calc < corr_calc.in\n\n')
+                nve.write("    dat_to_pickle.py -corr msd\n")
+                nve.write("    dat_to_pickle.py -corr c2\n")
     if inputparam.prog == "LAMMPS":
-        if "shear" in corr_func: nve.write('grab_press.py\n\n')
-        if "shear" in corr_func: nve.write('visc_calc\n')
+        if "shear" in corr_func: 
+            nve.write('grab_press.py\n\n')
+            nve.write('visc_calc\n')
+            nve.write("    dat_to_pickle.py -corr shear\n")
 elif inputparam.cab == "IONPAIRING":
     nve.write('echo %s > mol.info\n' % inputparam.molec[0])
     nve.write('set_msd_calcs.py \n')
