@@ -183,7 +183,7 @@ cab,no=[],[]
 encab=[]
 if option == 1 and tnrm == -1:
     for i in range(fstart,fend,inputparam.sep_config):
-        filename="FILES/"+str(i)+"/"+corr_func+"_"+str(i)+"_water"
+        filename="FILES/"+str(i)+"/"+corr_func+"_"+str(i)+"_"+mol_name
         # This sets what values above tnrm to contribute, if -1, then disabled
         tmpcab = []
         # Note - support for binary read, much faster!
@@ -193,22 +193,22 @@ if option == 1 and tnrm == -1:
         cab.append(tmpcab)
     if not os.path.exists("TEMP"):
         os.makedirs("TEMP")
-    with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+'mol_name'+'.pckl','wb') as g:
+    with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as g:
         pickle.dump(cab,g)
     # Only if using tnrm
     if tnrm != -1:
-        with open('TEMP/no'+'_'+str(splitno)+'_'+corr_func+'_'+'mol_name'+'.pckl','wb') as h:
+        with open('TEMP/no'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as h:
             pickle.dump(no,h)
 
 elif option == 1 and tnrm != -1:
     for i in range(fstart,fend,inputparam.sep_config):
-        filename="FILES/"+str(i)+"/"+corr_func+"_"+str(i)+"_water"
+        filename="FILES/"+str(i)+"/"+corr_func+"_"+str(i)+"_"+mol_name
         # This sets what values above tnrm to contribute, if -1, then disabled
         tmpcab,tmpno = [],[]
         # Note - support for binary read - much faster!
         if binaryread == 0: tmpcab,tmpno = np.genfromtxt(filename+'.dat', usecols=(1,2),dtype=(float,float),unpack=True)
         else: 
-            fname2 = "FILES/"+str(i)+"/"+bfcorr+"_"+str(i)+"_water"
+            fname2 = "FILES/"+str(i)+"/"+bfcorr+"_"+str(i)+"_"+mol_name
             tmpcab = pickle.load(open(filename+".pckl",'rb'))
             tmpno  = pickle.load(open(fname2+".pckl", 'rb'))
         no.append((tmpno>tnrm)*1)
@@ -216,11 +216,11 @@ elif option == 1 and tnrm != -1:
         cab.append(tmpcab)
     if not os.path.exists("TEMP"):
         os.makedirs("TEMP")
-    with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+'mol_name'+'.pckl','wb') as g:
+    with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as g:
         pickle.dump(cab,g)
     # Only if using tnrm
     if tnrm != -1:
-        with open('TEMP/no'+'_'+str(splitno)+'_'+corr_func+'_'+'mol_name'+'.pckl','wb') as h:
+        with open('TEMP/no'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as h:
             pickle.dump(no,h)
 
 elif option == 2:
@@ -242,8 +242,8 @@ elif option == 2:
     print("Unpickling Files")
     for i in range(nosplit):
         print(i)
-        tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+'mol_name'+'.pckl','rb'))
-        if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+'mol_name'+'.pckl','rb'))
+        tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
         if i == 0:
             cab = tmpcab
             if tnrm != -1: no  = tmpno
