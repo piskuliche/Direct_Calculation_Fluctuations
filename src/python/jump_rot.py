@@ -533,6 +533,7 @@ np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, no
 
 import pickle
 
+pickle.dump(theta,open('uh_theta_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
 pickle.dump(tht,open('theta_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(CRP,open('crp_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(C1,open('framec1_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))

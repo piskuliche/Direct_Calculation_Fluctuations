@@ -33,9 +33,12 @@ This directory stores all the python codes that are used by the program to calcu
 
 • grab\_flucts.py: This reads the energies in from the lammps log files and outputs them to files based on the components defined in the flucts.inp file and puts them into the X\_init.out file.
 
-• init\_segments.py: This code reads in all the files in the different directories and then weights them by the fluctuations in energy by subdividing the problem into a user defined set of subproblems.
+• parse\_and\_combine.py: This reads the binary files outputted in the trajectory and writes new binary files that combine the first time that the code is run, replacing init\_segments.py. The second time it is run it calculates the derivatives and outputs block averaged results to the OUT/ folder, replacing combine\_segments.py. This last step can be rerun with modifications to the input\_file to change things like number of blocks, etc. 
 
-• combine\_segments.py: This code reads in the subproblems from the previous code and calculates the derivatives and outputs the final derivative files.
+• init\_segments.py (Obselete): This code reads in all the files in the different directories and then weights them by the fluctuations in energy by subdividing the problem into a user defined set of subproblems.
+
+
+• combine\_segments.py (Obselete): This code reads in the subproblems from the previous code and calculates the derivatives and outputs the final derivative files.
 
 • combine\_weighted.py: This is an alpha code that is used for deeper decompositions. By default this is turned off, but can be added in again by adding the flag .flag\_comboflucts to the directory.
 

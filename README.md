@@ -59,8 +59,8 @@ These steps are:
 
 7) GRABFLUCTS: Grabs fluctuation info from the log files of each nve run.
 
-8) SEGARRAY: Splits NVE runs into chunks and averages chunks together (saves time on large batches)
+8) SEGARRAY: Reads in all the binary files from the nve trajectories and combines them into one binary file.
 
-9) COMBINESEG: Combines the segments into block averages and total averages.
+9) COMBINESEG: Combines the segments into block averages and total avererages.
 
 
