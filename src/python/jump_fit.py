@@ -186,37 +186,38 @@ def do_crp_fit(xval, data, edata,bl_data, bl_edata):
     return
 
 def do_frame_fit(xval, data, edata,bl_data, bl_edata):
-    popt,pcov=curve_fit(single_exponential,xval[cstart:cend],data[cstart:cend], p0=se,xtol=1e-6,ftol=1e-6)
-    A,k = single_parse_exp_popt(popt)
+    popt,pcov=curve_fit(double_exponential,xval[cstart:cend],data[cstart:cend], p0=de,xtol=1e-6,ftol=1e-6)
+    A,k = double_parse_exp_popt(popt)
     bl_A, bl_k = [],[]
     bl_fit=[]
     for b in range(nblocks):
-        popt,pcov=curve_fit(single_exponential,xval[cstart:cend],bl_data[b][cstart:cend], p0=se)
-        tmpA,tmpk = single_parse_exp_popt(popt)
-        bl_fit.append(single_exponential(xval,tmpA[0],tmpk[0]))
+        popt,pcov=curve_fit(double_exponential,xval[cstart:cend],bl_data[b][cstart:cend], p0=de)
+        tmpA,tmpk = double_parse_exp_popt(popt)
+        bl_fit.append(double_exponential(xval,tmpA[0],tmpk[0],tmpk[1]))
         bl_A.append(tmpA)
         bl_k.append(tmpk)
-    np.savetxt(corr_func+'fit_results.dat', np.c_[xval,single_exponential(xval, A[0], k[0]),np.std(bl_fit,axis=0)*t_val])
+    np.savetxt(corr_func+'fit_results.dat', np.c_[xval,double_exponential(xval, A[0], k[0],k[1]),np.std(bl_fit,axis=0)*t_val])
     err={}
+    print(np.divide(1,bl_k))
     err["k"]=np.std(bl_k,axis=0)*t_val
     err["A"]=np.std(bl_A,axis=0)*t_val
     for key in edata:
-        dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval[dcstart:dcend], edata[key][dcstart:dcend],p0=dse,xtol=1e-6,ftol=1e-6)
-        dA, dk = single_parse_dexp_popt(dpopt)
+        dpopt,dpcov=curve_fit(lambda x, dA1, dk1,dk2: double_deriv_exponential(x, A, k, dA1, dk1, dk2), xval[dcstart:dcend], edata[key][dcstart:dcend],p0=dde,xtol=1e-6,ftol=1e-6)
+        dA, dk = double_parse_dexp_popt(dpopt)
         bl_dA,bl_dk,bl_ea = [],[],[]
         bl_efit = []
         for b in range(nblocks):
-            dpopt,dpcov=curve_fit(lambda x, dA1, dk1: single_deriv_exponential(x, A, k, dA1, dk1), xval[dcstart:dcend], bl_edata[key][b][dcstart:dcend],p0=dse,xtol=1e-6,ftol=1e-6)
-            tmpdA,tmpdk = single_parse_dexp_popt(dpopt)
-            bl_efit.append(single_deriv_exponential(xval,A,k,tmpdA[0],tmpdk[0]))
+            dpopt,dpcov=curve_fit(lambda x, dA1, dk1, dk2: double_deriv_exponential(x, A, k, dA1, dk1,dk2), xval[dcstart:dcend], bl_edata[key][b][dcstart:dcend],p0=dde,xtol=1e-6,ftol=1e-6)
+            tmpdA,tmpdk = double_parse_dexp_popt(dpopt)
+            bl_efit.append(double_deriv_exponential(xval,A,k,tmpdA[0],tmpdk[0],tmpdk[1]))
             bl_dA.append(tmpdA)
             bl_dk.append(tmpdk)
         bl_ea = -np.divide(bl_dk,bl_k)
         err["dk"]=np.std(bl_dk,axis=0)*t_val
         err["dA"]=np.std(bl_dA,axis=0)*t_val
         err["ea"]=np.std(bl_ea,axis=0)*t_val
-        print_data(key,1,A,k,dA,dk,err)
-        np.savetxt(corr_func+'fit_results_'+key+'.dat', np.c_[xval,single_deriv_exponential(xval, A, k, dA[0], dk[0]),np.std(bl_efit,axis=0)*t_val])
+        print_data(key,2,A,k,dA,dk,err)
+        np.savetxt(corr_func+'fit_results_'+key+'.dat', np.c_[xval,double_deriv_exponential(xval, A, k, dA[0], dk[0],dk[1]),np.std(bl_efit,axis=0)*t_val])
     return
 
 def f_of_theta(x,nl):
@@ -317,8 +318,8 @@ def read_tidy():
         ea_theta,err_theta,ftheta,err_ftheta=np.genfromtxt("ea_theta%d.dat"%nl, usecols=(3,4,6,7),unpack=True)
     if os.path.isfile("ea_c%d_3.dat"%nl):
         ea_c, err_c=np.genfromtxt("ea_c%d_3.dat"%nl,usecols=(3,4),unpack=True)
-    if os.path.isfile("ea_framec%d_1.dat"%nl):
-        ea_frame, err_frame,kframe, err_kframe=np.genfromtxt("ea_framec%d_1.dat"%nl,usecols=(3,4,6,7),unpack=True)
+    if os.path.isfile("ea_framec%d_2.dat"%nl):
+        ea_frame, err_frame,kframe, err_kframe=np.genfromtxt("ea_framec%d_2.dat"%nl,usecols=(3,4,6,7),unpack=True)
     if os.path.isfile("ea_crp_2.dat"):
         ea_ko, err_ea_ko,ko,err_ko=np.genfromtxt("ea_crp_2.dat",usecols=(3,4,6,7),unpack=True)
     if os.path.isfile("ea_c%d_3.dat"%nl):
