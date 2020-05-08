@@ -264,7 +264,9 @@ elif option == 2:
         cab2 = []
         for tmpcab in cab:
             nonzero = tmpcab[tmpcab != 0]
-            tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax))
+            tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True)
+            # This next one is just a test
+            #tmp = tmp / len(nonzero)
             cab2.append(tmp)
         cab = np.array(cab2,dtype=float)
     # Sets Array for Normalization

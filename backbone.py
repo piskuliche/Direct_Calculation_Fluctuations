@@ -45,7 +45,13 @@ def step_instruct():
         elif 'Y' in inpresponse:
             import src.python.gen_input
         if not os.path.isfile("input_file"): sys.exit("Error: the file input_file missing")
-        if not os.path.isfile("flucts.inp"): sys.exit("Error: the file flucts.inp missing") 
+        if not os.path.isfile("flucts.inp"): sys.exit("Error: the file flucts.inp missing")
+        if not os.path.isfile("corr.funcs"): 
+            print("corr.funcs not found: generating automatically. Feel free to add correlations")
+            print("Currently has msd, cn as options.")
+            print("Other options: fsc_f, fsc_b, shear, theta, frame, crp")
+            corrs=["msd","cn"]
+            np.savetxt('corr.funcs',np.c_[corrs])
         open(flag, 'a').close()
         print("Instructions step complete, please run backbone.py again.")
         sys.exit()
@@ -165,10 +171,14 @@ def step_checkup():
         print("NVE Trajectory Checkup Flag Missing.")
         print("-> Running Checkup")
         f = open('rerun', 'w')
+        corr = np.genfromtxt('corr.funcs',dtype=str)
+        chk = corr[-1]
+        if chk == "frame": chk = chk+"c3"
+        elif chk == "cn": chk = "c3"
         for i in range(inputparam.start_config, inputparam.end_config+inputparam.sep_config, inputparam.sep_config):
             if (i%1000000) == 0:
                 print("-->%d has been checked" % i)
-            if inputparam.cab == "TRANSPORT" and not os.path.isfile("FILES/%d/msd_%d_%s.dat" % (i,i,inputparam.molec[0])):
+            if inputparam.cab == "TRANSPORT" and not os.path.isfile("FILES/%d/%s_%d_%s.dat" % (i,corr[-1],i,inputparam.molec[0])):
                 print("%d does not exist" % i)
                 if inputparam.prog == "LAMMPS":
                     f.write("mkdir FILES/%d; cp in.nve FILES/%d; cp nve.sh FILES/%d; cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))

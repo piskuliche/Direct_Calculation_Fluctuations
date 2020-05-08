@@ -112,7 +112,7 @@ def triple_parse_dexp_popt(popt):
     dA,dk = [popt[0],popt[1],-popt[0]-popt[1]],[popt[2],popt[3],popt[4]]
     return dA, dk
 
-def f_of_theta(x,nl):
+def of_of_theta(x,nl):
     #val = (1-sin(5/float(nl))/(5*sin(x/float(nl))))
     val = 1-(1/(2*nl+1))*sin((n+0.5)*x)/sin(x/2)
     return val
@@ -221,7 +221,7 @@ def do_frame_fit(xval, data, edata,bl_data, bl_edata):
     return
 
 def f_of_theta(x,nl):
-    val = (1-sin(5/nl)/(5*sin(x/nl)))
+    val = (1-sin((nl+0.5)*x)/((2*nl+1)*sin(x/2)))
     return val
 
 
@@ -233,6 +233,7 @@ def norm_theta(xval, theta):
 def do_theta_int(xval, data, edata,bl_data, bl_edata):
     print("nl is %s" % nl)
     theta, int_theta = norm_theta(xval, data)
+    print("norm_const",int_theta)
     print("average angle: %s " % np.trapz(np.multiply(theta,xval)*57.2958, xval))
 
     avtheta = np.trapz(np.multiply(f_of_theta(xval,nl),theta),xval)
@@ -284,14 +285,14 @@ def print_data(item,n, A, k, dA, dk, err):
     elif out == 0:
         print("thta  (deg)          %d: % 09.5f % 09.5f" % (1,k, err["avtheta"]))
         print("ethta (deg kcal/mol) %d: % 09.5f % 09.5f" % (1,dk, err["avetheta"]))
-        print(color.RED + color.BOLD+"Ea (kcal/mol)        %d: % 09.5f % 09.5f" % (1,dk/k,err["ea"]) + color.END)
+        print(color.RED + color.BOLD+"Ea (kcal/mol)        %d: % 09.5f % 09.5f" % (1,-dk/k,err["ea"]) + color.END)
         if item == "e":
             f=open('ea_%s%s.dat' % (corr_func,nl), 'w')
-            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,dk/k,err["ea"],k,err["avtheta"]))
+            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
             f.close()
         else:
             f=open('ea_%s%s.dat' % (corr_func,nl), 'a')
-            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,dk/k,err["ea"],k,err["avtheta"]))
+            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
             f.close()
     return
 
@@ -328,7 +329,7 @@ def read_tidy():
     ftheta,err_ftheta = ftheta[0],err_ftheta[0]
     kframe, err_kframe = kframe[0], err_kframe[0]
     ko,err_ko = ko[0],err_ko[0]
-    kjump, err_kjump = np.divide(ko,ftheta, where=ftheta!=0, out=np.zeros_like(ko)), propagate_div(ko,ftheta,err_ko,err_ftheta) 
+    kjump, err_kjump = np.multiply(ko,ftheta),propagate_mult(ko,ftheta,err_ko,err_ftheta) 
     kbot, err_kbot = kjump + kframe, propagate_add(err_kjump,err_kframe)
     kjrat, err_kjrat = np.divide(kjump,kbot,where=kbot!=0,out=np.zeros_like(kjump)), propagate_div(kjump,kbot,err_kjump,err_kbot)
     kfrat, err_kfrat = np.divide(kframe,kbot,where=kbot!=0,out=np.zeros_like(kframe)), propagate_div(kframe,kbot,err_kframe,err_kbot)
