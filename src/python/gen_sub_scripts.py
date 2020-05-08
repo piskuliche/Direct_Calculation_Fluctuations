@@ -237,33 +237,33 @@ iarr.write("cd $SLURM_SUBMIT_DIR\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
         if "msd" in corr_func: 
-            iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr msd -mol %s\n" % inputparam.molec[i])
-        if "c1" in corr_func: iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s\n" % inputparam.molec[i])
-        if "c2" in corr_func: iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
-        if "c3" in corr_func: iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s\n" % inputparam.molec[i])
+            iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr msd -mol %s \n" % inputparam.molec[i])
+        if "c1" in corr_func: iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s \n" % inputparam.molec[i])
+        if "c2" in corr_func: iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s \n" % inputparam.molec[i])
+        if "c3" in corr_func: iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s \n" % inputparam.molec[i])
         if "cn" in corr_func:
-            iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s\n" % inputparam.molec[i])
-            iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s\n" % inputparam.molec[i])
-            iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s\n" % inputparam.molec[i])
+            iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c1 -mol %s \n" % inputparam.molec[i])
+            iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c2 -mol %s \n" % inputparam.molec[i])
+            iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr c3 -mol %s \n" % inputparam.molec[i])
 elif inputparam.cab == "IONPAIRING":
-    iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_f -mol water\n")
-    iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_b -mol water\n")
+    iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_f -mol water \n")
+    iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr fsc_b -mol water \n")
 
 if inputparam.prog == "LAMMPS":
     if "shear" in corr_func: 
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water\n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr shear -mol water \n")
 
 if "water" in inputparam.molec:
     if "hbnd" in corr_func:
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr hbnd -mol water\n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr hbnd -mol water\n")
     if "crp" in corr_func: 
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water\n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr crp -mol water \n")
     if "frame" in corr_func:
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec1 -mol water -tnrm 0\n")
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec2 -mol water -tnrm 0\n")
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec3 -mol water -tnrm 0\n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec1 -mol water -tnrm 0 \n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec2 -mol water -tnrm 0 \n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr framec3 -mol water -tnrm 0 \n")
     if "theta" in corr_func:
-        iarr.write("parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -time time.override\n")
+        iarr.write(" parse_and_combine.py -opt 1 -bin 1 -val $SLURM_ARRAY_TASK_ID -fname flucts.inp -corr theta -mol water -time time.override \n")
 
 iarr.close()
 
@@ -285,35 +285,36 @@ darr.write("module load Dir_Calc_Fluct\n")
 if inputparam.cab == "TRANSPORT":
     for i in range(inputparam.num_molecs):
         if "msd" in corr_func:
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr msd -mol %s\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr msd -mol %s &\n" % (inputparam.molec[i]))
         if "c1" in corr_func:
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c1 -mol %s\n" % (inputparam.molec[i])) 
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c1 -mol %s &\n" % (inputparam.molec[i])) 
         if "c2" in corr_func:
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c2 -mol %s &\n" % (inputparam.molec[i]))
         if "c3" in corr_func:
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c3 -mol %s\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c3 -mol %s &\n" % (inputparam.molec[i]))
         if "cn" in corr_func:
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c1 -mol %s\n" % (inputparam.molec[i]))
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c2 -mol %s\n" % (inputparam.molec[i]))
-            darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr c3 -mol %s\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c1 -mol %s &\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c2 -mol %s &\n" % (inputparam.molec[i]))
+            darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr c3 -mol %s &\n" % (inputparam.molec[i]))
 elif inputparam.cab == "IONPAIRING":
-    darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr fsc_f -mol %s\n" % (inputparam.molec[0]))
-    darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr fsc_b -mol %s\n" % (inputparam.molec[0]))
+    darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr fsc_f -mol %s &\n" % (inputparam.molec[0]))
+    darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr fsc_b -mol %s &\n" % (inputparam.molec[0]))
 
 if inputparam.prog == "LAMMPS":
-    if "shear" in corr_func: darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr shear -mol %s\n" % (inputparam.molec[0]))
+    if "shear" in corr_func: darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr shear -mol %s &\n" % (inputparam.molec[0]))
 
 if "water" in inputparam.molec:
     if "hbnd" in corr_func:
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr hbnd -mol water\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr hbnd -mol water &\n")
     if "crp" in corr_func:
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr crp -mol water\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr crp -mol water &\n")
     if "frame" in corr_func:
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr framec1 -mol water\n")
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr framec2 -mol water\n")
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr framec3 -mol water\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr framec1 -mol water &\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr framec2 -mol water &\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr framec3 -mol water &\n")
     if "theta" in corr_func:
-        darr.write("parse_and_combine.py -opt 2 -fname flucts.inp -corr theta -mol water -time time.override\n")
+        darr.write("srun -N1 -n1 -c1 --mem=20G --exclusive parse_and_combine.py -opt 2 -fname flucts.inp -corr theta -mol water -time time.override &\n")
+darr.write("wait\n")
 darr.close()
 
 # Generate Flucts Script
