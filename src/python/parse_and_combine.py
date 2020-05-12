@@ -150,6 +150,7 @@ parser.add_argument('-time', default="real_time.dat", type=str, help="what file 
 parser.add_argument('-rehist', default=0, type=int, help="How to rebin the data")
 parser.add_argument('-hmin', default=0, type=float, help="How to rebin the data")
 parser.add_argument('-hmax', default=0, type=float, help="How to rebin the data")
+parser.add_argument('-higher',default=1, type=int, help="[0] don't include higher derivatives")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -163,6 +164,7 @@ tfile       = args.time
 histbin     = args.rehist
 hmin        = args.hmin
 hmax        = args.hmax
+higher = args.higher
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -282,6 +284,8 @@ elif option == 2:
         encab = np.multiply(energy[item][:,None],no)
         avcab = calc_avcab(cab,no)
         first_order(cab,encab,no)
-        second_order(cab,encab,no)
-        third_order(cab,encab,no)
-        fourth_order(cab,encab,no)
+        if higher == 1:
+            second_order(cab,encab,no)
+            third_order(cab,encab,no)
+            fourth_order(cab,encab,no)
+
