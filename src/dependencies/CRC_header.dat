@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=direct_calc_nve
 #SBATCH --partition=sixhour
-#SBATCH --output=direct_calc_nve-%A_%a.out
+#SBATCH --output=dcm.out
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=2
 #SBATCH --constraint=intel

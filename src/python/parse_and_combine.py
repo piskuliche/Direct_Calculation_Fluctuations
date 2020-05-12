@@ -52,7 +52,8 @@ def calc_deriv(cab, encab, no):
     avencab=calc_avcab(encab,no)
     dencab = np.subtract(encab, avencab)
     dcab = -np.multiply(dencab,cab)
-    av_dcab = calc_avcab(dcab,nosplit*inputparam.segsplit)
+    #av_dcab = calc_avcab(dcab,nosplit*inputparam.segsplit)
+    av_dcab = calc_avcab(dcab,no)
     return av_dcab
 
 def first_order(cab,encab,no):
@@ -86,8 +87,10 @@ def calc_deriv2(cab,encab1,encab2,no):
     # <dH1*dH2>
     avd2encab = calc_avcab(d2encab,no)
     # <[dH1*dH2 - <dH1*dH2>]f(t)>
-    term1 = calc_avcab(np.multiply(d2encab,cab),nosplit*inputparam.segsplit)
-    term2 = calc_avcab(np.multiply(avd2encab,cab),nosplit*inputparam.segsplit)
+    #term1 = calc_avcab(np.multiply(d2encab,cab),nosplit*inputparam.segsplit)
+    term1 = calc_avcab(np.multiply(d2encab,cab),no)
+    #term2 = calc_avcab(np.multiply(avd2encab,cab),nosplit*inputparam.segsplit)
+    term2 = calc_avcab(np.multiply(avd2encab,cab),no)
     av_d2cab = np.subtract(term1,term2)
     return av_d2cab
 
@@ -175,7 +178,6 @@ fstart = splitno*inputparam.sep_config*inputparam.segsplit + inputparam.start_co
 fend = (splitno+1)*inputparam.sep_config*inputparam.segsplit + inputparam.start_config
 
 inp_n = np.genfromtxt(fname, usecols=0,dtype=str,unpack=True)
-print(inp_n)
 subdir="OUT/"
 
 
