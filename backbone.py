@@ -51,7 +51,9 @@ def step_instruct():
             print("Currently has msd, cn as options.")
             print("Other options: fsc_f, fsc_b, shear, theta, frame, crp")
             corrs=["msd","cn"]
-            np.savetxt('corr.funcs',np.c_[corrs])
+            with open("corr.funcs",'w') as f:
+                for item in corrs:
+                    f.write("%s\n" % item)
         open(flag, 'a').close()
         print("Instructions step complete, please run backbone.py again.")
         sys.exit()
