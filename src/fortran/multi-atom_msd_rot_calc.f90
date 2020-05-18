@@ -49,12 +49,15 @@ Program msd_rot_calc
     close(10)
 
     ! Zeroing out stuff
-    M = 0.0
     MASS = 0.0
     confined=0
     ! Read file
     open(11,file='../../'//trim(mol_name)//'.txt',status='old')
     read(11,*) atms_per_mol
+    
+    allocate(M(atms_per_mol))
+    M = 0.0
+
     read(11,*) nmol, confined
     read(11,*) startskip, endskip
     read(11,*) c2index1, c2index2
@@ -68,13 +71,14 @@ Program msd_rot_calc
     L(1) = volume ** (1.0/3.0)
     L(2) = L(1)
     L(3) = L(1)
+    write( unit=output_unit,*) 'Box Length', L(1)
     ! Allocations
     allocate(e(ntimes,nmol,3))
     allocate(r_cm_old(nmol,3), shift_cm(nmol,3))
     allocate(r_old(nmol,atms_per_mol,3), shift(nmol,atms_per_mol,3))
     allocate(r_cm(ntimes,nmol,3))
     allocate(r(ntimes,nmol,atms_per_mol,3))
-    allocate(M(atms_per_mol), tmpmsd(atms_per_mol))
+    allocate(tmpmsd(atms_per_mol))
     allocate(msd(0:ntimes,atms_per_mol))
     allocate(c1(0:ntimes), c2(0:ntimes))
     allocate(msd_cm(0:ntimes))
@@ -105,7 +109,6 @@ Program msd_rot_calc
                 ! Center of MAss Calc
                 r_cm(i,j,:) = r_cm(i,j,:)+r(i,j,k,:)*M(k)/MASS
             enddo
-            r_cm(i,j,:) = r_cm(i,j,:)+r(i,j,k,:)*M(k)/MASS
             etmp(:) = r(i,j,c2index2,:) - r(i,j,c2index1,:)
             norm = dot_product(etmp, etmp)
             e(i,j,:) = etmp(:)/sqrt(norm)

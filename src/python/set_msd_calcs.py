@@ -31,6 +31,7 @@ if inputparam.prog == "LAMMPS":
     lookup= 'Step'
     lookup2= 'Loop time'
     totlines=0
+    startskip=0
     endskip=0
     with open(filename) as myFile:
         for num, line in enumerate(myFile, 1):

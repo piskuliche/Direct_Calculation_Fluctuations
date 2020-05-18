@@ -151,6 +151,7 @@ parser.add_argument('-rehist', default=0, type=int, help="How to rebin the data"
 parser.add_argument('-hmin', default=0, type=float, help="How to rebin the data")
 parser.add_argument('-hmax', default=0, type=float, help="How to rebin the data")
 parser.add_argument('-higher',default=1, type=int, help="[0] don't include higher derivatives")
+parser.add_argument('-random', default=0, type=int, help="[0] don't randomize, [1] do randomize")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -164,6 +165,7 @@ tfile       = args.time
 histbin     = args.rehist
 hmin        = args.hmin
 hmax        = args.hmax
+randomize   = args.random
 higher = args.higher
 
 # Read the input file
@@ -258,6 +260,7 @@ elif option == 2:
             if tnrm != -1: no=np.concatenate((no,tmpno),axis=0)
     # Histograms if histbin is active
     # Slower!
+
     if histbin != 0:
         # Resets time if histogramming is active
         split=(hmax-hmin)/float(histbin)
@@ -275,6 +278,17 @@ elif option == 2:
         cab = np.array(cab2,dtype=float)
     # Sets Array for Normalization
     if tnrm == -1: no = np.ones(np.shape(cab))
+
+    # Randomizes if option selected
+    if randomize == 1:
+        print("Randomizing the order")
+        indices=np.arange(cab.shape[0])
+        np.random.shuffle(indices)
+        cab = cab[indices]
+        no  = no[indices]
+        for key in energy:
+            energy[key]=energy[key][indices]
+
     if corr_func == "uh_theta": corr_func = "theta"
     # Sets the energy array (note - if tnrm = -1)
     zero_order(cab,no) 

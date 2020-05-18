@@ -176,11 +176,11 @@ def step_checkup():
         corr = np.genfromtxt('corr.funcs',dtype=str)
         chk = corr[-1]
         if chk == "frame": chk = chk+"c3"
-        elif chk == "cn": chk = "c3"
+        elif chk == "cn": chk = "c2"
         for i in range(inputparam.start_config, inputparam.end_config+inputparam.sep_config, inputparam.sep_config):
             if (i%1000000) == 0:
                 print("-->%d has been checked" % i)
-            if inputparam.cab == "TRANSPORT" and not os.path.isfile("FILES/%d/%s_%d_%s.dat" % (i,chk,i,inputparam.molec[0])):
+            if inputparam.cab == "TRANSPORT" and not os.path.isfile("FILES/%d/%s_%d_%s.pckl" % (i,chk,i,inputparam.molec[0])):
                 print("%d does not exist" % i)
                 if inputparam.prog == "LAMMPS":
                     f.write("mkdir FILES/%d; cp in.nve FILES/%d; cp nve.sh FILES/%d; cd FILES/%d; sed -i -e 's@AAA@%d@g' nve.sh; sbatch nve.sh; cd ../../\n" % (i,i,i,i,i))

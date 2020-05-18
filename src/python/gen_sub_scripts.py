@@ -216,7 +216,7 @@ nve.close()
 init_file="init_segments.sh"
 iarr = open(init_file,'w')
 sep = int(inputparam.num_files/inputparam.segsplit)
-if sep % inputparam.nblocks != 0:
+if inputparam.num_files % inputparam.nblocks != 0:
     print("Num files and Nblocks do not divide evenly, aborting")
     sys.exit(1)
 iarr.write("#!/bin/bash\n")

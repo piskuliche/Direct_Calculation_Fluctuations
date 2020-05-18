@@ -309,6 +309,24 @@ def propagate_add(eq1,eq2):
     err=sqrt(eq1**2.+eq2**2.)
     return err
 
+def my_ceil(a, precision=0):
+    return np.round(a + 0.5 * 10**(-precision), precision)
+
+def my_floor(a, precision=0):
+    return np.round(a - 0.5 * 10**(-precision), precision)
+
+def zero_count(error):
+    error = np.abs(error)
+    return int(np.ceil(-np.log10(np.abs(error) - np.abs(np.floor(error)))))
+
+def setprecision(value, error):
+    prec = zero_count(error)
+    if prec == 1:
+        prec =2
+    value = "%0.*f" % (prec,np.round(value,prec))
+    error = int(my_ceil(error,prec)*10**prec)
+    return value, np.abs(error)
+
 def read_tidy():
     ea_theta,err_theta,ftheta,err_ftheta = np.zeros(len(inp_n)),np.zeros(len(inp_n)),np.zeros(len(inp_n)),np.zeros(len(inp_n))
     ea_c, err_c = np.zeros(len(inp_n)),np.zeros(len(inp_n))
@@ -326,20 +344,33 @@ def read_tidy():
     if os.path.isfile("ea_c%d_3.dat"%nl):
         k_c, err_k_c = np.genfromtxt("ea_c%d_3.dat"%nl,usecols=(6,7),unpack=True)
     ea_jump, err_ea_jump = ea_ko+ea_theta, propagate_add(err_ea_ko,err_theta)
+    # Timescale Reorientation
+    t_c, err_t_c = np.divide(1,k_c[0]),np.divide(1,k_c[0])*np.divide(err_k_c[0],k_c[0])
+    # Angle Distribution
     ftheta,err_ftheta = ftheta[0],err_ftheta[0]
+    # Frame 
     kframe, err_kframe = kframe[0], err_kframe[0]
+    tframe, err_tframe = np.divide(1,kframe),np.divide(1,kframe)*np.divide(err_kframe,kframe)
+    # Jump Time
     ko,err_ko = ko[0],err_ko[0]
-    kjump, err_kjump = np.multiply(ko,ftheta),propagate_mult(ko,ftheta,err_ko,err_ftheta) 
+    to, err_to = np.divide(1,ko),np.divide(1,ko)*np.divide(err_ko,ko)
+    # jump cont
+    kjump, err_kjump = np.multiply(ko,ftheta),propagate_mult(ko,ftheta,err_ko,err_ftheta)
+    tjump, err_tjump = np.divide(1,kjump),np.divide(1,kjump)*np.divide(err_kjump,kjump)
+    # EJM
     kbot, err_kbot = kjump + kframe, propagate_add(err_kjump,err_kframe)
     kjrat, err_kjrat = np.divide(kjump,kbot,where=kbot!=0,out=np.zeros_like(kjump)), propagate_div(kjump,kbot,err_kjump,err_kbot)
     kfrat, err_kfrat = np.divide(kframe,kbot,where=kbot!=0,out=np.zeros_like(kframe)), propagate_div(kframe,kbot,err_kframe,err_kbot)
+    kejm, err_kejm = kbot, err_kbot
+    tejm, err_tejm = np.divide(1,kejm),np.divide(1,kejm)*np.divide(err_kejm,kejm)
     ea_c2_pred, err_c2_pred = kjrat*ea_jump + kfrat*ea_frame, propagate_add(propagate_mult(kjrat,ea_jump,err_kjrat,err_ea_jump),propagate_mult(kfrat,ea_frame,err_kfrat,err_frame))
+
     print("TIDYING UP JUMP CALCULATIONS - Legendre Polynomial Degree: %d" %nl)
     print("fthta = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (ftheta,err_ftheta,0,0))
-    if k_c[0] != 0: print("Kc    = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (k_c[0],err_k_c[0],np.divide(1,k_c[0]),np.divide(1,k_c[0])*np.divide(err_k_c[0],k_c[0])))
-    if ko != 0: print("Ko    = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (ko,err_ko,np.divide(1,ko),np.divide(1,ko)*np.divide(err_ko,ko)))
-    if kjump != 0: print("Kjump = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kjump,err_kjump,np.divide(1,kjump),np.divide(1,kjump)*np.divide(err_kjump,kjump)))
-    if kframe != 0: print("Kfram = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kframe,err_kframe,np.divide(1,kframe),np.divide(1,kframe)*np.divide(err_kframe,kframe)))
+    if k_c[0] != 0: print("Kc    = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (k_c[0],err_k_c[0],t_c,err_t_c))
+    if ko != 0: print("Ko    = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (ko,err_ko,to,ko))
+    if kjump != 0: print("Kjump = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kjump,err_kjump,tjump,tjump))
+    if kframe != 0: print("Kfram = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kframe,err_kframe,tframe,err_tframe))
     print("Kjrat = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kjrat,err_kjrat,0,0))
     print("Kfrat = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kfrat,err_kfrat,0,0))
     print("PRINTING INDIVIDUAL ACTIVATION ENERGIES")
@@ -348,8 +379,42 @@ def read_tidy():
         print("%8s % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f)" % (inp_n[i], ea_c[i], err_c[i], ea_jump[i], err_ea_jump[i], ea_frame[i],err_frame[i], ea_theta[i], err_theta[i],ea_ko[i], err_ea_ko[i]))
     print("PRINTING Combined ACTIVATION ENERGIES")
     print("%8s %9s (%9s) = %9s (%9s) + %9s (%9s) = %9s (%9s)" % ("#ITEM", "C2ACT","Error","JUMP","Error","FRAME","Error","C2COMP","Error"))
+    jumpcont,err_jumpcont=np.zeros(len(ea_theta)),np.zeros(len(ea_theta))
+    framecont,err_framecont=np.zeros(len(ea_theta)),np.zeros(len(ea_theta))
     for i in range(len(ea_theta)):
-        print("%8s % 09.5f (% 09.5f) = % 09.5f (% 09.5f) + % 09.5f (% 09.5f) = % 09.5f (% 09.5f)" % (inp_n[i],ea_c[i],err_c[i],kjrat*ea_jump[i],propagate_mult(kjrat,ea_jump,err_kjrat,err_ea_jump)[i],kfrat*ea_frame[i],propagate_mult(kfrat,ea_frame,err_kfrat,err_frame)[i],ea_c2_pred[i],err_c2_pred[i]))
+        jumpcont[i],err_jumpcont[i] = kjrat*ea_jump[i],propagate_mult(kjrat,ea_jump,err_kjrat,err_ea_jump)[i]
+        framecont[i], err_framecont[i] = kfrat*ea_frame[i],propagate_mult(kfrat,ea_frame,err_kfrat,err_frame)[i]
+        print("%8s % 09.5f (% 09.5f) = % 09.5f (% 09.5f) + % 09.5f (% 09.5f) = % 09.5f (% 09.5f)" % (inp_n[i],ea_c[i],err_c[i],jumpcont[i],err_jumpcont[i],framecont[i],err_framecont[i],ea_c2_pred[i],err_c2_pred[i]))
+    # Redoes precision
+    to,err_to = setprecision(to,err_to)
+    ftheta,err_ftheta = setprecision(ftheta,err_ftheta)
+    tjump,err_tjump = setprecision(tjump,err_tjump)
+    tframe, err_tframe = setprecision(tframe,err_tframe)
+    t_c,err_t_c = setprecision(t_c,err_t_c)
+    tejm,err_tejm = setprecision(tejm,err_tejm)
+    print("TIMESCALES TABLE - LATEX")
+    print("Order &  $\\tau_0$ & $\\overline{w}_n$ &  $\\tau_n^{jump}$ & $\\tau_n^{frame}$ & $\\tau_n$ & $\\tau_{n}^{EJM}$  \\\\")
+    print("$n=%d$ & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$ \\\\" % (nl,to,err_to,ftheta,err_ftheta,tjump,err_tjump,tframe,err_tframe,t_c,err_t_c,tejm,err_tejm))
+    print("END TIMESCALES TABLE ENTRY")
+
+    print("Activation Energy Table Latex")
+    print("Component &  $E_{a,0}$ & $E_{a,n}^{\\Delta\\theta}$ & $E_{a,n}^{jump}$ & $E_{a,n}^{frame}$ \\\\")
+    for i in range(len(ea_theta)):
+        ea_c[i], err_c[i] = setprecision(ea_c[i],err_c[i])
+        ea_jump[i],err_ea_jump[i] = setprecision(ea_jump[i],err_ea_jump[i])
+        ea_frame[i],err_frame[i]  = setprecision(ea_frame[i],err_frame[i])
+        ea_theta[i],err_theta[i] = setprecision(ea_theta[i],err_theta[i])
+        ea_ko[i],err_ea_ko[i] = setprecision(ea_ko[i],err_ea_ko[i])
+        print("%s & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$ & %s$_{%d}$\\\\" %  (inp_n[i],ea_ko[i],err_ea_ko[i],ea_theta[i],err_theta[i],ea_jump[i],err_ea_jump[i],ea_frame[i],err_frame[i]))
+    print("Finish Act E table")
+    print("Combination table latex")
+    print("Component & $E_{a,n}$ & = & Jump  & + & Frame   & = & $E_{a,n}^{EJM}$  \\\\ & Calculated & & Contribution & & Contribution & & Predicted \\\\")
+    for i in range(len(ea_theta)):
+        ea_c2_pred[i],err_c2_pred[i] = setprecision(ea_c2_pred[i],err_c2_pred[i])
+        jumpcont[i],err_jumpcont[i] = setprecision(jumpcont[i],err_jumpcont[i])
+        framecont[i],err_framecont[i] = setprecision(framecont[i],err_framecont[i])
+        print("%s & %s$_{%d}$ & = & %s$_{%d}$ & + & %s$_{%d}$ & = & %s$_{%d}$ \\\\" % (inp_n[i],ea_c[i],err_c[i],jumpcont[i], err_jumpcont[i], framecont[i], err_framecont[i],ea_c2_pred[i],err_c2_pred[i]))
+    print("finish combination table latex")
     print("JUMP CALCULATIONS COMPLETE")
     return
 
