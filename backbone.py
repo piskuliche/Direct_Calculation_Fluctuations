@@ -206,10 +206,6 @@ def step_checkup():
             else:
                 print("-->Too many jobs, please check and submit by bash rerun")
 
-        if not os.path.exists("logs"):
-            os.makedirs("logs")
-        subprocess.call("mv array* logs", shell=True)
-        subprocess.call("mv direct_calc_nve* logs", shell=True)
         print("->Wait until remaining NVE trajectories run")
         print("->If this step doesn't work the first time")
         print("->Check your input files")
@@ -260,7 +256,7 @@ def step_grabflucts():
             print("Please generate.")
 
         #subprocess.call("cp %s/src/shell/grabfluctsub.sh ./" % homepath, shell=True)
-        os.system("sbatch grabfluctsub.sh")
+        if dryrun == 0: os.system("sbatch grabfluctsub.sh")
         print("->Grab flucts is running as a job")
         print("->Please be patient - and check that grab_flucts.py is completed before continuing")
         print("->Grab Flucts has Finished!")
@@ -297,7 +293,7 @@ def step_segarray():
         print("->Running Segement creation calc.")
         if not os.path.exists("SEG"):
             os.makedirs("SEG")
-        os.system("sbatch init_segments.sh")
+        if dryrun == 0: os.system("sbatch init_segments.sh")
         print("->Segment Creation Array Submitted")
         print("->Please wait until all jobs are complete")
         open(flag, 'a').close()
@@ -318,7 +314,7 @@ def step_combineseg():
             os.makedirs("OUT")
         print("Segment Combination Flag Missing.")
         print("->Running segment combination")
-        os.system("sbatch combine_segments.sh")
+        if dryrun == 0: os.system("sbatch combine_segments.sh")
         print("->Segment Combination has finished!")
         open(flag, 'a').close()
         sys.exit()
@@ -327,10 +323,21 @@ def step_combineseg():
 
 if __name__ == "__main__":
     mach_name, homepath = step_machinename()
+
+    import argparse
+    parser=argparse.ArgumentParser()
+    parser.add_argument('-dryrun', default=0,type=int,help="Dry run flag - [0] Submit Scripts as Jobs, [1] Creates, but doesn't submit")
+    args = parser.parse_args()
+
+    dryrun = args.dryrun
+
+
     step_instruct()
     from src.python.read_input import user_input
     inputparam = user_input("input_file")
     step_traj()
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
     step_nve()
     step_nvecomplete()
     step_checkup()
