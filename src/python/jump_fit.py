@@ -16,6 +16,7 @@ parser.add_argument('-dcend', default=5000, type=int, help="Number of points to 
 parser.add_argument('-degree', default=2, type=int, help="Degree of the Legendre Polynomial (default = 2)")
 parser.add_argument('-keyoverride', default='all', type=str, help="Set if you want only one component")
 parser.add_argument('-tidy', default=0, type=int, help="Set to 0 to skip, set to 1 to do post calculations")
+parser.add_argument('-T', default=298.15, type=float, help="Temperature of the run")
 parser.add_argument('-supress_output', default=0, type=int, help="Set to 1 to show no output, 0 shows all output")
 args = parser.parse_args()
 
@@ -29,6 +30,7 @@ nl        = args.degree
 setkey    = args.keyoverride
 tidy      = args.tidy
 out       = args.supress_output
+T         = args.T
 
 class color:
    PURPLE = '\033[95m'
@@ -375,7 +377,15 @@ def read_tidy():
     print("Kfrat = % 09.5f +/- % 09.5f (% 09.5f +/- % 09.5f)" % (kfrat,err_kfrat,0,0))
     print("PRINTING INDIVIDUAL ACTIVATION ENERGIES")
     print("%8s %9s (%9s) : %9s (%9s) : %9s (%9s) : %9s (%9s) : %9s (%9s)" % ("#ITEM", "C2ACT","Error","JUMP","Error","FRAME","Error","THETA","Error", "ko", "ERROR"))
+    actvol_conv = 83.14462*T
     for i in range(len(ea_theta)):
+        if inp_n[i] == "vol":
+            ea_c[i],err_c[i] = ea_c[i] * actvol_conv,err_c[i] *actvol_conv
+            ea_jump[i], err_ea_jump[i] = ea_jump[i] *actvol_conv, err_ea_jump[i]*actvol_conv
+            ea_frame[i],err_frame[i] = ea_frame[i]* actvol_conv,err_frame[i]* actvol_conv
+            ea_theta[i], err_theta[i] = ea_theta[i]* actvol_conv, err_theta[i]* actvol_conv
+            ea_ko[i], err_ea_ko[i] = ea_ko[i]* actvol_conv, err_ea_ko[i]* actvol_conv
+            ea_c2_pred[i], err_c2_pred[i] = ea_c2_pred[i] * actvol_conv, err_c2_pred[i] * actvol_conv
         print("%8s % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f) : % 09.5f (% 09.5f)" % (inp_n[i], ea_c[i], err_c[i], ea_jump[i], err_ea_jump[i], ea_frame[i],err_frame[i], ea_theta[i], err_theta[i],ea_ko[i], err_ea_ko[i]))
     print("PRINTING Combined ACTIVATION ENERGIES")
     print("%8s %9s (%9s) = %9s (%9s) + %9s (%9s) = %9s (%9s)" % ("#ITEM", "C2ACT","Error","JUMP","Error","FRAME","Error","C2COMP","Error"))
@@ -385,6 +395,7 @@ def read_tidy():
         jumpcont[i],err_jumpcont[i] = kjrat*ea_jump[i],propagate_mult(kjrat,ea_jump,err_kjrat,err_ea_jump)[i]
         framecont[i], err_framecont[i] = kfrat*ea_frame[i],propagate_mult(kfrat,ea_frame,err_kfrat,err_frame)[i]
         print("%8s % 09.5f (% 09.5f) = % 09.5f (% 09.5f) + % 09.5f (% 09.5f) = % 09.5f (% 09.5f)" % (inp_n[i],ea_c[i],err_c[i],jumpcont[i],err_jumpcont[i],framecont[i],err_framecont[i],ea_c2_pred[i],err_c2_pred[i]))
+    """
     # Redoes precision
     to,err_to = setprecision(to,err_to)
     ftheta,err_ftheta = setprecision(ftheta,err_ftheta)
@@ -415,6 +426,7 @@ def read_tidy():
         framecont[i],err_framecont[i] = setprecision(framecont[i],err_framecont[i])
         print("%s & %s$_{%d}$ & = & %s$_{%d}$ & + & %s$_{%d}$ & = & %s$_{%d}$ \\\\" % (inp_n[i],ea_c[i],err_c[i],jumpcont[i], err_jumpcont[i], framecont[i], err_framecont[i],ea_c2_pred[i],err_c2_pred[i]))
     print("finish combination table latex")
+    """
     print("JUMP CALCULATIONS COMPLETE")
     return
 
@@ -460,13 +472,18 @@ bl_data = []
 for b in range(nblocks):
     bl_data.append(np.genfromtxt(subdir+"bl_%d_water_%s.dat" % (b,corr_func),usecols=(1),unpack=True))
 
+
+pderiv_conv=138.0649*T # kbT in bar A^3 
+
 edata,bl_edata={},{}
 for item in inp_n:
     edata[item]=np.genfromtxt(subdir+"%s_water_%s.dat" % (item,corr_func),usecols=(1),unpack=True)
     bl_edata[item]=[]
     for b in range(nblocks):
         bl_edata[item].append(np.genfromtxt(subdir+"bl_%d_%s_water_%s.dat" % (b,item,corr_func),usecols=(1),unpack=True))
-
+    if item == "vol":
+        edata[item] = np.divide(edata[item],pderiv_conv)
+        bl_edata[item] = np.divide(bl_edata[item],pderiv_conv)
 if corr_func == "crp":
     do_crp_fit(xval,data,edata,bl_data,bl_edata)
 elif corr_func in ["c1","c2","c3"]:

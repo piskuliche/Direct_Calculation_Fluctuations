@@ -14,9 +14,9 @@ def dist_components(rA,rB,q,rmax_mask,op):
     vecdr = vecdr - np.multiply(L,np.round(np.divide(vecdr,L)))
     dr = np.linalg.norm(vecdr,axis=-1)
     if op == 0:
-        return np.abs(dr)<rmax
+        return (np.abs(dr)<rmax)
     else:
-        Efield = np.sum(coul(dr,vecdr,q,op),axis=1)
+        Efield = np.sum(coul(dr,vecdr,q,rmax_mask),axis=1)
         edr = np.divide(vecdr,dr[:,:,np.newaxis],where=dr[:,:,np.newaxis]!=0,out=np.zeros_like(vecdr))
         return edr, dr, Efield
 
@@ -34,10 +34,10 @@ def E_Field(EOO,E1O,E2O,E12,E21,E11,E22,e1,e2):
     """
     E1=np.add(np.add(E1O,E12),E11)
     E2=np.add(np.add(E2O,E21),E22)
-    print("e1o", E1O[0],E2O[0])
-    print("e12", E12[0],E21[0])
-    print("e11", E11[0],E22[0])
-    print("ef",E1[0],E2[0])
+    #print("e1o", E1O[0],E2O[0])
+    #print("e11", E11[0],E22[0])
+    #print("e12", E12[0],E21[0])
+    #print("ef",E1[0]*angperau**2.,E2[0]*angperau**2.)
     E1=np.multiply(E1,angperau**2.)
     E2=np.multiply(E2,angperau**2.)
     e1x,e1y,e1z=np.diagonal(np.swapaxes(e1,0,2)[0]),np.diagonal(np.swapaxes(e1,0,2)[1]),np.diagonal(np.swapaxes(e1,0,2)[2])
@@ -153,6 +153,7 @@ if qO == 0.0:
 qH=-qO/2
 L = volume**(1/3.)
 rmax=7.831
+#rmax=50.0
 angperau=0.52917721092
 
 # Trajectory File Name

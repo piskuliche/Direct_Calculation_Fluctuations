@@ -87,10 +87,7 @@ elif inputparam.prog == "CP2K":
     dcn.write("    cp in.nve.cp2k nve.sh FILES/$CUR/\n")
 else:
     dcn.write("Error: Incorrect program in input_file")
-dcn.write("    cp RESTART/restart.$CUR FILES/$CUR\n")
 dcn.write("    cd FILES/$CUR\n")
-dcn.write("    echo Time is `date` > array_$SLURM_ARRAY_TASK_ID.o\n")
-dcn.write("    echo Directory is `pwd` >> array_$SLURM_ARRAY_TASK_ID.o\n")
 dcn.write("    \n\n")
 dcn.write("    sed -i -e 's@direct_calc_nve@nve_'$CUR'@g' nve.sh\n")
 if inputparam.prog == "LAMMPS":
@@ -137,11 +134,7 @@ elif inputparam.cab == "IONPAIRING":
     dcn.write('    set_msd_calcs.py \n')
     dcn.write('    flux_side\n\n')
 dcn.write('    touch corr_complete\n')
-dcn.write("    echo Ending Time is `date` >> array_$SLURM_ARRAY_TASK_ID.o\n")
-dcn.write("    rm mol.info\n")
-dcn.write("    rm traj*.xyz\n")
-if inputparam.cab == "IONPAIRING":
-    dcn.write("    rm vel*.vxyz\n")
+dcn.write("    rm  find . -type f ! -name '*.pckl' -delete\n")
 dcn.write("    cd ../../\n")
 dcn.write("done\n")
 dcn.close()
