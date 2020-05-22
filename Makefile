@@ -39,6 +39,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	ln -s $(HOMEPATH)/src/python/cn_rot_calc_special.py bin/
 	ln -s $(HOMEPATH)/src/python/parse_and_combine.py bin/
 	ln -s $(HOMEPATH)/src/python/dat_to_pickle.py bin/
+	ln -s $(HOMEPATH)/src/python/spectral_diffusion.py bin/
 	chmod 777 backbone.py
 	chmod 777 bin/*
 	chmod 777 src/exec

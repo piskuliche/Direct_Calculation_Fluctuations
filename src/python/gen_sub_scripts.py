@@ -134,7 +134,7 @@ elif inputparam.cab == "IONPAIRING":
     dcn.write('    set_msd_calcs.py \n')
     dcn.write('    flux_side\n\n')
 dcn.write('    touch corr_complete\n')
-dcn.write("    rm  find . -type f ! -name '*.pckl' -delete\n")
+dcn.write("    find . -type f ! -name '*.pckl' -delete\n")
 dcn.write("    cd ../../\n")
 dcn.write("done\n")
 dcn.close()

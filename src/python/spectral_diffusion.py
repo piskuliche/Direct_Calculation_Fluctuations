@@ -123,6 +123,28 @@ def calc_dw(Efield):
     dw=np.subtract(w,w_avg)
     return w, dw, w_avg
 
+def calc_x10(w):
+    """
+    This calculates the taylor expansion <1|x|0> of w
+    """
+    coeff1 = 0.1024 #Angstroms
+    coeff2 = 0.927E-5 #Angstroms/cm^-1
+    term2 = np.multiply(coeff2,w)
+    return np.subtract(coeff1,term2)
+
+def calc_mu_prime(Efield):
+    coeff1 = 0.71116
+    coeff2 = 75.591 #au^-1
+    term2 = np.multiply(coeff2,Efield)
+    return np.add(coeff1,term2)
+
+def calc_transition_dipole(Efield,w):
+    x10 = calc_x10(w)
+    mu_prime_rat = calc_mu_prime(Efield)
+    mu10 = np.multiply(x10,mu_prime_rat)
+    return mu10
+
+
 
 import time
 
@@ -178,6 +200,9 @@ for t in range(ntimes):
     Efield[t]= read_frames(f,t)
 w, dw, w_avg = calc_dw(Efield)
 initial_w = w[0]
+initial_mu10 = calc_transition_dipole(Efield[0],w[0])
+
+
 print("average w",w_avg)
 denom=np.average(np.multiply(dw[0],dw[0]))
 corr = np.divide(np.average(np.multiply(dw[0],dw),axis=1),denom)
@@ -187,5 +212,6 @@ import pickle
 
 pickle.dump(corr,open('spec_diff_'+nfile+'_'+mol_name+'.pckl','wb'))
 pickle.dump(initial_w,open('spec_dist_'+nfile+'_'+mol_name+'.pckl','wb'))
+pickle.dump(initial_mu10, open('spec_mu10_'+nfile+'_'+mol_name+'.pckl','wb'))
 
 print("End time %2.5f" % (time.time()-tread))
