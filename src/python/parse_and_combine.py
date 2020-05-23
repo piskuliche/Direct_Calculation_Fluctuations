@@ -152,6 +152,7 @@ parser.add_argument('-hmin', default=0, type=float, help="How to rebin the data"
 parser.add_argument('-hmax', default=0, type=float, help="How to rebin the data")
 parser.add_argument('-higher',default=1, type=int, help="[0] don't include higher derivatives")
 parser.add_argument('-random', default=0, type=int, help="[0] don't randomize, [1] do randomize")
+parser.add_argument('-weights', default="None", type=str, help="Name of correlation function for weights")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -166,7 +167,8 @@ histbin     = args.rehist
 hmin        = args.hmin
 hmax        = args.hmax
 randomize   = args.random
-higher = args.higher
+weights     = args.weights
+higher      = args.higher
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -185,7 +187,7 @@ inp_n = np.genfromtxt(fname, usecols=0,dtype=str,unpack=True)
 subdir="OUT/"
 
 
-cab,no=[],[]
+cab,no,wcab=[],[],[]
 encab=[]
 if option == 1 and tnrm == -1:
     for i in range(fstart,fend,inputparam.sep_config):
@@ -251,12 +253,15 @@ elif option == 2:
     for i in range(nosplit):
         print(i)
         tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        if weights != "None": tmpweight = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+weights+'_'+mol_name+'.pckl','rb'))
         if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
         if i == 0:
             cab = tmpcab
+            if weights != "None": wcab = tmpweight
             if tnrm != -1: no  = tmpno
         else:
             cab=np.concatenate((cab,tmpcab),axis=0)
+            if weights != "None": wcab = np.concatenate((wcab, tmpweight),axis=0)
             if tnrm != -1: no=np.concatenate((no,tmpno),axis=0)
     # Histograms if histbin is active
     # Slower!
@@ -266,15 +271,19 @@ elif option == 2:
         split=(hmax-hmin)/float(histbin)
         time = []
         for b in range(histbin):
-            time.append(b*split+split/2)
+            time.append(b*split+split/2+hmin)
         # Resets cab if histogramming is active
         cab2 = []
+        count = 0
         for tmpcab in cab:
             nonzero = tmpcab[tmpcab != 0]
-            tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True)
+            tmp, bedge= [],[]
+            if weights == "None": tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True)
+            else: tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True, weights=wcab[count])
             # This next one is just a test
             #tmp = tmp / len(nonzero)
             cab2.append(tmp)
+            count += 1
         cab = np.array(cab2,dtype=float)
     # Sets Array for Normalization
     if tnrm == -1: no = np.ones(np.shape(cab))

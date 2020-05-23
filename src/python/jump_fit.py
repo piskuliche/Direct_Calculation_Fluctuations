@@ -290,11 +290,11 @@ def print_data(item,n, A, k, dA, dk, err):
         print(color.RED + color.BOLD+"Ea (kcal/mol)        %d: % 09.5f % 09.5f" % (1,-dk/k,err["ea"]) + color.END)
         if item == "e":
             f=open('ea_%s%s.dat' % (corr_func,nl), 'w')
-            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
+            f.write("Ea (kcal/mol)    %8s: % 09.10f % 09.10f TS % 09.10f % 09.10f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
             f.close()
         else:
             f=open('ea_%s%s.dat' % (corr_func,nl), 'a')
-            f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
+            f.write("Ea (kcal/mol)    %8s: % 09.10f % 09.10f TS % 09.10f % 09.10f\n" % (item,-dk/k,err["ea"],k,err["avtheta"]))
             f.close()
     return
 
