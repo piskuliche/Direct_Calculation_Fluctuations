@@ -147,7 +147,10 @@ nve_file="nve.sh"
 nve=open(nve_file, 'w')
 
 for item in lines:
-    nve.write(item)
+    if "output" in line:
+        nve.write("#SBATCH --output=nve.out")
+    else:
+        nve.write(item)
 nve.write("module load Dir_Calc_Fluct\n")
 if inputparam.prog == "LAMMPS":
     nve.write('%s\n\n' % lammpsload)

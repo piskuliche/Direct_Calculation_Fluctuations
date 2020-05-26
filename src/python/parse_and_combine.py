@@ -153,6 +153,7 @@ parser.add_argument('-hmax', default=0, type=float, help="How to rebin the data"
 parser.add_argument('-higher',default=1, type=int, help="[0] don't include higher derivatives")
 parser.add_argument('-random', default=0, type=int, help="[0] don't randomize, [1] do randomize")
 parser.add_argument('-weights', default="None", type=str, help="Name of correlation function for weights")
+parser.add_argument('-wrule', default="linear", type=str, help="Options for weights, either 'linear' or 'square'")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -169,6 +170,7 @@ hmax        = args.hmax
 randomize   = args.random
 weights     = args.weights
 higher      = args.higher
+wrule       = args.wrule
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -251,8 +253,9 @@ elif option == 2:
     # This loops over the segments and reads them in. 
     print("Unpickling Files")
     for i in range(nosplit):
-        print(i)
+        print(i,flush=True)
         tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        tmpweight=[]
         if weights != "None": tmpweight = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+weights+'_'+mol_name+'.pckl','rb'))
         if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
         if i == 0:
@@ -266,8 +269,12 @@ elif option == 2:
     # Histograms if histbin is active
     # Slower!
 
+
+
     if histbin != 0:
+        if wrule == "square": wcab = np.power(wcab,2)
         # Resets time if histogramming is active
+        print("Binning Histogram",flush=True)
         split=(hmax-hmin)/float(histbin)
         time = []
         for b in range(histbin):
@@ -278,6 +285,7 @@ elif option == 2:
         for tmpcab in cab:
             nonzero = tmpcab[tmpcab != 0]
             tmp, bedge= [],[]
+            if count%1000 == 0: print("Reached histogram %d" % count, flush=True)
             if weights == "None": tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True)
             else: tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=True, weights=wcab[count])
             # This next one is just a test
@@ -287,7 +295,7 @@ elif option == 2:
         cab = np.array(cab2,dtype=float)
     # Sets Array for Normalization
     if tnrm == -1: no = np.ones(np.shape(cab))
-
+    print("Histogramming Complete", flush=True)
     # Randomizes if option selected
     if randomize == 1:
         print("Randomizing the order")
@@ -299,11 +307,12 @@ elif option == 2:
             energy[key]=energy[key][indices]
 
     if corr_func == "uh_theta": corr_func = "theta"
+    if weights != "None": corr_func = corr_func + "_" + weights
     # Sets the energy array (note - if tnrm = -1)
     zero_order(cab,no) 
     # Loops over energy items, reads them in to calculate correlations!
     for item in inp_n:
-        print("Derivative for  %s" % item)
+        print("Derivative for  %s" % item,flush=True)
         encab = np.multiply(energy[item][:,None],no)
         avcab = calc_avcab(cab,no)
         first_order(cab,encab,no)
