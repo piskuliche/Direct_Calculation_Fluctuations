@@ -278,11 +278,11 @@ def print_data(item,n, A, k, dA, dk, err):
             print(color.RED + color.BOLD+"Ea (kcal/mol)    %d: % 09.5f % 09.5f" % (i+1,-dk[i]/k[i],err["ea"][i]) + color.END)
             if item == "e":
                 f=open('ea_%s_%d.dat' % (corr_func,i+1), 'w')
-                f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk[i]/k[i],err["ea"][i],k[i],err["k"][i]))
+                f.write("Ea (kcal/mol)    %8s: % 09.10f % 09.10f TS % 09.10f % 09.10f\n" % (item,-dk[i]/k[i],err["ea"][i],k[i],err["k"][i]))
                 f.close()
             else:
                 f=open('ea_%s_%d.dat' % (corr_func,i+1), 'a')
-                f.write("Ea (kcal/mol)    %8s: % 09.5f % 09.5f TS % 09.5f % 09.5f\n" % (item,-dk[i]/k[i],err["ea"][i],k[i],err["k"][i]))
+                f.write("Ea (kcal/mol)    %8s: % 09.10f % 09.10f TS % 09.10f % 09.10f\n" % (item,-dk[i]/k[i],err["ea"][i],k[i],err["k"][i]))
                 f.close()
     elif out == 0:
         print("thta  (deg)          %d: % 09.5f % 09.5f" % (1,k, err["avtheta"]))
