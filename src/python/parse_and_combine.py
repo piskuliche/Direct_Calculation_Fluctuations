@@ -44,6 +44,23 @@ def zero_order(cab, no):
     np.savetxt(subdir+mol_name+'_'+corr_func+'.dat',np.c_[time,d0,err_d0])
     return
 
+def zero_order_dist(cab):
+    """
+    Calculates the zeroth order derivative - aka the correlation function!
+    Does block averaging, and the error calculation
+    """
+    notmp = np.ones(np.shape(cab))
+    d0 = calc_avcab(cab,notmp)
+    nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
+    bl_d0 = []
+    for block in range(inputparam.nblocks):
+        bstart=block*nperb
+        bend=(block+1)*nperb
+        bl_d0.append(calc_avcab(cab[bstart:bend],notmp[bstart:bend]))
+    err_d0 = Error(bl_d0)
+    print("The average of the histogram values are: %13.9f +/- %13.9f" %(d0, err_d0))
+    return
+
 def calc_deriv(cab, encab, no):
     """ 
     Calculates the first derivative
@@ -71,6 +88,22 @@ def first_order(cab,encab,no):
     err_d1 = Error(bl_d1)
     np.savetxt(subdir+item+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,d1,err_d1])
     return 
+
+def first_order_dist(cab,encab):
+    """
+    This does the first derivative and the blocking!
+    """
+    notmp = np.ones(np.shape(cab))
+    d1 = calc_deriv(cab, encab, notmp)
+    nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
+    bl_d1 = []
+    for block in range(inputparam.nblocks):
+        bstart=block*nperb
+        bend=(block+1)*nperb
+        bl_d1.append(calc_deriv(cab[bstart:bend],encab[bstart:bend],notmp[bstart:bend]))
+    err_d1 = Error(bl_d1)
+    print("The derivative of the distribution is: %13.9f +/- %13.9f" % (d1,err_d1))
+    return
 
 def calc_deriv2(cab,encab1,encab2,no):
     """
@@ -114,6 +147,26 @@ def second_order(cab,encab,no):
         np.savetxt(subdir+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,d2,err_d2])
     return
 
+def second_order_dist(cab,encab):
+    """
+    This does the second derivative for all different options of item
+    and blocking and error
+    """
+    notmp = np.ones(np.shape(cab))
+    for item2 in inp_n:
+        print(item2)
+        encab2=energy[item2]
+        d2 = calc_deriv2(cab,encab,encab2,notmp)
+        nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
+        bl_d2 = []
+        for block in range(inputparam.nblocks):
+            bstart=block*nperb
+            bend=(block+1)*nperb
+            bl_d2.append(calc_deriv2(cab[bstart:bend],encab[bstart:bend],encab2[bstart:bend],notmp[bstart:bend]))
+        err_d2 = Error(bl_d2)
+        print("Second Derivative w.r.t. %s is: %13.9f +/- %13.9f" % (item2,d2,err_d2))
+    return
+
 def third_order(cab,encab,no):
     # Currently not supported.
     d3 = np.zeros(len(time))
@@ -142,7 +195,7 @@ parser.add_argument('-val', default=0, type=int, help='This is the number of the
 parser.add_argument('-opt', default=1, type=int, help='[1] init_segs [2] combine_segs')
 parser.add_argument('-corr',default="c2", type=str,help='Correlation function of interest')
 parser.add_argument('-mol', default="water",type=str,help="Molecule name")
-parser.add_argument('-tnrm',default=-1, type=int, help="[0] regular averaging, [1] special averaging")
+parser.add_argument('-tnrm',default=-1, type=int, help="[-1] regular averaging, [1] special averaging")
 parser.add_argument('-fname',default="flucts.inp", type=str, help="File that calls the types of energies")
 parser.add_argument('-bin', default=0, type=int, help="[0] Non Binary [1] Binary")
 parser.add_argument('-bfcorr', default="norm", type=str, help="norm_ is the default")
@@ -154,6 +207,7 @@ parser.add_argument('-higher',default=1, type=int, help="[0] don't include highe
 parser.add_argument('-random', default=0, type=int, help="[0] don't randomize, [1] do randomize")
 parser.add_argument('-weights', default="None", type=str, help="Name of correlation function for weights")
 parser.add_argument('-wrule', default="linear", type=str, help="Options for weights, either 'linear' or 'square'")
+parser.add_argument('-extra', default="None", type=str, help="Extra correlation function to read in")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -171,6 +225,7 @@ randomize   = args.random
 weights     = args.weights
 higher      = args.higher
 wrule       = args.wrule
+extra_corr  = args.extra
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -190,7 +245,9 @@ subdir="OUT/"
 
 
 cab,no,wcab=[],[],[]
+orig_cab,dist_av_cab = [],[]
 encab=[]
+extra_cab = []
 if option == 1 and tnrm == -1:
     for i in range(fstart,fend,inputparam.sep_config):
         filename="FILES/"+str(i)+"/"+corr_func+"_"+str(i)+"_"+mol_name
@@ -254,24 +311,27 @@ elif option == 2:
     print("Unpickling Files")
     for i in range(nosplit):
         print(i,flush=True)
+        tmpextra=[]
         tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        if extra_corr != "None": tmpextra = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+extra_corr+'_'+mol_name+'.pckl','rb'))
         tmpweight=[]
         if weights != "None": tmpweight = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+weights+'_'+mol_name+'.pckl','rb'))
         if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
         if i == 0:
             cab = tmpcab
+            if extra_corr != "None": extra_cab = tmpextra
             if weights != "None": wcab = tmpweight
             if tnrm != -1: no  = tmpno
         else:
             cab=np.concatenate((cab,tmpcab),axis=0)
+            if extra_corr != "None": extra_cab = np.concatenate((extra_cab,tmpextra),axis=0)
             if weights != "None": wcab = np.concatenate((wcab, tmpweight),axis=0)
             if tnrm != -1: no=np.concatenate((no,tmpno),axis=0)
     # Histograms if histbin is active
     # Slower!
 
-
-
     if histbin != 0:
+        orig_cab = cab
         if wrule == "square": wcab = np.power(wcab,2)
         # Resets time if histogramming is active
         print("Binning Histogram",flush=True)
@@ -293,9 +353,18 @@ elif option == 2:
             cab2.append(tmp)
             count += 1
         cab = np.array(cab2,dtype=float)
+    else:
+        if extra_corr != "None":
+            avextra = np.subtract(np.average(extra_cab,axis=1),np.average(extra_cab))
+            cab = np.add(cab,np.power(avextra[:,np.newaxis],2))
+        if wrule == "norm_zero":
+            tmpav = np.average(cab,axis=0)
+            cab = np.divide(cab,tmpav[0])
+        elif wrule == "norm_reg":
+            cab = np.divide(cab,cab[:,0,np.newaxis])
     # Sets Array for Normalization
     if tnrm == -1: no = np.ones(np.shape(cab))
-    print("Histogramming Complete", flush=True)
+    if histbin != 0: print("Histogramming Complete", flush=True)
     # Randomizes if option selected
     if randomize == 1:
         print("Randomizing the order")
@@ -308,16 +377,25 @@ elif option == 2:
 
     if corr_func == "uh_theta": corr_func = "theta"
     if weights != "None": corr_func = corr_func + "_" + weights
-    # Sets the energy array (note - if tnrm = -1)
-    zero_order(cab,no) 
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!THIS IS THE MAIN CORRELATION CALCULATION!!
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    zero_order(cab,no)
+    print(corr_func,np.shape(cab),cab[0][0])
+    if histbin != 0:
+        dist_av_cab = np.average(orig_cab,axis=1)
+        zero_order_dist(dist_av_cab) 
     # Loops over energy items, reads them in to calculate correlations!
     for item in inp_n:
         print("Derivative for  %s" % item,flush=True)
+        if histbin != 0: first_order_dist(dist_av_cab,energy[item])
         encab = np.multiply(energy[item][:,None],no)
         avcab = calc_avcab(cab,no)
         first_order(cab,encab,no)
         if higher == 1:
             second_order(cab,encab,no)
+            if histbin != 0: second_order_dist(dist_av_cab,energy[item])
             third_order(cab,encab,no)
             fourth_order(cab,encab,no)
 

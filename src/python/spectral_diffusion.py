@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+import sys
 
 
 def dist_components(rA,rB,q,rmax_mask,op):
@@ -34,12 +35,8 @@ def E_Field(EOO,E1O,E2O,E12,E21,E11,E22,e1,e2):
     """
     E1=np.add(np.add(E1O,E12),E11)
     E2=np.add(np.add(E2O,E21),E22)
-    #print("e1o", E1O[0],E2O[0])
-    #print("e11", E11[0],E22[0])
-    #print("e12", E12[0],E21[0])
-    #print("ef",E1[0]*angperau**2.,E2[0]*angperau**2.)
-    E1=np.multiply(E1,angperau**2.)
-    E2=np.multiply(E2,angperau**2.)
+    E1=np.multiply(E1,angperausq)
+    E2=np.multiply(E2,angperausq)
     e1x,e1y,e1z=np.diagonal(np.swapaxes(e1,0,2)[0]),np.diagonal(np.swapaxes(e1,0,2)[1]),np.diagonal(np.swapaxes(e1,0,2)[2])
     e2x,e2y,e2z=np.diagonal(np.swapaxes(e2,0,2)[0]),np.diagonal(np.swapaxes(e2,0,2)[1]),np.diagonal(np.swapaxes(e2,0,2)[2])
     e1 = np.swapaxes(np.array((e1x,e1y,e1z)),0,1)
@@ -48,6 +45,17 @@ def E_Field(EOO,E1O,E2O,E12,E21,E11,E22,e1,e2):
     Efield2 = np.sum(np.multiply(e2,E2),axis=1)
     Efield = np.append(Efield1,Efield2)
     return Efield
+
+def find_M(rO,r1,r2):
+    """
+    Subroutine to calculate the location of the point charge in tip4p2005
+    Note that alpha is defined at the bottom of this code (and is 0.5*0.1546/(cos(0.5*ang)*blen))
+    """
+    tmpM = np.add(np.subtract(r1,rO),np.subtract(r2,rO))
+    tmpM = np.multiply(alpha,tmpM)
+    rM = np.add(rO,tmpM)
+    return rM
+
 
 def read_frames(f,t):
     """
@@ -62,6 +70,7 @@ def read_frames(f,t):
         if len(line.split()) == 1 and count > 0:
             if t != -1:
                 rO,r1,r2 = np.array(rO),np.array(r1),np.array(r2)
+                if tip4pflag==1: rO = find_M(rO,r1,r2) # If tip4p, replaces rO distance with rM distance
                 # Calculate rmask
                 o1mask=dist_components(r1,rO,qO,0,0)
                 o2mask=dist_components(r2,rO,qO,0,0)
@@ -88,20 +97,20 @@ def read_frames(f,t):
             elif count % 3 == 1:
                 # Read in hydrogens and wrap boundary conditions
                 r1x = float(line.split()[1])
-                r1x = r1x - L*round((rO[index][0]-r1x)/L)
+                r1x = r1x + L*round((rO[index][0]-r1x)/L)
                 r1y = float(line.split()[2])
-                r1y = r1y - L*round((rO[index][1]-r1y)/L)
+                r1y = r1y + L*round((rO[index][1]-r1y)/L)
                 r1z = float(line.split()[3])
-                r1z = r1z - L*round((rO[index][2]-r1z)/L)
+                r1z = r1z + L*round((rO[index][2]-r1z)/L)
                 r1.append([r1x, r1y, r1z])
             elif count % 3 == 2:
                 # Read in hydrogens and wrap boundary conditions
                 r2x = float(line.split()[1])
-                r2x = r2x - L*round((rO[index][0]-r2x)/L)
+                r2x = r2x + L*round((rO[index][0]-r2x)/L)
                 r2y = float(line.split()[2])
-                r2y = r2y - L*round((rO[index][1]-r2y)/L)
+                r2y = r2y + L*round((rO[index][1]-r2y)/L)
                 r2z = float(line.split()[3])
-                r2z = r2z - L*round((rO[index][2]-r2z)/L)
+                r2z = r2z + L*round((rO[index][2]-r2z)/L)
                 r2.append([r2x, r2y, r2z])
                 index += 1
             else:
@@ -112,33 +121,32 @@ def read_frames(f,t):
 
 
 
-def calc_dw(Efield):
-    c0=3761.6
-    c1=-5060.4
-    c2=-86225
+def calc_w(Efield):
+    """
+    Calculates the frequencies from the electric field
+    """
     term2=np.multiply(c1,Efield)
     term3=np.multiply(c2,np.power(Efield,2))
     w=np.add(np.add(c0,term2),term3)
-    w_avg = np.average(w)
-    dw=np.subtract(w,w_avg)
-    return w, dw, w_avg
+    return w 
 
 def calc_x10(w):
     """
     This calculates the taylor expansion <1|x|0> of w
     """
-    coeff1 = 0.1024 #Angstroms
-    coeff2 = 0.927E-5 #Angstroms/cm^-1
-    term2 = np.multiply(coeff2,w)
-    return np.subtract(coeff1,term2)
+    term2 = np.multiply(xc2,w)
+    return np.subtract(xc1,term2)
 
 def calc_mu_prime(Efield):
-    coeff1 = 0.71116
-    coeff2 = 75.591 #au^-1
-    term2 = np.multiply(coeff2,Efield)
-    return np.add(coeff1,term2)
+    term2 = np.multiply(mc2,Efield)
+    term3 = 0.0
+    if mc3 != 0.0: term3 = np.multiply(mc3,np.power(Efield,2))
+    return np.add(np.add(mc1,term2),term3)
 
 def calc_transition_dipole(Efield,w):
+    """
+    Calculates the transition dipole moment from the electric field and frequency
+    """
     x10 = calc_x10(w)
     mu_prime_rat = calc_mu_prime(Efield)
     mu10 = np.multiply(x10,mu_prime_rat)
@@ -165,18 +173,73 @@ mol_name = str(lines[7]).strip()
 qO = float(lines[9])
 inp.close()
 
+# When to cut off the calcualtion (stops at 1000 for times sake)
 if ntimes > 1000:
     ntimes = 1000
 
-if qO == 0.0:
+
+tip4pflag = 0 # 0 - not tip4p, 1 tip4p
+alpha=0.0 # this is for finding the location of the point charge in TIP4P/2005
+rmax=0.0
+c0,c1,c2=0.0, 0.0, 0.0
+if qO == -0.84760:
     print("Choosing SPC/E for water model")
     qO = -0.84760
+    rmax=7.831
+    # w coeffs
+    c0=3761.6
+    c1=-5060.4
+    c2=-86225.0
+    # x_10 coeffs 
+    xc1=0.71116 
+    xc2=0.927E-5
+    # mu_10 coeffs
+    mc1=0.71116
+    mc2=75.591
+    mc3=0.0
+elif qO == -1.1128:
+    print("Recognized as TIP4P/2005 - Note This does not have a map currently")
+    tip4pflag = 1
+    hoh_ang = 104.52
+    blength = 0.9572
+    alpha = 0.1546/(2*np.cos(0.5*hoh_ang*np.pi/180.0)*blength)
+    rmax=7.831
+    # w coeffs
+    c0=3760.2
+    c1=-3541.7
+    c2=-152677
+    # x_10 coeffs
+    xc1=0.19285
+    xc2=1.7261E-5
+    # mu_10 coeffs
+    mc1=0.1646
+    mc2=11.39
+    mc3=63.41
+elif qO == -1.040:
+    print("Recognized as TIP4P")
+    tip4pflag = 1
+    hoh_ang = 104.52
+    blength = 0.9572
+    alpha = 0.15/(2*np.cos(0.5*hoh_ang*np.pi/180.0)*blength)
+    rmax=7.831
+    # w coeffs
+    c0=3760.2
+    c1=-3541.7
+    c2=-152677
+    # x_10 coeffs
+    xc1=0.19285
+    xc2=1.7261E-5
+    # mu_10 coeffs
+    mc1=0.1646
+    mc2=11.39
+    mc3=63.41
+
+print(c0,c1,c2)
 
 qH=-qO/2
 L = volume**(1/3.)
-rmax=7.831
-#rmax=50.0
 angperau=0.52917721092
+angperausq  = np.power(angperau,2)
 
 # Trajectory File Name
 filename = 'traj_'+str(nfile)+'_'+str(mol_name)+'.xyz'
@@ -193,24 +256,38 @@ vr = np.array((np.linspace(1,nmols,num=nmols),np.linspace(1,nmols,num=nmols),np.
 vr=np.swapaxes(vr,0,1)
 mask=vr[:,np.newaxis,:]-vr[np.newaxis,:,:]
 mask=1*(mask!=0)
+# Sets up the zero field
 Efield=np.zeros((ntimes,2*nmols))
-Efield[0]= read_frames(f,0)
+# calculates for t=0
+# Loop over times
 for t in range(ntimes):
-    if t%100 == 0: print("STEP:",t)
+    if t%100 == 0: print("STEP:",t,flush=True)
     Efield[t]= read_frames(f,t)
-w, dw, w_avg = calc_dw(Efield)
+# Converts to frequencies
+
+
+w = calc_w(Efield)
+w_avg = float(sys.argv[1])
+dw = np.subtract(w,w_avg)
+w2avg = np.average(w)
+dw2 = np.subtract(w,w2avg)
+
+print("Finalizing Calculations",flush=True)
+
+# Calculates transition dipole
 initial_w = w[0]
 initial_mu10 = calc_transition_dipole(Efield[0],w[0])
 
+# Calculates the time correlation function
+corr=np.average(np.multiply(dw[0],dw),axis=1)
+corr2=np.average(np.multiply(dw2[0],dw2),axis=1)
 
-print("average w",w_avg)
-denom=np.average(np.multiply(dw[0],dw[0]))
-corr = np.divide(np.average(np.multiply(dw[0],dw),axis=1),denom)
-#np.savetxt("spec_"+nfile+"_"+mol_name+".dat",np.c_[time,corr])
 
+# Outputs the final data
 import pickle
 
 pickle.dump(corr,open('spec_diff_'+nfile+'_'+mol_name+'.pckl','wb'))
+pickle.dump(corr2,open('spec_diff2_'+nfile+'_'+mol_name+'.pckl','wb'))
 pickle.dump(initial_w,open('spec_dist_'+nfile+'_'+mol_name+'.pckl','wb'))
 pickle.dump(initial_mu10, open('spec_mu10_'+nfile+'_'+mol_name+'.pckl','wb'))
 
