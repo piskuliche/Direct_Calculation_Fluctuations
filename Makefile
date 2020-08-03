@@ -36,6 +36,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	ln -s $(HOMEPATH)/src/python/parse_fit_results.py bin/
 	ln -s $(HOMEPATH)/src/python/combine_weighted.py bin/
 	ln -s $(HOMEPATH)/src/python/jump_fit.py bin/
+	ln -s $(HOMEPATH)/src/python/msd.py bin/
 	ln -s $(HOMEPATH)/src/python/cn_rot_calc_special.py bin/
 	ln -s $(HOMEPATH)/src/python/parse_and_combine.py bin/
 	ln -s $(HOMEPATH)/src/python/dat_to_pickle.py bin/

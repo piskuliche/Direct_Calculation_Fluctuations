@@ -24,6 +24,33 @@ eps = 0.15535 # Kcal/mol
 sig = 3.16600 # Angstroms
 doh = 1.0 # Angstroms
 
+def parse_log(filename):
+    """
+    This subroutine reads the lammps log file and generates the trajectories.
+    """
+    count,start,end,empty=0,0,0,0
+    lines=[]
+    header=""
+    with open(filename,'r') as f:
+        lines=f.readlines()
+        for line in lines:
+            if "Step Time" in line:
+                start=count
+                header=line.strip().split()
+            if "Loop time" in line:
+                end=count
+            if end != 0 and line == '\n':
+                empty+=1
+            count += 1
+
+    startskip = start + 1
+    endskip   = len(lines)-end-empty
+    data = np.genfromtxt(filename, skip_header=startskip, skip_footer=endskip,comments=None,unpack=True)
+    edata={}
+    for i in range(len(header)):
+        edata[header[i]]=data[i]
+    return edata
+
 def LJ(dr,eps,sig):
     """
     This function calculates the lennard jones potential energy for a particular epsilon and sigma
@@ -320,7 +347,7 @@ crp = np.zeros((len(OHs),ntimes))                                               
 c1,c2,c3  = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))      # These are the frame reorientation correlation functions Od-Oh
 ch1,ch2,ch3 = np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes)),np.zeros((len(OHs), ntimes))    # These are the frame reorientation correlation functions OHd
 norm_t = np.zeros(ntimes)                                                                               # This is the hydrogen bond extinction correlation function
-theta = []                                                                                              # This is the jump angle distribution - note NOT A TCF
+theta,jindex = [],[]                                                                                    # This is the jump angle distribution - note NOT A TCF
 
 c1_1, c1_2, c1_3, c1_4, c1_5 = np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes), np.zeros(ntimes)
 
@@ -378,6 +405,7 @@ for n in range(1,ntimes): # Loop Over Times
                         OHs[OH][6]=mol2
                         oo_dist.append(dOO[1][mol1][OHs[OH][1]])
                         theta.append(calc_jumpang(OHs[OH],eOO,1))
+                        jindex.append(n)
                 if hbnd == 0 and mol2 == OHs[OH][1]:
                     c1[OH][n],c2[OH][n],c3[OH][n]=calc_cn(eOO[0][mol1][mol2],eOO[1][mol1][mol2])
                     if OHs[OH][2] == 1:
@@ -519,20 +547,37 @@ for i in range(len(norm_t)):
 np.savetxt('oo_dist.dat', np.c_[oo_dist])
 
 # Outputs all the calculated correlation functions
-np.savetxt('ec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,EC1], fmt="%2.5f")
-np.savetxt('lc1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,LC1], fmt="%2.5f")
-np.savetxt('theta_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[bins,tht], fmt="%2.5f")
-np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
-np.savetxt('hbnd_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, norm_t/norm_t[0]], fmt="%2.5f")
-np.savetxt('framec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C1, norm_t], fmt="%2.5f")
-np.savetxt('framec2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
-np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm_t], fmt="%2.5f")
-np.savetxt('framech1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH1, norm_t], fmt="%2.5f")
-np.savetxt('framech2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH2, norm_t], fmt="%2.5f")
-np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, norm_t], fmt="%2.5f")
+#np.savetxt('ec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,EC1], fmt="%2.5f")
+#np.savetxt('lc1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps,LC1], fmt="%2.5f")
+#np.savetxt('theta_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[bins,tht], fmt="%2.5f")
+#np.savetxt('crp_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CRP], fmt="%2.5f")
+#np.savetxt('hbnd_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, norm_t/norm_t[0]], fmt="%2.5f")
+#np.savetxt('framec1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C1, norm_t], fmt="%2.5f")
+#np.savetxt('framec2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C2, norm_t], fmt="%2.5f")
+#np.savetxt('framec3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, C3, norm_t], fmt="%2.5f")
+#np.savetxt('framech1_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH1, norm_t], fmt="%2.5f")
+#np.savetxt('framech2_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH2, norm_t], fmt="%2.5f")
+#np.savetxt('framech3_'+str(nfile)+'_'+str(mol_name)+'.dat', np.c_[steps, CH3, norm_t], fmt="%2.5f")
+
+# This part pulls the energies from the log file
+print("Calculating the new energies")
+edata = parse_log("log.lammps")
+ke=edata["KinEng"][jindex]
+lj=edata["E_vdwl"][jindex]
+elec=np.add(edata["E_coul"][jindex],edata["E_long"][jindex])
+tot=edata["TotEng"][jindex]
+print("Finished the new energies")
+
+
 
 import pickle
 
+
+pickle.dump(jindex,open('jindex_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
+pickle.dump(ke,open('jke_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
+pickle.dump(lj,open('jlj_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
+pickle.dump(elec,open('jelec_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
+pickle.dump(tot,open('jtot_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
 pickle.dump(theta,open('theta_'+str(nfile)+'_'+str(mol_name)+'.pckl','wb'))
 pickle.dump(CRP,open('crp_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(C1,open('framec1_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))

@@ -158,6 +158,16 @@ import time
 
 tread = time.time()
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-avfreq', default=0.0, type=float, help='This is the average frequency in wavenumbers, if you are recalculating, otherwise defaults to 0')
+parser.add_argument('-timecut', default=10000, type=int, help='Number of steps to cut calculation after')
+args   = parser.parse_args()
+
+avfreq = args.avfreq
+timecut = args.timecut
+
 
 # Read Corr Calc Input File
 inpfile='corr_calc.in'
@@ -173,9 +183,6 @@ mol_name = str(lines[7]).strip()
 qO = float(lines[9])
 inp.close()
 
-# When to cut off the calcualtion (stops at 1000 for times sake)
-if ntimes > 1000:
-    ntimes = 1000
 
 
 tip4pflag = 0 # 0 - not tip4p, 1 tip4p
@@ -257,6 +264,10 @@ vr=np.swapaxes(vr,0,1)
 mask=vr[:,np.newaxis,:]-vr[np.newaxis,:,:]
 mask=1*(mask!=0)
 # Sets up the zero field
+
+if ntimes > timecut:
+    ntimes = timecut
+
 Efield=np.zeros((ntimes,2*nmols))
 # calculates for t=0
 # Loop over times
@@ -267,7 +278,7 @@ for t in range(ntimes):
 
 
 w = calc_w(Efield)
-w_avg = float(sys.argv[1])
+w_avg = avfreq
 dw = np.subtract(w,w_avg)
 w2avg = np.average(w)
 dw2 = np.subtract(w,w2avg)

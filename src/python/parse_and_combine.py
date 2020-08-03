@@ -127,7 +127,41 @@ def calc_deriv2(cab,encab1,encab2,no):
     av_d2cab = np.subtract(term1,term2)
     return av_d2cab
 
-def second_order(cab,encab,no):
+def calc_xderiv2(cab,encab1,encab2,no):
+    """
+    This calculates the second derivative as:
+    f'' = <[dH^2 - <dH^2>]f>
+    """
+    #Second Derivative
+    # <H1>, <H2>
+    avencab1, avencab2 = calc_avcab(encab1,no), calc_avcab(encab2,no)
+    # dH1 = H1 - <H1>, dH2 = H2-<H2>
+    den1cab, den2cab = np.subtract(encab1,avencab1), np.subtract(encab2,avencab2)
+    # dH1*dH2
+    d2encab = np.multiply(den1cab,den2cab)
+    term1 = calc_avcab(np.multiply(d2encab,cab),no)
+    return term1
+
+def second_order(cab,encab,no,item2):
+    """
+    This does the second derivative for all different options of item
+    and blocking and error
+    """
+    print(item2)
+    encab2 = np.multiply(energy[item2][:,None],no)
+    d2 = calc_deriv2(cab,encab,encab2,no)
+    nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
+    bl_d2 = []
+    for block in range(inputparam.nblocks):
+        bstart=block*nperb
+        bend=(block+1)*nperb
+        bl_d2.append(calc_deriv2(cab[bstart:bend],encab[bstart:bend],encab2[bstart:bend],no[bstart:bend]))
+        np.savetxt(subdir+"bl_"+str(block)+"_"+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,bl_d2[block]])
+    err_d2 = Error(bl_d2)
+    np.savetxt(subdir+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,d2,err_d2])
+    return
+
+def second_cross(cab,encab,no):
     """
     This does the second derivative for all different options of item
     and blocking and error
@@ -135,16 +169,16 @@ def second_order(cab,encab,no):
     for item2 in inp_n:
         print(item2)
         encab2 = np.multiply(energy[item2][:,None],no)
-        d2 = calc_deriv2(cab,encab,encab2,no)
+        d2 = calc_xderiv2(cab,encab,encab2,no)
         nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
         bl_d2 = []
         for block in range(inputparam.nblocks):
             bstart=block*nperb
             bend=(block+1)*nperb
-            bl_d2.append(calc_deriv2(cab[bstart:bend],encab[bstart:bend],encab2[bstart:bend],no[bstart:bend]))
-            np.savetxt(subdir+"bl_"+str(block)+"_"+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,bl_d2[block]])
+            bl_d2.append(calc_xderiv2(cab[bstart:bend],encab[bstart:bend],encab2[bstart:bend],no[bstart:bend]))
+            np.savetxt(subdir+"bl_"+str(block)+"_xd_"+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,bl_d2[block]])
         err_d2 = Error(bl_d2)
-        np.savetxt(subdir+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,d2,err_d2])
+        np.savetxt(subdir+'xd_'+item+'_'+item2+'_'+mol_name+'_'+corr_func+'.dat',np.c_[time,d2,err_d2])
     return
 
 def second_order_dist(cab,encab):
@@ -192,7 +226,7 @@ def Error(bl_corr):
 # Reads the command line arguments for the segments
 parser = argparse.ArgumentParser()
 parser.add_argument('-val', default=0, type=int, help='This is the number of the segment')
-parser.add_argument('-opt', default=1, type=int, help='[1] init_segs [2] combine_segs')
+parser.add_argument('-opt', default=1, type=int, help='[1] init_segs [2] combine_segs [3] prew combine_segs')
 parser.add_argument('-corr',default="c2", type=str,help='Correlation function of interest')
 parser.add_argument('-mol', default="water",type=str,help="Molecule name")
 parser.add_argument('-tnrm',default=-1, type=int, help="[-1] regular averaging, [1] special averaging")
@@ -243,6 +277,12 @@ fend = (splitno+1)*inputparam.sep_config*inputparam.segsplit + inputparam.start_
 inp_n = np.genfromtxt(fname, usecols=0,dtype=str,unpack=True)
 subdir="OUT/"
 
+msd_flag = 0
+if corr_func == "msdp":
+    msd_flag = 1
+    corr_func = "msd_py"
+
+
 
 cab,no,wcab=[],[],[]
 orig_cab,dist_av_cab = [],[]
@@ -254,8 +294,19 @@ if option == 1 and tnrm == -1:
         # This sets what values above tnrm to contribute, if -1, then disabled
         tmpcab = []
         # Note - support for binary read, much faster!
+        #mj=open('missedjobs'+str(splitno), 'a')
+        missedjobs=0
         if binaryread == 0: tmpcab = np.genfromtxt(filename+".dat", usecols=(1),dtype=(float),unpack=True)
-        else: tmpcab = pickle.load(open(filename+".pckl",'rb'))
+        else: 
+            try: 
+                tmpcab = pickle.load(open(filename+".pckl",'rb'))
+            except:
+                missedjobs=1
+                print(filename," has failed")
+                #fdir = "FILES/"+str(i)
+                #mj.write("mkdir "+fdir+"; cp in.nve "+fdir+"; cp nve.sh "+fdir+"; cd "+fdir+"; sed -i -e 's@AAA@"+str(i)+"@g' nve.sh; sbatch nve.sh; cd ../../\n")
+        if missedjobs==1: exit()
+        #mj.close()
         if histbin != 0:
             old = np.zeros(histbin)
             old[:np.array(tmpcab).shape[0]] = tmpcab
@@ -264,6 +315,8 @@ if option == 1 and tnrm == -1:
         cab.append(tmpcab)
     if not os.path.exists("TEMP"):
         os.makedirs("TEMP")
+    if not os.path.exists("OUT"):
+        os.makedirs("OUT")
     with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as g:
         pickle.dump(cab,g)
     # Only if using tnrm
@@ -291,6 +344,8 @@ elif option == 1 and tnrm != -1:
         cab.append(tmpcab)
     if not os.path.exists("TEMP"):
         os.makedirs("TEMP")
+    if not os.path.exists("OUT"):
+        os.makedirs("OUT")
     with open('TEMP/cab'+'_'+str(splitno)+'_'+corr_func+'_'+mol_name+'.pckl','wb') as g:
         pickle.dump(cab,g)
     # Only if using tnrm
@@ -327,6 +382,30 @@ elif option == 2:
             if extra_corr != "None": extra_cab = np.concatenate((extra_cab,tmpextra),axis=0)
             if weights != "None": wcab = np.concatenate((wcab, tmpweight),axis=0)
             if tnrm != -1: no=np.concatenate((no,tmpno),axis=0)
+    if msd_flag == 1:
+        def linear(x,m,b):
+            return m*x+b
+        from scipy.optimize import curve_fit
+        cab2 = []
+        for msd in cab:
+            cut = int(len(msd)*0.9)
+            popt,pcov = curve_fit(linear, time[cut:], msd[cut:])
+            m,b = popt
+            cab2.append([m/.6])
+        cab = cab2
+        if len(np.shape(cab))!= 2: 
+            np.savetxt("D_vals2.dat",np.c_[energy["e"],cab])
+            cab=np.reshape(cab,(len(cab),1))
+            if wrule=="inv": 
+                cab = np.divide(1,cab)
+                corr_func = corr_func + "inv"
+            if wrule=="invlog":
+                cab = np.log(np.divide(1,cab))
+                corr_func = corr_func + "invlog"
+            time=np.array([1])
+    if "D" in corr_func:
+        cab = np.reshape(cab, (len(cab),1))
+        time = np.array([1])
     # Histograms if histbin is active
     # Slower!
 
@@ -382,7 +461,6 @@ elif option == 2:
     # !!THIS IS THE MAIN CORRELATION CALCULATION!!
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     zero_order(cab,no)
-    print(corr_func,np.shape(cab),cab[0][0])
     if histbin != 0:
         dist_av_cab = np.average(orig_cab,axis=1)
         zero_order_dist(dist_av_cab) 
@@ -391,11 +469,97 @@ elif option == 2:
         print("Derivative for  %s" % item,flush=True)
         if histbin != 0: first_order_dist(dist_av_cab,energy[item])
         encab = np.multiply(energy[item][:,None],no)
+        print(np.shape(encab))
         avcab = calc_avcab(cab,no)
         first_order(cab,encab,no)
         if higher == 1:
-            second_order(cab,encab,no)
+            second_order(cab,encab,no,item)
+            second_cross(cab,encab,no)
             if histbin != 0: second_order_dist(dist_av_cab,energy[item])
             third_order(cab,encab,no)
             fourth_order(cab,encab,no)
 
+elif option == 3:
+    # For preweighted things already - first deriv only
+    # Read in the time, generated by real_time.py
+    print("Reading Time")
+    time = np.genfromtxt(tfile,usecols=0,unpack=True)
+    # This loops over the segments and reads them in.
+    print("Unpickling Files")
+    for i in range(nosplit):
+        print(i,flush=True)
+        tmpextra=[]
+        tmpcab = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        if extra_corr != "None": tmpextra = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+extra_corr+'_'+mol_name+'.pckl','rb'))
+        tmpweight=[]
+        if weights != "None": tmpweight = pickle.load(open('TEMP/cab'+'_'+str(i)+'_'+weights+'_'+mol_name+'.pckl','rb'))
+        if tnrm != -1: tmpno = pickle.load(open('TEMP/no'+'_'+str(i)+'_'+corr_func+'_'+mol_name+'.pckl','rb'))
+        if i == 0:
+            cab = tmpcab
+            if extra_corr != "None": extra_cab = tmpextra
+            if weights != "None": wcab = tmpweight
+            if tnrm != -1: no  = tmpno
+        else:
+            cab=np.concatenate((cab,tmpcab),axis=0)
+            if extra_corr != "None": extra_cab = np.concatenate((extra_cab,tmpextra),axis=0)
+            if weights != "None": wcab = np.concatenate((wcab, tmpweight),axis=0)
+            if tnrm != -1: no=np.concatenate((no,tmpno),axis=0)
+
+    aven = 0.0 
+    if weights != "None": aven = np.average(wcab[wcab!=0])
+    if histbin != 0:
+        orig_cab = cab
+        if wrule == "square": wcab = np.power(wcab,2)
+        # Resets time if histogramming is active
+        print("Binning Histogram",flush=True)
+        split=(hmax-hmin)/float(histbin)
+        time = []
+        for b in range(histbin):
+            time.append(b*split+split/2+hmin)
+        # Resets cab if histogramming is active
+        cab2 = []
+        origcab = []
+        count = 0
+        for tmpcab in cab:
+            nonzero = tmpcab[tmpcab != 0]
+            tmp, bedge= [],[]
+            if count%1000 == 0: print("Reached histogram %d" % count, flush=True)
+            orig,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=False)
+            nzwcab = wcab[count][tmpcab != 0]
+            tmp,bedge = np.histogram(nonzero, bins=histbin,range=(hmin,hmax),density=False, weights=nzwcab)
+            # This next one is just a test
+            #tmp = tmp / len(nonzero)
+            cab2.append(tmp)
+            origcab.append(orig)
+            count += 1
+        cab = np.array(cab2,dtype=float)
+        origcab = np.array(origcab,dtype=float)
+
+        bl_cab,bl_dcab=[],[]
+        nperb = int(nosplit*inputparam.segsplit/inputparam.nblocks)
+        for block in range(inputparam.nblocks):
+            bstart=block*nperb
+            bend=(block+1)*nperb
+            blen = np.average(wcab[bstart:bend][wcab[bstart:bend]!=0],axis=0)
+            orig = np.average(origcab[bstart:bend],axis=0)
+            tmp = -np.subtract(np.average(cab[bstart:bend],axis=0),np.multiply(blen,orig))
+            np.savetxt(subdir+"/bl_"+str(block)+"_"+mol_name+"_"+corr_func+".dat", np.c_[time,orig])
+            np.savetxt(subdir+"/bl_"+str(block)+"_"+weights+"_"+mol_name+"_"+corr_func+".dat", np.c_[time,tmp])
+            bl_dcab.append(tmp)
+            bl_cab.append(orig)
+        errcab = Error(bl_cab)
+        errdcab = Error(bl_dcab)
+        np.savetxt(subdir+"/"+mol_name+"_"+corr_func+".dat", np.c_[time,np.average(origcab,axis=0),errcab])
+        fincab = -np.subtract(np.average(cab,axis=0),np.multiply(aven,np.average(origcab,axis=0)))
+        np.savetxt(subdir+"/"+weights+"_"+mol_name+"_"+corr_func+".dat", np.c_[time,fincab,errdcab])
+    else:
+        if extra_corr != "None":
+            avextra = np.subtract(np.average(extra_cab,axis=1),np.average(extra_cab))
+            cab = np.add(cab,np.power(avextra[:,np.newaxis],2))
+        if wrule == "norm_zero":
+            tmpav = np.average(cab,axis=0)
+            cab = np.divide(cab,tmpav[0])
+        elif wrule == "norm_reg":
+            cab = np.divide(cab,cab[:,0,np.newaxis])
+    
+    
