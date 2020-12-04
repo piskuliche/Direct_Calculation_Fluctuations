@@ -51,57 +51,7 @@ def parse_log(filename):
         edata[header[i]]=data[i]
     return edata
 
-def LJ(dr,eps,sig):
-    """
-    This function calculates the lennard jones potential energy for a particular epsilon and sigma
-    """
-    r6 = (sig/dr)**6.
-    Ulj = 4*eps*(r6**2.-r6)
-    return Ulj
-
-def Coul(dr,q1,q2):
-    """
-    This function calculates the real-space electrostatic energy
-    """
-    C=332.06371
-    Ucoul = C*q1*q2/dr
-    return Ucoul
-
-def calc_lj(mol1,mol2,eps,sig):
-    """
-    This calls the calc lj script
-    """
-    #dr = min_dist(rO[mol1],rO[mol2])[0]
-    dr =1.0
-    return LJ(dr,eps,sig)
-
-def calc_coul(mol1,mol2,qo,qh):
-    """
-    This calls the electrostatic calculation script
-    """
-    terms = []
-    # Note - there are more terms because there are many sites which have interactions! 
-    # 2 water molecules, 3 atoms each - 9 total terms
-    # The donor and acceptor are tagged     
-    """D  A
-    terms.append([min_dist(rO[mol1],rO[mol2])[0],qo,qo]) # Ox Ox
-    terms.append([min_dist(rO[mol1],r1[mol2])[0],qo,qh]) # Ox H1
-    terms.append([min_dist(rO[mol1],r2[mol2])[0],qo,qh]) # Ox H2
-    terms.append([min_dist(r1[mol1],rO[mol2])[0],qh,qo]) # H1 Ox
-    terms.append([min_dist(r2[mol1],rO[mol2])[0],qh,qo]) # H2 Ox
-    terms.append([min_dist(r1[mol1],r1[mol2])[0],qh,qh]) # H1 H1
-    terms.append([min_dist(r2[mol1],r1[mol2])[0],qh,qh]) # H2 H1
-    terms.append([min_dist(r1[mol1],r2[mol2])[0],qh,qh]) # H1 H2
-    terms.append([min_dist(r2[mol1],r2[mol2])[0],qh,qh]) # H2 H2"""
-    Ucoul=0
-    """
-    # Sums up the terms
-    for term in terms:
-        Ucoul += Coul(term[0],term[1],term[2])
-    """
-    return Ucoul
-
-
+    
 def min_dist(a, b):
     """
     This calculates the minimum image distance between two 3D coordinates, stored 
@@ -371,10 +321,6 @@ end=0
 # Defines the oo distance calculator
 oo_dist = []
 
-SAVEOH=[]
-SAVEOH.append(OHs)
-
-
 for n in range(1,ntimes): # Loop Over Times
     nmols, dOO[1], dHO1[1], dHO2[1], eOO[1],eO1[1],eO2[1]= read_frames(f,0)   
     if n%nval == 0: # Outputs information to the screen, what step is reached, how much time has elapsed, and the # of hbonds
@@ -416,8 +362,7 @@ for n in range(1,ntimes): # Loop Over Times
                         ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO1[0][mol1][mol1],eO1[1][mol1][mol1])
                     else:
                         ch1[OH][n],ch2[OH][n],ch3[OH][n]=calc_cn(eO2[0][mol1][mol1],eO2[1][mol1][mol1])
-                    norm_t[n] += 1.0
-    SAVEOH.append(OHs)
+                    norm_t[n] += 1.0 
     if np.sum(np.array(OHs).T[2]>0) == 0:
         end = n+1
         break
@@ -589,7 +534,6 @@ pickle.dump(C1,open('framec1_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(C2,open('framec2_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(C3,open('framec3_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 pickle.dump(norm_t,open('norm_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
-pickle.dump(SAVEOH,open('OHS_'+str(nfile)+'_'+str(mol_name)+'.pckl', 'wb'))
 
 """
 np.savetxt('LJAold_init.out', np.c_[np.sum(Ulj["Aold"])])

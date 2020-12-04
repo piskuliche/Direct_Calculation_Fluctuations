@@ -20,6 +20,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	$(FC) $(FCFLAGS) -o src/exec/matom_msd_rot_calc src/fortran/multi-atom_msd_rot_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/visc_calc    src/fortran/visc_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/flux_side    src/fortran/flux_side.f90
+	$(FC) $(FCFLAGS) -o src/exec/jump_calc    src/fortran/jump_reor_and_diff.f90
 	mkdir -p bin/
 	touch bin/test
 	rm bin/*
@@ -41,6 +42,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	ln -s $(HOMEPATH)/src/python/parse_and_combine.py bin/
 	ln -s $(HOMEPATH)/src/python/dat_to_pickle.py bin/
 	ln -s $(HOMEPATH)/src/python/spectral_diffusion.py bin/
+	ln -s $(HOMEPATH)/src/python/calc_eta.py bin/
 	chmod 777 backbone.py
 	chmod 777 bin/*
 	chmod 777 src/exec

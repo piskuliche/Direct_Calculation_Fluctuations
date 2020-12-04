@@ -272,7 +272,7 @@ Efield=np.zeros((ntimes,2*nmols))
 # calculates for t=0
 # Loop over times
 for t in range(ntimes):
-    if t%100 == 0: print("STEP:",t,flush=True)
+    if t%100 == 0: print("STEP:",t)
     Efield[t]= read_frames(f,t)
 # Converts to frequencies
 
@@ -283,7 +283,7 @@ dw = np.subtract(w,w_avg)
 w2avg = np.average(w)
 dw2 = np.subtract(w,w2avg)
 
-print("Finalizing Calculations",flush=True)
+print("Finalizing Calculations")
 
 # Calculates transition dipole
 initial_w = w[0]

@@ -137,7 +137,8 @@ def step_nve():
         f.close()
         if not os.path.exists("FILES"):
             os.makedirs("FILES")
-        import src.python.gen_sub_scripts
+        if corr_override == "None": import src.python.gen_sub_scripts
+        else: import src.python.gen_sub_override
         if inputparam.timestep == 'FALSE':
             import src.python.non_unif_sample
         else:
@@ -332,9 +333,15 @@ if __name__ == "__main__":
     import argparse
     parser=argparse.ArgumentParser()
     parser.add_argument('-dryrun', default=0,type=int,help="Dry run flag - [0] Submit Scripts as Jobs, [1] Creates, but doesn't submit")
+    parser.add_argument('-corr_override', default="None", type = str, help="Flag that specifies correlation function commands to include in calculation files, if necessary")
     args = parser.parse_args()
 
     dryrun = args.dryrun
+    corr_override = args.corr_override
+    if corr_override != "None":
+        f = open(".flag_override", "w")
+        f.write(corr_override)
+        f.close()
 
 
     step_instruct()
