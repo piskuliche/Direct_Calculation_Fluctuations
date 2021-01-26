@@ -242,6 +242,7 @@ parser.add_argument('-random', default=0, type=int, help="[0] don't randomize, [
 parser.add_argument('-weights', default="None", type=str, help="Name of correlation function for weights")
 parser.add_argument('-wrule', default="linear", type=str, help="Options for weights, either 'linear' or 'square'")
 parser.add_argument('-extra', default="None", type=str, help="Extra correlation function to read in")
+parser.add_argument('-reshape', default=0, type=int, help="Reshapes correlation based on being size 1")
 args = parser.parse_args()
 splitno     = args.val
 option      = args.opt
@@ -260,6 +261,7 @@ weights     = args.weights
 higher      = args.higher
 wrule       = args.wrule
 extra_corr  = args.extra
+reshape     = args.reshape
 
 # Read the input file
 inputparam = user_input("input_file")
@@ -403,7 +405,7 @@ elif option == 2:
                 cab = np.log(np.divide(1,cab))
                 corr_func = corr_func + "invlog"
             time=np.array([1])
-    if "D" in corr_func:
+    if reshape == 1:
         cab = np.reshape(cab, (len(cab),1))
         time = np.array([1])
     # Histograms if histbin is active

@@ -273,9 +273,12 @@ inp.close()
 L = volume**(1/3.)
 
 # Definition of the HBond Criteria
-rOO_max = 3.1
-rHO_max = 2.0
-ang_max = 20.
+#rOO_max = 3.1
+#rHO_max = 2.0
+#ang_max = 20.
+rOO_max = 3.5
+rHO_max = 2.45
+ang_max = 30.
 
 # Trajectory File Name
 filename = 'traj_'+str(nfile)+'_'+str(mol_name)+'.xyz'
@@ -310,7 +313,7 @@ for mol1 in range(nmols):
             if hbnd != 0:
                 OHs.append([mol1,mol2,hbnd])
 
-
+print("Num OHs",len(OHs))
 # This section checks for donors (up to a maximum of 3)
 for OH1 in range(len(OHs)):
     count = 0
@@ -321,7 +324,15 @@ for OH1 in range(len(OHs)):
                 count+=1
 # This section fills out the donors with -1's where there are no donors
 for OH1 in range(len(OHs)):
+    if len(OHs[OH1]) == 2:
+        OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
     if len(OHs[OH1]) == 3:
+        OHs[OH1].append(-1)
         OHs[OH1].append(-1)
         OHs[OH1].append(-1)
         OHs[OH1].append(-1)
@@ -330,12 +341,18 @@ for OH1 in range(len(OHs)):
         OHs[OH1].append(-1)
         OHs[OH1].append(-1)
         OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
     elif len(OHs[OH1]) == 5:
+        OHs[OH1].append(-1)
         OHs[OH1].append(-1)
         OHs[OH1].append(-1)
     elif len(OHs[OH1]) == 6:
         OHs[OH1].append(-1)
+        OHs[OH1].append(-1)
+    elif len(OHs[OH1]) == 7:
+        OHs[OH1].append(-1)
 
+print(np.shape(np.array(OHs)))
 
 print("There are %s OHs" % len(OHs))
 print("%d hydrogen bonds" % np.sum(np.array(OHs).T[2]>0))
@@ -406,7 +423,8 @@ for n in range(1,ntimes): # Loop Over Times
                         c1[OH][n],c2[OH][n],c3[OH][n]=0.0,0.0,0.0
                         ch1[OH][n],ch2[OH][n],ch3[OH][n]=0.0,0.0,0.0
                         OHs[OH][2]=0
-                        OHs[OH][6]=mol2
+                        # Sets the new acceptor (when I moved to an 8 element OH vector, I updated this)
+                        OHs[OH][7]=mol2
                         oo_dist.append(dOO[1][mol1][OHs[OH][1]])
                         theta.append(calc_jumpang(OHs[OH],eOO,1))
                         jindex.append(n)
@@ -433,7 +451,7 @@ if end != -1:
             crp[OH][n] += 1
 # This handles the case where there is no new acceptor 
 for OH in range(len(OHs)):
-    if len(OHs[OH]) != 7:
+    if len(OHs[OH]) != 8:
         OHs[OH].append(-1) 
 
 # This calculates the jump correlations based on whether they are hydrogen bonded or not.

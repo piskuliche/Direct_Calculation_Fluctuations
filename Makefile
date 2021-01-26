@@ -21,6 +21,7 @@ msd_rot_calc: src/fortran/msd_rot_calc.f90 src/fortran/visc_calc.f90 src/fortran
 	$(FC) $(FCFLAGS) -o src/exec/visc_calc    src/fortran/visc_calc.f90
 	$(FC) $(FCFLAGS) -o src/exec/flux_side    src/fortran/flux_side.f90
 	$(FC) $(FCFLAGS) -o src/exec/jump_calc    src/fortran/jump_reor_and_diff.f90
+	$(FC) $(FCFLAGS) -o src/exec/check_hbonds    src/fortran/checkhbond.f90
 	mkdir -p bin/
 	touch bin/test
 	rm bin/*
